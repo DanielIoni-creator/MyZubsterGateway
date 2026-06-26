@@ -1,0 +1,18 @@
+# Local environment and generated files
+.env
+.env.*
+!.env.example
+node_modules/
+backend/data/
+
+# Android/Gradle
+.gradle/
+build/
+app/build/
+local.properties
+
+# IDE / OS
+.idea/
+*.iml
+.DS_Store
+Thumbs.db

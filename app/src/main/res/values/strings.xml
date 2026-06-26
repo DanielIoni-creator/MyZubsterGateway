@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">MyZubster</string>
+    <string name="request_payment">Richiedi Pagamento</string>
+    <string name="payment_status_pending">In attesa del pagamento</string>
+    <string name="payment_status_detected">Pagamento rilevato, attendo conferme</string>
+    <string name="payment_status_confirmed">Pagamento ricevuto</string>
+</resources>
