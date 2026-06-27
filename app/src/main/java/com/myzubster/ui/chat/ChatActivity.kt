@@ -88,5 +88,6 @@ class ChatActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_CONTACT_USER_ID = "extra_contact_user_id"
+        const val EXTRA_CHAT_ID = "extra_chat_id"
     }
 }

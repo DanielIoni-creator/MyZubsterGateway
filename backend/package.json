@@ -8,7 +8,7 @@
   "scripts": {
     "start": "node src/index.js",
     "start:json-store": "node src/server.js",
-    "check": "node --check src/index.js && node --check src/server.js && node --check src/models/PaymentTransaction.js && node --check src/notifications/firebase.js && node --check src/payment/config.js && node --check src/payment/moneroClient.js && node --check src/payment/paymentStore.js && node --check src/payment/paymentService.js && node --check src/payment/routes.js"
+    "check": "node --check src/index.js && node --check src/server.js && node --check src/models/PaymentTransaction.js && node --check src/notifications/firebase.js && node --check src/services/notificationService.js && node --check src/payment/config.js && node --check src/payment/moneroClient.js && node --check src/payment/paymentStore.js && node --check src/payment/paymentService.js && node --check src/payment/routes.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

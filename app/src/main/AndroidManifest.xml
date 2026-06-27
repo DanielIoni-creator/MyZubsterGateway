@@ -8,23 +8,31 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyZubster">
         <activity
-            android:name=".ui.chat.ChatActivity"
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.chat.ChatActivity"
+            android:exported="false" />
         <service
-            android:name=".services.NotificationService"
+            android:name=".services.MyFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
 
+        <receiver
+            android:name=".receivers.NotificationReceiver"
+            android:exported="false" />
+
         <activity android:name=".activities.PaymentActivity" />
         <activity android:name=".activities.SkillDetailActivity" />
         <activity android:name=".ui.skills.CreateSkillActivity" />
+        <activity android:name=".ui.settings.SettingsActivity" />
     </application>
 </manifest>

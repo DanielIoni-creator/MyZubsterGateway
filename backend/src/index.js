@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const { randomUUID, createHash } = require('crypto');
 const PaymentTransaction = require('./models/PaymentTransaction');
 const { sendPaymentConfirmedNotification } = require('./notifications/firebase');
+const { sendPushNotification, sendPushNotifications } = require('./services/notificationService');
 const { loadPaymentConfig, normalizeConfirmations } = require('./payment/config');
 const { MoneroClient } = require('./payment/moneroClient');
 const { parseXmrToAtomic, formatAtomicToXmr, buildMoneroUri } = require('./payment/paymentService');
@@ -19,6 +20,9 @@ const paymentConfig = loadPaymentConfig(process.env);
 const moneroClient = new MoneroClient(paymentConfig);
 
 let skills;
+let messages;
+let deviceTokens;
+let users;
 
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
@@ -37,6 +41,91 @@ app.get('/api/skills/:skillId', async (req, res) => {
     const skill = await findSkillById(req.params.skillId);
     if (!skill) return res.status(404).json({ error: 'skill not found' });
     res.json(publicSkill(skill));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/notifications/register-token', async (req, res) => {
+  try {
+    const { userId, token, platform = 'android', online = true } = req.body || {};
+    if (!userId || !token) return res.status(400).json({ error: 'userId and token are required' });
+
+    await deviceTokens.updateOne(
+      { token },
+      {
+        $set: {
+          userId: String(userId),
+          token,
+          platform,
+          online: Boolean(online),
+          updatedAt: new Date(),
+          lastSeenAt: new Date()
+        },
+        $setOnInsert: { createdAt: new Date() }
+      },
+      { upsert: true }
+    );
+
+    await users.updateOne(
+      { userId: String(userId) },
+      {
+        $set: {
+          userId: String(userId),
+          fcmToken: token,
+          online: Boolean(online),
+          updatedAt: new Date(),
+          lastSeenAt: new Date()
+        },
+        $setOnInsert: { createdAt: new Date() }
+      },
+      { upsert: true }
+    );
+
+    res.json({ ok: true, userId: String(userId) });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/messages', async (req, res) => {
+  try {
+    const { senderId, recipientId, text, body, senderName, chatId } = req.body || {};
+    const messageText = text ?? body;
+    if (!senderId || !recipientId || !messageText) {
+      return res.status(400).json({ error: 'senderId, recipientId and text are required' });
+    }
+
+    const message = {
+      messageId: randomUUID(),
+      chatId: chatId || buildChatId(senderId, recipientId),
+      senderId: String(senderId),
+      recipientId: String(recipientId),
+      senderName: senderName || 'Utente MyZubster',
+      text: String(messageText),
+      readAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    await messages.insertOne(message);
+
+    const recipientTargets = await getUserNotificationTargets(recipientId, { onlineOnly: true });
+    if (recipientTargets.length > 0) {
+      const title = `Nuovo messaggio da ${message.senderName}`;
+      await Promise.allSettled(
+        recipientTargets.map((token) => sendPushNotification(token, title, message.text, {
+          type: 'message_received',
+          messageId: message.messageId,
+          chatId: message.chatId,
+          senderId: message.senderId,
+          senderName: message.senderName,
+          recipientId: message.recipientId
+        }))
+      );
+    }
+
+    res.status(201).json({ ...message, notified: recipientTargets.length > 0 });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -62,6 +151,41 @@ app.get('/api/payment/status/:paymentId', async (req, res) => {
     res.json(publicPayment(transaction));
   } catch (error) {
     res.status(502).json({ error: error.message });
+  }
+});
+
+app.put('/api/payment/status/:paymentId', async (req, res) => {
+  try {
+    const { status, confirmations, txIds, txids, paidAtomic, amountAtomic } = req.body || {};
+    const previous = await PaymentTransaction.findOne({ paymentId: req.params.paymentId });
+    if (!previous) return res.status(404).json({ error: 'payment not found' });
+
+    const nextStatus = status ? toDbStatus(status) : previous.status;
+    const paidAtomicValue = paidAtomic ?? amountAtomic ?? previous.paidAtomic ?? previous.amountAtomic;
+    const update = {
+      status: nextStatus,
+      confirmations: Number(confirmations ?? previous.confirmations ?? 0),
+      paidAtomic: String(paidAtomicValue),
+      paidXmr: formatAtomicToXmr(BigInt(String(paidAtomicValue))),
+      txIds: txIds || txids || previous.txIds || [],
+      updatedAt: new Date()
+    };
+    if (isConfirmedStatus(nextStatus)) update.confirmedAt = previous.confirmedAt || new Date();
+
+    const transaction = await PaymentTransaction.findOneAndUpdate(
+      { paymentId: req.params.paymentId },
+      { $set: update },
+      { new: true }
+    );
+
+    const transitionedToConfirmed = !isConfirmedStatus(previous.status) && isConfirmedStatus(transaction.status);
+    if (transitionedToConfirmed) {
+      await notifyPaymentConfirmed(transaction, req.body.callbackUrl || callbackUrl || null, transaction.txIds || []);
+    }
+
+    res.json(publicPayment(transaction));
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -199,6 +323,26 @@ function toObjectId(value) {
   return new mongoose.Types.ObjectId(createHash('sha1').update(String(value)).digest('hex').slice(0, 24));
 }
 
+function buildChatId(userA, userB) {
+  return [String(userA), String(userB)].sort().join(':');
+}
+
+async function getUserNotificationTargets(userId, { onlineOnly = false } = {}) {
+  const stringUserId = String(userId);
+  const selectors = [{ userId: stringUserId }];
+  if (mongoose.Types.ObjectId.isValid(stringUserId)) selectors.push({ _id: new mongoose.Types.ObjectId(stringUserId) });
+
+  const [tokenRows, userRows] = await Promise.all([
+    deviceTokens.find({ userId: stringUserId, ...(onlineOnly ? { online: true } : {}) }).toArray(),
+    users.find({ $or: selectors, ...(onlineOnly ? { online: true } : {}) }).toArray()
+  ]);
+
+  return [...new Set([
+    ...tokenRows.map((row) => row.token),
+    ...userRows.flatMap((row) => [row.fcmToken, row.fcmTokenBuyer, row.fcmTokenSeller, ...(row.fcmTokens || [])])
+  ].filter(Boolean))];
+}
+
 async function findSkillById(skillId) {
   const selectors = [{ id: skillId }, { skillId }];
   if (mongoose.Types.ObjectId.isValid(skillId)) selectors.push({ _id: new mongoose.Types.ObjectId(skillId) });
@@ -295,14 +439,38 @@ async function notifyPaymentConfirmed(transaction, paymentCallbackUrl, txIds = [
 
 async function notifyPush(transaction) {
   if (transaction.notificationSentAt) return;
-  const result = await sendPaymentConfirmedNotification({
-    token: transaction.fcmToken,
-    payment: {
-      paymentId: transaction.paymentId,
-      amount: transaction.amount
-    }
-  });
-  if (result) {
+  const sellerTokens = await getUserNotificationTargets(transaction.sellerId);
+  const buyerTokens = transaction.buyerId ? await getUserNotificationTargets(transaction.buyerId) : [];
+  const directTokens = [transaction.fcmToken];
+  const tokens = [...new Set([...sellerTokens, ...buyerTokens, ...directTokens].filter(Boolean))];
+
+  const results = tokens.length > 0
+    ? await sendPushNotifications(
+      tokens,
+      'Pagamento Monero confermato',
+      `Pagamento ${transaction.amount} XMR confermato su MyZubster.`,
+      {
+        type: 'payment_confirmed',
+        paymentId: transaction.paymentId,
+        amount: transaction.amount,
+        sellerId: String(transaction.sellerId),
+        buyerId: transaction.buyerId ? String(transaction.buyerId) : null,
+        status: 'confirmed'
+      }
+    )
+    : [];
+
+  if (directTokens.filter(Boolean).length > 0) {
+    await sendPaymentConfirmedNotification({
+      token: transaction.fcmToken,
+      payment: {
+        paymentId: transaction.paymentId,
+        amount: transaction.amount
+      }
+    });
+  }
+
+  if (results.some((result) => result.ok) || directTokens.filter(Boolean).length > 0) {
     transaction.notificationSentAt = new Date();
     await transaction.save();
   }
@@ -332,7 +500,18 @@ async function notifyApp(transaction, paymentCallbackUrl, txIds = []) {
 async function start() {
   await mongoose.connect(mongoUri);
   skills = mongoose.connection.db.collection('skills');
-  await skills.createIndex({ id: 1 });
+  messages = mongoose.connection.db.collection('messages');
+  deviceTokens = mongoose.connection.db.collection('device_tokens');
+  users = mongoose.connection.db.collection('users');
+
+  await Promise.all([
+    skills.createIndex({ id: 1 }),
+    messages.createIndex({ chatId: 1, createdAt: -1 }),
+    messages.createIndex({ recipientId: 1, createdAt: -1 }),
+    deviceTokens.createIndex({ token: 1 }, { unique: true }),
+    deviceTokens.createIndex({ userId: 1, online: 1 }),
+    users.createIndex({ userId: 1 }, { unique: true, sparse: true })
+  ]);
 
   app.listen(port, () => {
     console.log(`MyZubster backend listening on http://0.0.0.0:${port}`);

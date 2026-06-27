@@ -13,26 +13,19 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import com.myzubster.R
-import com.myzubster.activities.PaymentActivity
-import com.myzubster.network.NotificationApiService
-import com.myzubster.ui.chat.ChatActivity
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import com.myzubster.receivers.NotificationReceiver
+import com.myzubster.utils.FirebaseTokenManager
 
-class NotificationService : FirebaseMessagingService() {
-    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
+class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        android.util.Log.d(TAG, "FCM token aggiornato: $token")
-        registerToken(token)
+        FirebaseTokenManager.saveToken(this, token)
+        android.util.Log.d(TAG, "Nuovo token FCM salvato")
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
+        if (!FirebaseTokenManager.areNotificationsEnabled(this)) return
 
         val type = message.data["type"] ?: "generic"
         val title = message.notification?.title
@@ -49,16 +42,6 @@ class NotificationService : FirebaseMessagingService() {
         showNotification(title, body, message.data)
     }
 
-    private fun registerToken(token: String) {
-        val userId = currentUserId()
-        if (userId.isBlank()) return
-
-        serviceScope.launch {
-            runCatching { NotificationApiService().registerDeviceToken(userId, token) }
-                .onFailure { error -> android.util.Log.w(TAG, "Registrazione token FCM fallita: ${error.message}") }
-        }
-    }
-
     private fun showNotification(title: String, body: String, data: Map<String, String>) {
         createNotificationChannel()
 
@@ -69,12 +52,18 @@ class NotificationService : FirebaseMessagingService() {
             return
         }
 
-        val intent = targetIntent(data)
         val stableKey = data["paymentId"] ?: data["messageId"] ?: data["chatId"] ?: System.currentTimeMillis().toString()
-        val pendingIntent = PendingIntent.getActivity(
+        val tapIntent = Intent(this, NotificationReceiver::class.java).apply {
+            action = NotificationReceiver.ACTION_NOTIFICATION_TAP
+            putExtra(NotificationReceiver.EXTRA_NOTIFICATION_TYPE, data["type"] ?: "generic")
+            data["paymentId"]?.let { putExtra(NotificationReceiver.EXTRA_PAYMENT_ID, it) }
+            data["chatId"]?.let { putExtra(NotificationReceiver.EXTRA_CHAT_ID, it) }
+            data["senderId"]?.let { putExtra(NotificationReceiver.EXTRA_SENDER_ID, it) }
+        }
+        val pendingIntent = PendingIntent.getBroadcast(
             this,
             stableKey.hashCode(),
-            intent,
+            tapIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
@@ -91,23 +80,6 @@ class NotificationService : FirebaseMessagingService() {
         NotificationManagerCompat.from(this).notify(stableKey.hashCode(), notification)
     }
 
-    private fun targetIntent(data: Map<String, String>): Intent {
-        return when (data["type"]) {
-            TYPE_PAYMENT_CONFIRMED -> Intent(this, PaymentActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                data["paymentId"]?.let { putExtra(PaymentActivity.EXTRA_PAYMENT_ID, it) }
-            }
-            TYPE_MESSAGE_RECEIVED -> Intent(this, ChatActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                data["senderId"]?.let { putExtra(ChatActivity.EXTRA_CONTACT_USER_ID, it) }
-                data["chatId"]?.let { putExtra(ChatActivity.EXTRA_CHAT_ID, it) }
-            }
-            else -> Intent(this, ChatActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            }
-        }
-    }
-
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val channel = NotificationChannel(
@@ -121,16 +93,10 @@ class NotificationService : FirebaseMessagingService() {
         manager.createNotificationChannel(channel)
     }
 
-    private fun currentUserId(): String = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        .getString(KEY_USER_ID, "")
-        .orEmpty()
-
     companion object {
-        private const val TAG = "NotificationService"
+        private const val TAG = "MyFirebaseMessagingService"
         const val CHANNEL_ID = "myzubster_notifications"
         const val TYPE_PAYMENT_CONFIRMED = "payment_confirmed"
         const val TYPE_MESSAGE_RECEIVED = "message_received"
-        private const val PREFS_NAME = "myzubster_notifications"
-        private const val KEY_USER_ID = "user_id"
     }
 }
