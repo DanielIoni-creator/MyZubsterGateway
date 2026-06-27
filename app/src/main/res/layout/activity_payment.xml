@@ -20,23 +20,16 @@
             android:textStyle="bold" />
 
         <TextView
+            android:id="@+id/paymentAmount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Importo da pagare"
-            android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/paymentActivityAmountText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="0.00 XMR"
+            android:text="Importo da pagare: 0.00 XMR"
             android:textSize="22sp"
             android:textStyle="bold" />
 
         <ImageView
-            android:id="@+id/paymentActivityQrImage"
+            android:id="@+id/qrCodeImage"
             android:layout_width="280dp"
             android:layout_height="280dp"
             android:layout_marginTop="16dp"
@@ -53,7 +46,7 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/paymentActivityAddressText"
+            android:id="@+id/moneroAddress"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
@@ -81,12 +74,12 @@
             android:indeterminate="true" />
 
         <TextView
-            android:id="@+id/paymentActivityStatusText"
+            android:id="@+id/paymentStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:gravity="center"
-            android:text="In attesa..."
+            android:text="In attesa di pagamento..."
             android:textSize="16sp"
             android:textStyle="bold" />
 
@@ -99,7 +92,7 @@
             android:text="Apri wallet Monero" />
 
         <Button
-            android:id="@+id/paymentActivityCancelButton"
+            android:id="@+id/btnCancel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"

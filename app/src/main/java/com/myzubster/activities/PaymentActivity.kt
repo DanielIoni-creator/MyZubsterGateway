@@ -49,21 +49,21 @@ class PaymentActivity : AppCompatActivity() {
         setContentView(R.layout.activity_payment)
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
 
-        amountText = findViewById(R.id.paymentActivityAmountText)
-        qrImage = findViewById(R.id.paymentActivityQrImage)
-        addressText = findViewById(R.id.paymentActivityAddressText)
-        statusText = findViewById(R.id.paymentActivityStatusText)
+        amountText = findViewById(R.id.paymentAmount)
+        qrImage = findViewById(R.id.qrCodeImage)
+        addressText = findViewById(R.id.moneroAddress)
+        statusText = findViewById(R.id.paymentStatus)
         progress = findViewById(R.id.paymentActivityProgress)
         openWalletButton = findViewById(R.id.paymentActivityOpenWalletButton)
         copyAddressButton = findViewById(R.id.paymentActivityCopyAddressButton)
-        cancelButton = findViewById(R.id.paymentActivityCancelButton)
+        cancelButton = findViewById(R.id.btnCancel)
 
         val existingPaymentId = intent.getStringExtra(EXTRA_PAYMENT_ID)
         val amount = intent.getDoubleExtra(EXTRA_AMOUNT, 0.01)
         val sellerId = intent.getStringExtra(EXTRA_SELLER_ID) ?: "seller-demo"
         val description = intent.getStringExtra(EXTRA_DESCRIPTION) ?: "Pagamento MyZubster"
 
-        amountText.text = "${formatAmount(amount)} XMR"
+        amountText.text = "Importo da pagare: ${formatAmount(amount)} XMR"
         cancelButton.setOnClickListener { cancelPayment() }
         openWalletButton.setOnClickListener { openWallet() }
         copyAddressButton.setOnClickListener { copyAddress() }
@@ -72,7 +72,7 @@ class PaymentActivity : AppCompatActivity() {
             createPayment(amount, description, sellerId)
         } else {
             setLoading(true)
-            setStatus("In attesa...")
+            setStatus("In attesa di pagamento...")
             startStatusPolling(existingPaymentId, pollImmediately = true)
         }
     }
@@ -85,7 +85,7 @@ class PaymentActivity : AppCompatActivity() {
 
     private fun createPayment(amount: Double, description: String, sellerId: String) {
         setLoading(true)
-        setStatus("In attesa...")
+        setStatus("In attesa di pagamento...")
 
         lifecycleScope.launch {
             val fcmToken = runCatching { awaitFcmToken() }.getOrNull()
@@ -114,9 +114,15 @@ class PaymentActivity : AppCompatActivity() {
         pollingJob?.cancel()
         pollingJob = lifecycleScope.launch {
             if (pollImmediately) checkStatusOnce(paymentId)
-            while (isActive) {
+            var attempts = 0
+            while (isActive && attempts < MAX_POLL_ATTEMPTS) {
                 delay(POLL_INTERVAL_MS)
+                attempts += 1
                 checkStatusOnce(paymentId)
+            }
+            if (isActive && !successDialogShown) {
+                setLoading(false)
+                setStatus("Pagamento non ricevuto")
             }
         }
     }
@@ -148,7 +154,7 @@ class PaymentActivity : AppCompatActivity() {
 
     private fun renderPayment(payment: Payment) {
         val address = payment.moneroAddress ?: payment.address
-        amountText.text = "${payment.amountXmr} XMR"
+        amountText.text = "Importo da pagare: ${payment.amountXmr} XMR"
         addressText.text = address
         qrImage.setImageBitmap(
             QRCodeGenerator.generateMoneroQR(
@@ -166,7 +172,7 @@ class PaymentActivity : AppCompatActivity() {
         PaymentStatus.CONFIRMED -> "Confermato!"
         PaymentStatus.DETECTED -> "Pagamento rilevato, attendo conferme (${payment.confirmations}/${payment.requiredConfirmations})"
         PaymentStatus.FAILED -> "Pagamento fallito"
-        PaymentStatus.PENDING -> "In attesa..."
+        PaymentStatus.PENDING -> "In attesa di pagamento..."
     }
 
     private fun openWallet() {
@@ -232,5 +238,6 @@ class PaymentActivity : AppCompatActivity() {
         const val EXTRA_DESCRIPTION = "extra_description"
         const val EXTRA_PAYMENT_ID = "extra_payment_id"
         private const val POLL_INTERVAL_MS = 5_000L
+        private const val MAX_POLL_ATTEMPTS = 180 // 15 minutes
     }
 }
