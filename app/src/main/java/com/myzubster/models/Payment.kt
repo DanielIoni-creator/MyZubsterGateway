@@ -37,11 +37,13 @@ data class Payment(
 
 enum class PaymentStatus {
     PENDING,
+    DETECTED,
     CONFIRMED,
     FAILED;
 
     companion object {
         fun fromApi(value: String?): PaymentStatus = when (value?.lowercase()) {
+            "detected" -> DETECTED
             "confirmed", "confermato", "completed" -> CONFIRMED
             "failed", "fallito", "expired", "cancelled" -> FAILED
             else -> PENDING

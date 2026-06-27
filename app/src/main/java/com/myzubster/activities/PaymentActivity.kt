@@ -1,6 +1,9 @@
 package com.myzubster.activities
 
 import android.app.AlertDialog
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -9,13 +12,14 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.firebase.messaging.FirebaseMessaging
 import com.myzubster.R
 import com.myzubster.models.Payment
 import com.myzubster.models.PaymentCreateRequest
 import com.myzubster.models.PaymentStatus
-import com.google.firebase.messaging.FirebaseMessaging
 import com.myzubster.network.PaymentApiService
 import com.myzubster.utils.QRCodeGenerator
 import kotlinx.coroutines.Job
@@ -31,26 +35,45 @@ class PaymentActivity : AppCompatActivity() {
     private var pollingJob: Job? = null
     private var successDialogShown = false
 
+    private lateinit var amountText: TextView
+    private lateinit var qrImage: ImageView
+    private lateinit var addressText: TextView
+    private lateinit var statusText: TextView
+    private lateinit var progress: ProgressBar
+    private lateinit var openWalletButton: Button
+    private lateinit var copyAddressButton: Button
+    private lateinit var cancelButton: Button
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_payment)
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+
+        amountText = findViewById(R.id.paymentActivityAmountText)
+        qrImage = findViewById(R.id.paymentActivityQrImage)
+        addressText = findViewById(R.id.paymentActivityAddressText)
+        statusText = findViewById(R.id.paymentActivityStatusText)
+        progress = findViewById(R.id.paymentActivityProgress)
+        openWalletButton = findViewById(R.id.paymentActivityOpenWalletButton)
+        copyAddressButton = findViewById(R.id.paymentActivityCopyAddressButton)
+        cancelButton = findViewById(R.id.paymentActivityCancelButton)
 
         val existingPaymentId = intent.getStringExtra(EXTRA_PAYMENT_ID)
         val amount = intent.getDoubleExtra(EXTRA_AMOUNT, 0.01)
         val sellerId = intent.getStringExtra(EXTRA_SELLER_ID) ?: "seller-demo"
         val description = intent.getStringExtra(EXTRA_DESCRIPTION) ?: "Pagamento MyZubster"
 
-        findViewById<TextView>(R.id.paymentActivityAmountText).text = "${formatAmount(amount)} XMR"
-        findViewById<Button>(R.id.paymentActivityCancelButton).setOnClickListener { cancelPayment() }
-        findViewById<Button>(R.id.paymentActivityOpenWalletButton).setOnClickListener { openWallet() }
+        amountText.text = "${formatAmount(amount)} XMR"
+        cancelButton.setOnClickListener { cancelPayment() }
+        openWalletButton.setOnClickListener { openWallet() }
+        copyAddressButton.setOnClickListener { copyAddress() }
 
         if (existingPaymentId.isNullOrBlank()) {
             createPayment(amount, description, sellerId)
         } else {
             setLoading(true)
-            setStatus("Carico stato pagamento...")
-            startStatusPolling(existingPaymentId)
+            setStatus("In attesa...")
+            startStatusPolling(existingPaymentId, pollImmediately = true)
         }
     }
 
@@ -62,7 +85,7 @@ class PaymentActivity : AppCompatActivity() {
 
     private fun createPayment(amount: Double, description: String, sellerId: String) {
         setLoading(true)
-        setStatus("Creo richiesta di pagamento...")
+        setStatus("In attesa...")
 
         lifecycleScope.launch {
             val fcmToken = runCatching { awaitFcmToken() }.getOrNull()
@@ -72,7 +95,8 @@ class PaymentActivity : AppCompatActivity() {
                         amount = amount,
                         description = description,
                         sellerId = sellerId,
-                        fcmToken = fcmToken
+                        fcmToken = fcmToken,
+                        confirmations = 0
                     )
                 )
             }.onSuccess { payment ->
@@ -86,54 +110,77 @@ class PaymentActivity : AppCompatActivity() {
         }
     }
 
-    private fun startStatusPolling(paymentId: String) {
+    private fun startStatusPolling(paymentId: String, pollImmediately: Boolean = false) {
         pollingJob?.cancel()
         pollingJob = lifecycleScope.launch {
+            if (pollImmediately) checkStatusOnce(paymentId)
             while (isActive) {
                 delay(POLL_INTERVAL_MS)
-                runCatching { paymentApiService.checkPaymentStatus(paymentId) }
-                    .onSuccess { payment ->
-                        currentPayment = payment
-                        renderPayment(payment)
-                        if (payment.status == PaymentStatus.CONFIRMED) {
-                            setLoading(false)
-                            showSuccessDialog()
-                            break
-                        }
-                        if (payment.status == PaymentStatus.FAILED) {
-                            setLoading(false)
-                            setStatus("Pagamento fallito")
-                            break
-                        }
-                    }
-                    .onFailure { error ->
-                        setStatus("Errore verifica pagamento: ${error.message}")
-                    }
+                checkStatusOnce(paymentId)
             }
         }
     }
 
+    private suspend fun checkStatusOnce(paymentId: String) {
+        runCatching { paymentApiService.checkPaymentStatus(paymentId) }
+            .onSuccess { payment ->
+                currentPayment = payment
+                renderPayment(payment)
+                when (payment.status) {
+                    PaymentStatus.CONFIRMED -> {
+                        setLoading(false)
+                        pollingJob?.cancel()
+                        showSuccessDialogAndClose()
+                    }
+                    PaymentStatus.FAILED -> {
+                        setLoading(false)
+                        pollingJob?.cancel()
+                        setStatus("Pagamento fallito")
+                    }
+                    PaymentStatus.DETECTED,
+                    PaymentStatus.PENDING -> Unit
+                }
+            }
+            .onFailure { error ->
+                setStatus("Errore verifica pagamento: ${error.message}")
+            }
+    }
+
     private fun renderPayment(payment: Payment) {
-        findViewById<TextView>(R.id.paymentActivityAmountText).text = "${payment.amountXmr} XMR"
-        findViewById<TextView>(R.id.paymentActivityAddressText).text = payment.moneroAddress ?: payment.address
-        findViewById<ImageView>(R.id.paymentActivityQrImage).setImageBitmap(
-            QRCodeGenerator.generateMoneroQR(payment.moneroAddress ?: payment.address, payment.amountXmr.toDoubleOrNull() ?: payment.amount ?: 0.0)
+        val address = payment.moneroAddress ?: payment.address
+        amountText.text = "${payment.amountXmr} XMR"
+        addressText.text = address
+        qrImage.setImageBitmap(
+            QRCodeGenerator.generateMoneroQR(
+                address = address,
+                amount = payment.amountXmr.toDoubleOrNull() ?: payment.amount ?: 0.0
+            )
         )
-        findViewById<Button>(R.id.paymentActivityOpenWalletButton).isEnabled = !payment.uri.isNullOrBlank()
-        setLoading(payment.status == PaymentStatus.PENDING)
+        openWalletButton.isEnabled = !payment.uri.isNullOrBlank()
+        copyAddressButton.isEnabled = address.isNotBlank()
+        setLoading(payment.status == PaymentStatus.PENDING || payment.status == PaymentStatus.DETECTED)
         setStatus(readableStatus(payment))
     }
 
     private fun readableStatus(payment: Payment): String = when (payment.status) {
-        PaymentStatus.CONFIRMED -> "Pagamento ricevuto (${payment.confirmations}/${payment.requiredConfirmations} conferme)"
+        PaymentStatus.CONFIRMED -> "Confermato!"
+        PaymentStatus.DETECTED -> "Pagamento rilevato, attendo conferme (${payment.confirmations}/${payment.requiredConfirmations})"
         PaymentStatus.FAILED -> "Pagamento fallito"
-        PaymentStatus.PENDING -> "In attesa del pagamento (${payment.confirmations}/${payment.requiredConfirmations} conferme)"
+        PaymentStatus.PENDING -> "In attesa..."
     }
 
     private fun openWallet() {
         val uri = currentPayment?.uri ?: return
         runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(uri))) }
             .onFailure { setStatus("Nessun wallet Monero disponibile") }
+    }
+
+    private fun copyAddress() {
+        val address = currentPayment?.moneroAddress ?: currentPayment?.address ?: addressText.text?.toString().orEmpty()
+        if (address.isBlank()) return
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText("Indirizzo Monero", address))
+        Toast.makeText(this, "Indirizzo copiato", Toast.LENGTH_SHORT).show()
     }
 
     private fun cancelPayment() {
@@ -149,24 +196,25 @@ class PaymentActivity : AppCompatActivity() {
             .addOnFailureListener { continuation.resume(null) }
     }
 
-    private fun showSuccessDialog() {
+    private fun showSuccessDialogAndClose() {
         if (successDialogShown) return
         successDialogShown = true
         AlertDialog.Builder(this)
-            .setTitle("Pagamento ricevuto!")
-            .setMessage("La transazione Monero è stata confermata.")
-            .setPositiveButton(android.R.string.ok, null)
+            .setTitle("Confermato!")
+            .setMessage("Pagamento Monero ricevuto con successo.")
+            .setPositiveButton(android.R.string.ok) { _, _ -> finish() }
+            .setOnDismissListener { finish() }
             .show()
     }
 
     private fun setLoading(loading: Boolean) {
-        findViewById<ProgressBar>(R.id.paymentActivityProgress).visibility = if (loading) View.VISIBLE else View.GONE
-        findViewById<Button>(R.id.paymentActivityCancelButton).isEnabled = true
-        findViewById<Button>(R.id.paymentActivityOpenWalletButton).alpha = if (loading) 0.6f else 1.0f
+        progress.visibility = if (loading) View.VISIBLE else View.GONE
+        cancelButton.isEnabled = true
+        openWalletButton.alpha = if (loading) 0.85f else 1.0f
     }
 
     private fun setStatus(message: String) {
-        findViewById<TextView>(R.id.paymentActivityStatusText).text = message
+        statusText.text = message
     }
 
     private fun formatAmount(amount: Double): String = BigDecimal.valueOf(amount)
