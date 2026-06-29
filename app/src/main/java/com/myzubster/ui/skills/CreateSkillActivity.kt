@@ -10,7 +10,7 @@ import com.myzubster.R
 data class SkillDraft(
     val name: String,
     val description: String,
-    val priceXmr: Double? = null
+    val priceEur: Double? = null
 )
 
 class CreateSkillActivity : AppCompatActivity() {
@@ -28,11 +28,11 @@ class CreateSkillActivity : AppCompatActivity() {
     private fun readDraft(): SkillDraft {
         val name = findViewById<EditText>(R.id.skillNameInput).text.toString().trim()
         val description = findViewById<EditText>(R.id.skillDescriptionInput).text.toString().trim()
-        val priceText = findViewById<EditText>(R.id.skillPriceXmrInput).text.toString().trim()
+        val priceText = findViewById<EditText>(R.id.skillPriceEurInput).text.toString().replace(',', '.').trim()
         return SkillDraft(
             name = name,
             description = description,
-            priceXmr = priceText.takeIf { it.isNotBlank() }?.toDoubleOrNull()
+            priceEur = priceText.takeIf { it.isNotBlank() }?.toDoubleOrNull()
         )
     }
 }

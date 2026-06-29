@@ -15,34 +15,106 @@
         app:title="MyZubster"
         app:titleTextColor="@android:color/white" />
 
-    <LinearLayout
+    <HorizontalScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:layout_height="wrap_content"
+        android:fillViewport="true"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <Button
+                android:id="@+id/openHomeButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cerca" />
+
+            <Button
+                android:id="@+id/openProfileButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:text="Profilo" />
+
+            <Button
+                android:id="@+id/openCreateSkillButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:text="Pubblica" />
+
+            <Button
+                android:id="@+id/openPaymentButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:text="Pagamento" />
+
+            <Button
+                android:id="@+id/openChatButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:text="Chat" />
+
+            <Button
+                android:id="@+id/openSettingsButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:text="Impostazioni" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <LinearLayout
+        android:id="@+id/sponsorBannerContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:paddingBottom="8dp">
 
         <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:id="@+id/mullvadBanner"
+            android:layout_width="0dp"
+            android:layout_height="84dp"
+            android:layout_weight="1"
+            android:layout_marginRight="4dp"
+            android:background="#1B5E20"
+            android:clickable="true"
+            android:focusable="true"
             android:gravity="center"
-            android:text="MyZubster"
-            android:textSize="28sp"
+            android:padding="10dp"
+            android:text="Mullvad VPN\nPrivacy semplice"
+            android:textColor="@android:color/white"
+            android:textSize="15sp"
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/mainStatusText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:id="@+id/simpleSwapBanner"
+            android:layout_width="0dp"
+            android:layout_height="84dp"
+            android:layout_weight="1"
+            android:layout_marginLeft="4dp"
+            android:background="#0D47A1"
+            android:clickable="true"
+            android:focusable="true"
             android:gravity="center"
-            android:text="Notifiche e pagamenti pronti" />
-
-        <Button
-            android:id="@+id/openSettingsButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="Impostazioni" />
+            android:padding="10dp"
+            android:text="SimpleSwap.io\nScambia crypto"
+            android:textColor="@android:color/white"
+            android:textSize="15sp"
+            android:textStyle="bold" />
     </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/mainFragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 </LinearLayout>

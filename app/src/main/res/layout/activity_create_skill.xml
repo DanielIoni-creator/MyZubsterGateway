@@ -25,10 +25,10 @@
             android:minLines="3" />
 
         <EditText
-            android:id="@+id/skillPriceXmrInput"
+            android:id="@+id/skillPriceEurInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Prezzo XMR (opzionale)"
+            android:hint="Prezzo in euro (€) (opzionale)"
             android:inputType="numberDecimal" />
 
         <Button

@@ -10,6 +10,7 @@ function loadPaymentConfig(env) {
   const walletRpcUrl = cleanUrl(env.MONERO_WALLET_RPC_URL || env.MONERO_NODE_URL);
   const nodeUrl = cleanUrl(env.MONERO_NODE_URL);
   const provider = moneroPayUrl ? 'moneropay' : 'wallet-rpc';
+  const platformFeeRate = Number(env.PAYMENT_PLATFORM_FEE_RATE ?? 0.02);
 
   return {
     provider,
@@ -21,7 +22,9 @@ function loadPaymentConfig(env) {
     accountIndex: Number(env.MONERO_ACCOUNT_INDEX || 0),
     defaultConfirmations: normalizeConfirmations(env.MONERO_CONFIRMATIONS_DEFAULT),
     storePath: path.resolve(process.cwd(), env.MONERO_PAYMENT_STORE || './data/payments.json'),
-    webhookSecret: env.PAYMENT_WEBHOOK_SECRET || ''
+    webhookSecret: env.PAYMENT_WEBHOOK_SECRET || '',
+    platformFeeRate: Number.isFinite(platformFeeRate) && platformFeeRate >= 0 ? platformFeeRate : 0.02,
+    platformFeeWalletAddress: String(env.PLATFORM_FEE_WALLET_ADDRESS || '').trim()
   };
 }
 

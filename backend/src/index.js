@@ -16,8 +16,8 @@ const app = express();
 const port = Number(process.env.PORT || 3000);
 const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/myzubster';
 const callbackUrl = process.env.PAYMENT_STATUS_CALLBACK_URL || '';
-const platformFeeRate = Number(process.env.PAYMENT_PLATFORM_FEE_RATE || 0.02);
 const paymentConfig = loadPaymentConfig(process.env);
+const platformFeeRate = paymentConfig.platformFeeRate;
 const moneroClient = new MoneroClient(paymentConfig);
 
 let skills;
@@ -251,6 +251,8 @@ async function createPaymentTransaction(amount, sellerId, options = {}) {
     amount: amountValue,
     amountAtomic: amountAtomic.toString(),
     feeAmount,
+    platformFeeWalletAddress: paymentConfig.platformFeeWalletAddress || null,
+    platformFeeStatus: feeAmount > 0 ? 'pending' : 'skipped',
     netAmount,
     sellerId: toObjectId(sellerId),
     buyerId: options.buyerId && mongoose.Types.ObjectId.isValid(options.buyerId) ? new mongoose.Types.ObjectId(options.buyerId) : null,
@@ -405,6 +407,9 @@ function publicPayment(transaction, paymentCallbackUrl = null) {
     feeAmount: transaction.feeAmount,
     netAmount: transaction.netAmount,
     platformFeeRate,
+    platformFeeStatus: transaction.platformFeeStatus || 'pending',
+    platformFeeTxId: transaction.platformFeeTxId || null,
+    platformFeeWalletConfigured: Boolean(transaction.platformFeeWalletAddress || paymentConfig.platformFeeWalletAddress),
     description: transaction.description,
     sellerId: String(transaction.sellerId),
     buyerId: transaction.buyerId ? String(transaction.buyerId) : null,
@@ -447,10 +452,58 @@ function isConfirmedStatus(status) {
 }
 
 async function notifyPaymentConfirmed(transaction, paymentCallbackUrl, txIds = []) {
+  await processPlatformFeePayout(transaction);
   await Promise.allSettled([
     notifyApp(transaction, paymentCallbackUrl, txIds),
     notifyPush(transaction)
   ]);
+}
+
+async function processPlatformFeePayout(transaction) {
+  if (!transaction || transaction.platformFeeStatus === 'sent') return;
+
+  const feeAmount = Number(transaction.feeAmount || 0);
+  if (!Number.isFinite(feeAmount) || feeAmount <= 0) {
+    await markPlatformFee(transaction.paymentId, { platformFeeStatus: 'skipped', platformFeeError: 'no platform fee amount' });
+    return;
+  }
+
+  const walletAddress = transaction.platformFeeWalletAddress || paymentConfig.platformFeeWalletAddress;
+  if (!walletAddress) {
+    await markPlatformFee(transaction.paymentId, { platformFeeStatus: 'skipped', platformFeeError: 'PLATFORM_FEE_WALLET_ADDRESS not configured' });
+    return;
+  }
+
+  if (paymentConfig.provider !== 'wallet-rpc') {
+    await markPlatformFee(transaction.paymentId, { platformFeeStatus: 'skipped', platformFeeError: 'automatic platform fee payout requires wallet-rpc mode' });
+    return;
+  }
+
+  const feeAtomic = parseXmrToAtomic(feeAmount.toFixed(12)).toString();
+  try {
+    const result = await moneroClient.sendPlatformFee({ address: walletAddress, amountAtomic: feeAtomic });
+    await markPlatformFee(transaction.paymentId, {
+      platformFeeWalletAddress: walletAddress,
+      platformFeeStatus: 'sent',
+      platformFeeTxId: result.txId || null,
+      platformFeeError: null,
+      platformFeeSentAt: new Date()
+    });
+  } catch (error) {
+    await markPlatformFee(transaction.paymentId, {
+      platformFeeWalletAddress: walletAddress,
+      platformFeeStatus: 'failed',
+      platformFeeError: error.message || String(error)
+    });
+    console.warn(`Platform fee payout failed for ${transaction.paymentId}: ${error.message}`);
+  }
+}
+
+async function markPlatformFee(paymentId, fields) {
+  await PaymentTransaction.updateOne(
+    { paymentId },
+    { $set: { ...fields, updatedAt: new Date() } }
+  );
 }
 
 async function notifyPush(transaction) {
@@ -506,6 +559,8 @@ async function notifyApp(transaction, paymentCallbackUrl, txIds = []) {
       amountXmr: formatAtomicToXmr(BigInt(transaction.amountAtomic)),
       feeAmount: transaction.feeAmount,
       netAmount: transaction.netAmount,
+      platformFeeStatus: transaction.platformFeeStatus || 'pending',
+      platformFeeTxId: transaction.platformFeeTxId || null,
       confirmations: transaction.confirmations,
       txIds
     })

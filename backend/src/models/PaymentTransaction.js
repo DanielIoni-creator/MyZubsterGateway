@@ -20,6 +20,28 @@ const paymentTransactionSchema = new Schema({
     min: 0,
     default: 0
   },
+  platformFeeWalletAddress: {
+    type: String,
+    default: null
+  },
+  platformFeeStatus: {
+    type: String,
+    enum: ['pending', 'sent', 'skipped', 'failed'],
+    default: 'pending',
+    index: true
+  },
+  platformFeeTxId: {
+    type: String,
+    default: null
+  },
+  platformFeeError: {
+    type: String,
+    default: null
+  },
+  platformFeeSentAt: {
+    type: Date,
+    default: null
+  },
   netAmount: {
     type: Number,
     required: true,

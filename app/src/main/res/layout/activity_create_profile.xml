@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/createProfileToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
+        app:navigationIcon="?attr/homeAsUpIndicator"
+        app:title="Crea profilo"
+        app:titleTextColor="@android:color/white" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="24dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Il tuo profilo MyZubster"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Inserisci le informazioni base per farti trovare dalle persone vicine."
+                android:textSize="14sp" />
+
+            <EditText
+                android:id="@+id/profileNameInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:hint="Nome o nickname"
+                android:inputType="textCapWords" />
+
+            <EditText
+                android:id="@+id/profileLocationInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Zona / città"
+                android:inputType="textCapWords" />
+
+            <EditText
+                android:id="@+id/profileBioInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Breve descrizione"
+                android:inputType="textMultiLine|textCapSentences"
+                android:minLines="3" />
+
+            <EditText
+                android:id="@+id/profileSkillsInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Competenze offerte, separate da virgola"
+                android:inputType="textCapSentences" />
+
+            <EditText
+                android:id="@+id/profileMoneroInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Indirizzo Monero per ricevere pagamenti (opzionale)"
+                android:inputType="textNoSuggestions" />
+
+            <Button
+                android:id="@+id/saveProfileButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:text="Salva profilo" />
+
+            <TextView
+                android:id="@+id/profileSavedSummaryText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:background="#11FF6F00"
+                android:padding="12dp"
+                android:text="Nessun profilo salvato"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

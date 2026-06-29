@@ -1,16 +1,22 @@
 package com.myzubster
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import com.google.android.material.appbar.MaterialToolbar
 import com.myzubster.activities.PaymentActivity
+import com.myzubster.fragments.PaymentFragment
 import com.myzubster.receivers.NotificationReceiver
 import com.myzubster.services.MyFirebaseMessagingService
 import com.myzubster.ui.chat.ChatActivity
+import com.myzubster.ui.profile.CreateProfileActivity
 import com.myzubster.ui.settings.SettingsActivity
+import com.myzubster.ui.skills.CreateSkillActivity
+import com.myzubster.ui.skills.SearchSkillsFragment
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -18,10 +24,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         findViewById<MaterialToolbar>(R.id.mainToolbar).title = getString(R.string.app_name)
-        findViewById<Button>(R.id.openSettingsButton).setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
-        }
+        setupNavigation()
+        setupSponsorBanners()
 
+        if (savedInstanceState == null) {
+            showHome()
+        }
         handleNotificationIntent(intent)
     }
 
@@ -29,6 +37,50 @@ class MainActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         handleNotificationIntent(intent)
+    }
+
+    private fun setupSponsorBanners() {
+        findViewById<TextView>(R.id.mullvadBanner).setOnClickListener {
+            openSponsorUrl("https://mullvad.net/")
+        }
+        findViewById<TextView>(R.id.simpleSwapBanner).setOnClickListener {
+            openSponsorUrl("https://simpleswap.io/")
+        }
+    }
+
+    private fun openSponsorUrl(url: String) {
+        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+    }
+
+    private fun setupNavigation() {
+        findViewById<Button>(R.id.openHomeButton).setOnClickListener { showHome() }
+        findViewById<Button>(R.id.openProfileButton).setOnClickListener {
+            startActivity(Intent(this, CreateProfileActivity::class.java))
+        }
+        findViewById<Button>(R.id.openCreateSkillButton).setOnClickListener {
+            startActivity(Intent(this, CreateSkillActivity::class.java))
+        }
+        findViewById<Button>(R.id.openPaymentButton).setOnClickListener {
+            showFragment(PaymentFragment.newInstance(0.02, "seller-demo", "Pagamento demo MyZubster"))
+        }
+        findViewById<Button>(R.id.openChatButton).setOnClickListener {
+            startActivity(Intent(this, ChatActivity::class.java).apply {
+                putExtra(ChatActivity.EXTRA_CONTACT_USER_ID, "seller-demo")
+            })
+        }
+        findViewById<Button>(R.id.openSettingsButton).setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
+    }
+
+    private fun showHome() {
+        showFragment(SearchSkillsFragment())
+    }
+
+    private fun showFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.mainFragmentContainer, fragment)
+            .commit()
     }
 
     private fun handleNotificationIntent(intent: Intent?) {
@@ -39,7 +91,6 @@ class MainActivity : AppCompatActivity() {
         when (type) {
             MyFirebaseMessagingService.TYPE_MESSAGE_RECEIVED -> openChatFromNotification(intent)
             MyFirebaseMessagingService.TYPE_PAYMENT_CONFIRMED -> openPaymentFromNotification(intent)
-            else -> findViewById<TextView>(R.id.mainStatusText).text = "MyZubster pronto"
         }
     }
 

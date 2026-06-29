@@ -80,8 +80,8 @@ class SkillDetailActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.skillDetailCategoryBadge).text = skill.category
         findViewById<TextView>(R.id.skillDetailTypeBadge).text = skill.type
         findViewById<TextView>(R.id.skillDetailDescriptionText).text = skill.description
-        findViewById<TextView>(R.id.skillDetailPriceText).text = skill.priceXmr
-            ?.let { "Prezzo: ${formatXmr(it)} XMR" }
+        findViewById<TextView>(R.id.skillDetailPriceText).text = skill.displayPriceEur
+            ?.let { "Prezzo: ${formatEur(it)}" }
             ?: "Prezzo: non indicato"
         findViewById<TextView>(R.id.skillDetailDistanceText).text = skill.distanceKm
             ?.let { "Distanza: ${String.format(Locale.US, "%.1f", it)} km" }
@@ -168,9 +168,7 @@ class SkillDetailActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.skillDetailErrorText).visibility = View.GONE
     }
 
-    private fun formatXmr(value: Double): String = String.format(Locale.US, "%.12f", value)
-        .trimEnd('0')
-        .trimEnd('.')
+    private fun formatEur(value: Double): String = String.format(Locale.ITALY, "€ %.2f", value)
 
     override fun finish() {
         super.finish()
