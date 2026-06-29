@@ -1,7 +1,8 @@
-# MyZubster v0.2.0 - Release Notes
+# MyZubster v1.0.0-beta - Release Notes
 
 **Data release:** 2026-06-29  
 **Versione Android:** `versionName 0.2.0`, `versionCode 2`  
+**Release GitHub:** `v1.0.0-beta`  
 **Branch:** `test/reviews-apk`
 
 ## Novità principali
@@ -24,16 +25,22 @@
 
 ## APK
 
-Asset APK previsto per GitHub Release:
+Asset APK pubblicato nella GitHub Release:
 
 ```text
-myzubster-v0.2.0.apk
+myzubster-reviews-test-debug.apk
 ```
 
-Link previsto:
+Link download:
 
 ```text
-https://github.com/h4x0rmyzubster/MyZubsterh4x0r/releases/download/v0.2.0/myzubster-v0.2.0.apk
+https://github.com/h4x0rmyzubster/MyZubsterh4x0r/releases/download/v1.0.0-beta/myzubster-reviews-test-debug.apk
+```
+
+Pagina release:
+
+```text
+https://github.com/h4x0rmyzubster/MyZubsterh4x0r/releases/tag/v1.0.0-beta
 ```
 
 ## Verifiche release
@@ -51,4 +58,4 @@ npm run check
 
 ## Note
 
-Questa release prepara il progetto alla pubblicazione GitHub. Se l'APK non è ancora allegato alla release `v0.2.0`, il badge/link nel README resta un placeholder già pronto per l'asset finale.
+Questa release è pubblicata come prerelease/beta su GitHub con APK allegato.

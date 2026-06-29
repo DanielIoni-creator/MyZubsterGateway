@@ -1,6 +1,6 @@
 # MyZubster
 
-[![APK Download](https://img.shields.io/badge/APK-download%20placeholder-orange?style=for-the-badge&logo=android)](https://github.com/h4x0rmyzubster/MyZubsterh4x0r/releases/download/v0.2.0/myzubster-v0.2.0.apk)
+[![APK Download](https://img.shields.io/badge/APK-download-v1.0.0--beta-orange?style=for-the-badge&logo=android)](https://github.com/h4x0rmyzubster/MyZubsterh4x0r/releases/download/v1.0.0-beta/myzubster-reviews-test-debug.apk)
 
 **Versione:** 0.2.0  
 **Ultimo aggiornamento:** 2026-06-29
@@ -9,11 +9,10 @@ MyZubster è un'app Android con backend Node.js pensata per pubblicare e trovare
 
 ## Download APK
 
-L'APK della release sarà pubblicato qui:
+L'APK beta è disponibile nella release GitHub:
 
-- [Scarica MyZubster v0.2.0 APK](https://github.com/h4x0rmyzubster/MyZubsterh4x0r/releases/download/v0.2.0/myzubster-v0.2.0.apk)
-
-Nota: il link è già predisposto per la release GitHub `v0.2.0`; funzionerà appena l'asset APK verrà caricato nella release.
+- [Scarica MyZubster v1.0.0-beta APK](https://github.com/h4x0rmyzubster/MyZubsterh4x0r/releases/download/v1.0.0-beta/myzubster-reviews-test-debug.apk)
+- [Pagina release v1.0.0-beta](https://github.com/h4x0rmyzubster/MyZubsterh4x0r/releases/tag/v1.0.0-beta)
 
 ## Funzionalità
 
