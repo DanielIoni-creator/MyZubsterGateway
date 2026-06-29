@@ -123,7 +123,7 @@ L'APK beta è disponibile nella release GitHub:
 
 ## Come contribuire
 
-Le linee guida per contribuire sono nel file [CONTRIBUTING.md](CONTRIBUTING.md).
+Le linee guida per contribuire sono disponibili in [CONTRIBUTING.md](CONTRIBUTING.md) e nella guida estesa [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md).
 
 In breve:
 
