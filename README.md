@@ -208,6 +208,7 @@ MyZubster è un progetto **open-source**: contributi, bug report, idee e miglior
 
 - Guida rapida: [CONTRIBUTING.md](CONTRIBUTING.md)
 - Guida estesa: [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)
+- Strategia marketing/social: [docs/social-media-strategy.md](docs/social-media-strategy.md)
 
 In breve:
 
