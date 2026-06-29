@@ -1,18 +1,44 @@
-# Local environment and generated files
+# Local environment and secrets
 .env
 .env.*
 !.env.example
+local.properties
+
+# Dependencies and local data
 node_modules/
 backend/data/
 
-# Android/Gradle
-.gradle/
+# Build outputs
 build/
+*/build/
 app/build/
-local.properties
+.gradle/
+out/
 
-# IDE / OS
+# Android Studio / IntelliJ
 .idea/
 *.iml
+*.hprof
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.cache/
+tmp/
+temp/
+
+# OS/system files
 .DS_Store
 Thumbs.db
+desktop.ini
