@@ -80,7 +80,7 @@ class SearchSkillsFragment : Fragment() {
             category = "Casa",
             type = "Offerta",
             description = "Piccole riparazioni domestiche nel quartiere.",
-            priceXmr = 0.02,
+            priceEur = 25.0,
             distanceKm = 1.4,
             address = "Via Roma 10",
             user = SkillUser(id = "seller-1", name = "Marco")
@@ -91,7 +91,7 @@ class SearchSkillsFragment : Fragment() {
             category = "Studio",
             type = "Offerta",
             description = "Supporto matematica e inglese.",
-            priceXmr = null,
+            priceEur = 15.0,
             distanceKm = 0.8,
             address = "Piazza Verdi",
             user = SkillUser(id = "seller-2", name = "Giulia")

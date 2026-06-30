@@ -30,7 +30,7 @@ class ChatActivity : AppCompatActivity() {
 
     private fun showPaymentAmountDialog() {
         val amountInput = EditText(this).apply {
-            hint = "Importo in XMR"
+            hint = "Importo in euro (€)"
             inputType = android.text.InputType.TYPE_CLASS_NUMBER or
                 android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
             setSingleLine(true)
@@ -44,8 +44,8 @@ class ChatActivity : AppCompatActivity() {
         }
 
         AlertDialog.Builder(this)
-            .setTitle("💰 Richiedi Pagamento")
-            .setMessage("Inserisci l'importo da richiedere in Monero.")
+            .setTitle("💶 Richiedi pagamento")
+            .setMessage("Inserisci l'importo del servizio in euro.")
             .setView(container)
             .setNegativeButton(android.R.string.cancel, null)
             .setPositiveButton("Continua", null)
@@ -56,13 +56,13 @@ class ChatActivity : AppCompatActivity() {
                         val amount = amountInput.text?.toString()?.replace(',', '.')?.trim().orEmpty()
                         val amountValue = amount.toDoubleOrNull()
                         if (amountValue == null || amountValue <= 0.0) {
-                            Toast.makeText(this@ChatActivity, "Inserisci un importo XMR valido", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@ChatActivity, "Inserisci un importo in euro valido", Toast.LENGTH_SHORT).show()
                             return@setOnClickListener
                         }
                         dismiss()
                         requestPayment(
-                            amountXmr = amount,
-                            description = "Pagamento servizio MyZubster",
+                            amountEur = amountValue,
+                            description = "Pagamento servizio MyZubster (€ ${String.format(java.util.Locale.ITALY, "%.2f", amountValue)})",
                             sellerId = contactUserId
                         )
                     }
@@ -71,9 +71,10 @@ class ChatActivity : AppCompatActivity() {
             }
     }
 
-    private fun requestPayment(amountXmr: String, description: String, sellerId: String) {
+    private fun requestPayment(amountEur: Double, description: String, sellerId: String) {
+        val amountXmrForDemoCheckout = amountEur * DEMO_XMR_PER_EUR
         val intent = Intent(this, PaymentActivity::class.java).apply {
-            putExtra(PaymentActivity.EXTRA_AMOUNT, amountXmr.toDoubleOrNull() ?: 0.01)
+            putExtra(PaymentActivity.EXTRA_AMOUNT, amountXmrForDemoCheckout)
             putExtra(PaymentActivity.EXTRA_SELLER_ID, sellerId)
             putExtra(PaymentActivity.EXTRA_DESCRIPTION, description)
         }
@@ -89,5 +90,6 @@ class ChatActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_CONTACT_USER_ID = "extra_contact_user_id"
         const val EXTRA_CHAT_ID = "extra_chat_id"
+        private const val DEMO_XMR_PER_EUR = 0.005
     }
 }

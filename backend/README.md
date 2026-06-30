@@ -37,6 +37,19 @@ Variabili supportate:
 - `MONERO_PAYMENT_STORE` — file JSON locale per `npm run start:json-store`.
 - `PAYMENT_WEBHOOK_SECRET` — segreto opzionale per `POST /api/payment/webhook`.
 - `PAYMENT_STATUS_CALLBACK_URL` — callback server/app opzionale invocata quando il webhook aggiorna un pagamento.
+- `PAYMENT_PLATFORM_FEE_RATE` — percentuale trattenuta dalla piattaforma; default `0.02`, cioè 2%.
+- `PLATFORM_FEE_WALLET_ADDRESS` — wallet Monero del creatore/piattaforma che riceve la commissione. Tienilo nel `.env` del server, non nell'APK Android.
+
+## Commissione piattaforma
+
+Il backend calcola automaticamente la commissione piattaforma quando crea un pagamento:
+
+- `feeAmount` = importo totale × `PAYMENT_PLATFORM_FEE_RATE`
+- `netAmount` = importo totale - `feeAmount`
+
+Quando un pagamento passa a `confirmed`, se `PLATFORM_FEE_WALLET_ADDRESS` è configurato e il provider è `wallet-rpc`, il backend prova a inviare automaticamente la commissione al wallet piattaforma e salva `platformFeeStatus`, `platformFeeTxId`, `platformFeeSentAt` o `platformFeeError` nella transazione.
+
+Nota: il payout automatico della fee richiede un wallet RPC capace di inviare transazioni. Non mettere mai wallet/chiavi nell'app Android: l'app deve parlare solo con il backend.
 
 ## Avvio
 

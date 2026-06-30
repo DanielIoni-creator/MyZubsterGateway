@@ -38,12 +38,10 @@ class SkillAdapter(
         fun bind(skill: Skill, onSkillClick: (Skill) -> Unit) {
             titleText.text = skill.title
             metaText.text = "${skill.category} • ${skill.type}"
-            priceText.text = skill.priceXmr?.let { "💰 XMR ${formatXmr(it)}" } ?: "Prezzo non indicato"
+            priceText.text = skill.displayPriceEur?.let { "💶 ${formatEur(it)}" } ?: "Prezzo non indicato"
             itemView.setOnClickListener { onSkillClick(skill) }
         }
 
-        private fun formatXmr(value: Double): String = String.format(Locale.US, "%.12f", value)
-            .trimEnd('0')
-            .trimEnd('.')
+        private fun formatEur(value: Double): String = String.format(Locale.ITALY, "€ %.2f", value)
     }
 }

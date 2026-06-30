@@ -17,6 +17,15 @@ class MoneroClient {
     return this.checkWalletRpcPayment(payment);
   }
 
+  async sendPlatformFee({ address, amountAtomic }) {
+    if (!address) throw new Error('platform fee wallet address is required');
+    if (!amountAtomic || BigInt(String(amountAtomic)) <= 0n) throw new Error('platform fee amount must be greater than zero');
+    if (this.config.provider === 'moneropay') {
+      throw new Error('automatic platform fee payout requires wallet-rpc mode');
+    }
+    return this.transferWalletRpc({ address, amountAtomic });
+  }
+
   async createMoneroPayAddress({ label }) {
     if (!this.config.moneroPayUrl) {
       throw new Error('MONEROPAY_URL is not configured');
@@ -136,6 +145,28 @@ class MoneroClient {
       throw new Error(`Monero wallet RPC error ${response.error.code}: ${response.error.message}`);
     }
     return response.result || {};
+  }
+
+  async transferWalletRpc({ address, amountAtomic }) {
+    const atomic = BigInt(String(amountAtomic));
+    const amount = Number(atomic);
+    if (!Number.isSafeInteger(amount)) {
+      throw new Error('platform fee amount is too large for this wallet-rpc JSON client');
+    }
+
+    const result = await this.walletRpc('transfer', {
+      destinations: [{ address, amount }],
+      account_index: this.config.accountIndex,
+      priority: 0,
+      get_tx_key: true
+    });
+
+    return {
+      txId: result.tx_hash || result.txid || result.tx_hash_list?.[0] || null,
+      txHashList: result.tx_hash_list || (result.tx_hash ? [result.tx_hash] : []),
+      feeAtomic: result.fee?.toString?.() || (result.fee !== undefined ? String(result.fee) : null),
+      raw: result
+    };
   }
 
   async httpJson(url, options) {
