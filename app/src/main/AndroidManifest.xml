@@ -1,23 +1,40 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
         android:allowBackup="true"
         android:label="MyZubster"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyZubster">
+
+        <!-- Schermata di benvenuto -->
         <activity
-            android:name=".MainActivity"
-            android:exported="true">
+            android:name=".activities.SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ui.chat.ChatActivity"
-            android:exported="false" />
+
+        <!-- Login e registrazione -->
+        <activity android:name=".activities.LoginActivity" android:exported="false" />
+        <activity android:name=".activities.SignUpActivity" android:exported="false" />
+
+        <!-- Schermata principale -->
+        <activity android:name=".MainActivity" android:exported="false" />
+
+        <!-- Altre Activity -->
+        <activity android:name=".ui.chat.ChatActivity" android:exported="false" />
+        <activity android:name=".activities.PaymentActivity" android:exported="false" />
+        <activity android:name=".activities.SkillDetailActivity" android:exported="false" />
+        <activity android:name=".ui.profile.CreateProfileActivity" android:exported="false" />
+        <activity android:name=".ui.skills.CreateSkillActivity" android:exported="false" />
+        <activity android:name=".ui.settings.SettingsActivity" android:exported="false" />
+
+        <!-- Firebase -->
         <service
             android:name=".services.MyFirebaseMessagingService"
             android:exported="false">
@@ -30,20 +47,5 @@
             android:name=".receivers.NotificationReceiver"
             android:exported="false" />
 
-        <activity
-            android:name=".activities.PaymentActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activities.SkillDetailActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.profile.CreateProfileActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.skills.CreateSkillActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.settings.SettingsActivity"
-            android:exported="false" />
     </application>
 </manifest>
