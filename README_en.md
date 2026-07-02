@@ -38,47 +38,66 @@ Make sure you have the following tools installed on your machine:
 *   [Node.js and npm](https://nodejs.org/)
 *   MongoDB (running locally or accessible via cloud service)
 *   Android Studio / Kotlin SDK
+*   Monero wallet RPC (for testing payments)
 
 ### ⚙️ Backend Setup (Node.js)
 1.  **Clone the repository:**
     ```bash
     git clone https://github.com/h4x0rmyzubster/MyZubsterh4x0r
     cd MyZubster
-    ```
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
-3.  **Set up environment variables:** Create a `.env` file and fill in your credentials (DB connection string, API keys).
-4.  **Run the server:**
-    ```bash
+Install dependencies:
+bash
+
+npm install
+
+Set up environment variables: Create a .env file and fill in your credentials:
+env
+
+PORT=3001
+MONGODB_URI=mongodb://localhost:27017/myzubster
+MONERO_WALLET_RPC_URL=http://127.0.0.1:38082/json_rpc
+MONERO_NODE_URL=http://127.0.0.1:18081/json_rpc
+PAYMENT_PLATFORM_FEE_RATE=0.02
+    Run the server:
+    bash
+
     npm start 
     # The backend should now be running on http://localhost:3001
-    ```
 
-### 🤖 Android Setup (Kotlin)
-(Details for setting up the Android app build and emulator/device testing should go here.)
+📱 Android Setup (Kotlin)
 
-## 🤝 How to Contribute
+    Open the project in Android Studio.
 
-We welcome contributions from *all* levels—whether you are fixing a typo, submitting an idea, or implementing complex features. Helping us improve MyZubster makes our community stronger! 💪
+    Sync Gradle and wait for the build to complete.
+
+    Connect your device (or start an emulator).
+
+    Run the app and test the connection to the backend.
+🤝 How to Contribute
+
+We welcome contributions from all levels—whether you are fixing a typo, submitting an idea, or implementing complex features. Helping us improve MyZubster makes our community stronger! 💪
 
 Before making changes, please review the following resources:
-*   📜 **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md):** Please read this first to ensure a welcoming and respectful environment for everyone.
-*   📋 **[CONTRIBUTING.md](CONTRIBUTING.md):** Follow these guidelines for submitting pull requests, reporting bugs, and general coding practices.
-*   🔄 **[CHANGELOG.md](CHANGELOG.md):** Help us keep our release history accurate!
 
-### 🐞 Reporting Bugs / ✨ Requesting Features
+    📜 CODE_OF_CONDUCT.md: Please read this first to ensure a welcoming and respectful environment for everyone.
+
+    📋 CONTRIBUTING.md: Follow these guidelines for submitting pull requests, reporting bugs, and general coding practices.
+
+    🔄 CHANGELOG.md: Help us keep our release history accurate!
+
+🐞 Reporting Bugs / ✨ Requesting Features
 For specific inputs:
-*   🐛 **[Bug Report Template](ISSUE_TEMPLATE/bug_report.md):** Use this template when something is broken.
-*   💡 **[Feature Request Template](ISSUE_TEMPLATE/feature_request.md):** Use this template to suggest new ideas for the app.
 
-## ⚖️ License
+    🐛 Bug Report Template: Use this template when something is broken.
 
-MyZubster is distributed under a dual-licensing approach: it is available under both the **MIT License** and the **GNU General Public License v3 (GPLv3)**. Please read our respective `LICENSE` files to understand your rights and obligations regarding the use of this project.
+    💡 Feature Request Template: Use this template to suggest new ideas for the app.
 
-## 💬 Community
+⚖️ License
+
+MyZubster is distributed under a dual-licensing approach: it is available under both the MIT License and the GNU General Public License v3 (GPLv3). Please read our respective LICENSE files to understand your rights and obligations regarding the use of this project.
+💬 Community
 
 Got questions? Need help getting set up? Feel free to open an issue or join our discussions!
 
-
+🚀 Ready to join the community?
+Explore the code, report issues, or start contributing today!
