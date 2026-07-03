@@ -1,103 +1,169 @@
-# ✨ MyZubster: Privacy-First Skill Exchange
+🧩 MyZubster: Privacy-First Skill Exchange
 
-MyZubster is a revolutionary community platform designed to connect neighbors through the exchange of skills, talents, and services. We believe in building local resilience where mutual aid thrives. Because privacy is paramount, we integrate secure technologies like Monero for payments and end-to-end encryption for chat, ensuring that your personal data remains yours.
+MyZubster is an open-source Android app that connects neighbors to exchange skills and services — from plumbing and hairdressing to tutoring and tech support. With built-in Monero (XMR) payments, it’s designed for private, peer-to-peer transactions without intermediaries.
 
----
-## 🏆 Project Status Badges
-[![License: Dual License](https://img.shields.io/badge/License-MIT%20%7C%20GPLv3-red?style=flat)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.2.0-brightgreen.svg)]()
-[![Kotlin Version](https://img.shields.io/badge/Kotlin-2.0.0-blue.svg)]()
-[![Android Platform](https://img.shields.io/badge/Platform-Android-indigo.svg)]()
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen?style=flat)](<YOUR_GITHUB_ACTIONS_STATUS>) 
-[![Open Source](https://img.shields.io/badge/open_source-Yes-blue.svg)]()
+https://img.shields.io/badge/License-MIT%2520%257C%2520GPLv3-blue?style=flat
+https://img.shields.io/badge/Platform-Android-brightgreen
+https://img.shields.io/badge/Kotlin-1.9-purple
+https://img.shields.io/badge/Node.js-20+-green
+https://img.shields.io/badge/Tests-Passing-brightgreen
+https://img.shields.io/badge/Open%2520Source-Yes-blue
+🚀 What is MyZubster?
 
----
+MyZubster is a hyperlocal skill-sharing platform. It lets people in the same neighborhood offer services, request help, chat, and pay using Monero — all in a privacy-first, self-hosted environment.
 
-## 🚀 Key Features
+The goal is to empower communities to collaborate directly, bypassing centralized platforms and reducing costs.
+✨ Key Features
+Core Features
 
-*   **Local Skill Mapping:** Easily find skills and services offered by neighbors in your immediate vicinity using advanced geolocation services.
-*   **Monero Payments Integration:** Facilitate peer-to-peer payments using Monero (XMR) for maximum privacy and security.
-*   **Encrypted Chat:** Communicate securely with other members via end-to-end encrypted chat, ensuring only the recipient can read your messages.
-*   **Privacy-First Design:** Built from the ground up to minimize data collection and maximize user anonymity.
+    🔐 Monero Payments (XMR) — Non-custodial, private, and secure. Users control their own keys.
 
-## 🛠️ Tech Stack
+    🧑‍💼 User Profiles — Showcase skills you offer and list what you need.
 
-MyZubster is a modern, robust stack designed for scalability and security:
+    💬 Encrypted Chat — Communicate safely with neighbors before confirming a transaction.
 
-*   **📱 Android Frontend:** Kotlin (Android Native)
-*   **💻 Backend API:** Node.js / Express.js (JavaScript)
-*   **💾 Database:** MongoDB (Flexible schema for evolving community data)
-*   **🔒 Security/Crypto:** Built-in encryption protocols, leveraging Monero integration.
+    📍 Location-Based Search — Find services close to you.
 
-## 💡 Getting Started
+    ⭐ Reputation System — Two-way reviews build trust in the community.
 
-This guide will get you running a local instance of MyZubster in minutes!
+    💰 Transparent Fee — A fair 2% platform fee keeps the project sustainable.
 
-### Prerequisites
-Make sure you have the following tools installed on your machine:
-*   [Node.js and npm](https://nodejs.org/)
-*   MongoDB (running locally or accessible via cloud service)
-*   Android Studio / Kotlin SDK
-*   Monero wallet RPC (for testing payments)
+    🛡️ Recommended VPN Integration — Works seamlessly with Mullvad VPN for extra privacy.
 
-### ⚙️ Backend Setup (Node.js)
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/h4x0rmyzubster/MyZubsterh4x0r
-    cd MyZubster
-Install dependencies:
+    ⛏️ Optional Monero Mining — Help secure the Monero network while your phone charges.
+
+Recent Implementations (July 2026)
+
+    ✅ Advanced Reputation System — Total jobs completed, response rate, identity verification, and skill badges.
+
+    ✅ Admin Panel — Moderation tools for reports, users, skills, and activity logs with role-based access (Admin/Moderator).
+
+    ✅ Self-Hosted Notifications — UnifiedPush support (ntfy.sh) for privacy-first push notifications without Firebase.
+
+    ✅ Monero Payment Integration — One-time addresses, QR code generation, transaction tracking, and 2% platform commission.
+
+    ✅ Automated Testing — Unit tests for Kotlin (Android), API tests for Node.js backend, Monero integration tests, and CI/CD with GitHub Actions.
+
+    ✅ Internationalization — Full English UI and documentation, with support for additional languages.
+
+    ✅ Dual Licensing — MIT and GPLv3 licenses for maximum flexibility.
+
+🏗️ Tech Stack
+Layer	Technology
+Mobile	Kotlin, Android SDK, Retrofit, ZXing, Material Design
+Backend	Node.js, Express, MongoDB, JWT, bcrypt
+Payments	Monero Wallet RPC, MoneroPay
+Push Notifications	UnifiedPush (ntfy.sh) / Firebase FCM (optional)
+AI (optional)	Groq, Gemini (for skill descriptions)
+Testing	JUnit (Android), Jest (Backend), MongoDB Memory Server
+CI/CD	GitHub Actions (tests & build at every commit)
+Admin Panel	React + Material-UI (optional)
+📱 Installation Guide
+Prerequisites
+
+    Android Studio (latest)
+
+    Node.js 16+
+
+    MongoDB
+
+    Monero wallet RPC (for testing payments)
+
+Clone the repository
 bash
 
+git clone https://github.com/h4x0rmyzubster/MyZubsterh4x0r.git
+cd MyZubsterh4x0r
+
+Backend Setup
+bash
+
+cd backend
 npm install
+cp .env.example .env
+# Edit .env with your MongoDB URI, Monero RPC URL, and API keys.
+npm start
+# The backend will run on http://localhost:3001
 
-Set up environment variables: Create a .env file and fill in your credentials:
-env
-
-PORT=3001
-MONGODB_URI=mongodb://localhost:27017/myzubster
-MONERO_WALLET_RPC_URL=http://127.0.0.1:38082/json_rpc
-MONERO_NODE_URL=http://127.0.0.1:18081/json_rpc
-PAYMENT_PLATFORM_FEE_RATE=0.02
-    Run the server:
-    bash
-
-    npm start 
-    # The backend should now be running on http://localhost:3001
-
-📱 Android Setup (Kotlin)
+Android App
 
     Open the project in Android Studio.
 
-    Sync Gradle and wait for the build to complete.
+    Sync Gradle and build the APK.
 
-    Connect your device (or start an emulator).
+    Install the APK on your device (or use an emulator).
 
-    Run the app and test the connection to the backend.
+Run Tests
+bash
+
+# Backend tests
+cd backend
+npm run test
+
+# Android tests (in Android Studio or terminal)
+cd MyZubster
+./gradlew test
+
+# Run all tests with GitHub Actions (automated on every push)
+
+🛠️ Admin Panel
+
+MyZubster includes a complete admin panel for community management:
+Feature	Description	Role
+Reports	View and manage user reports	Moderator
+Users	List, filter, suspend/activate users	Admin
+Skills	Approve or reject skill listings	Moderator
+Stats	Dashboard with platform statistics	Moderator
+Logs	Audit trail of all moderation actions	Admin
+🧪 Testing
+
+MyZubster uses a comprehensive testing strategy:
+Test Type	Tool	Coverage
+Android Unit Tests	JUnit, Mockito	Models, ViewModels, Utils
+Backend API Tests	Jest, Supertest	Authentication, Users, Skills, Reviews
+Monero Integration Tests	Jest, Supertest	Payment creation, status checks, webhooks
+CI/CD	GitHub Actions	Auto-run on every push and PR
 🤝 How to Contribute
 
-We welcome contributions from all levels—whether you are fixing a typo, submitting an idea, or implementing complex features. Helping us improve MyZubster makes our community stronger! 💪
+We welcome contributors of all experience levels!
 
-Before making changes, please review the following resources:
+    Fork the repository.
 
-    📜 CODE_OF_CONDUCT.md: Please read this first to ensure a welcoming and respectful environment for everyone.
+    Create a feature branch.
 
-    📋 CONTRIBUTING.md: Follow these guidelines for submitting pull requests, reporting bugs, and general coding practices.
+    Make your changes and test them.
 
-    🔄 CHANGELOG.md: Help us keep our release history accurate!
+    Submit a Pull Request with a clear description of your work.
 
-🐞 Reporting Bugs / ✨ Requesting Features
-For specific inputs:
+See CONTRIBUTING.md for detailed guidelines.
+🛡️ Security & Privacy
 
-    🐛 Bug Report Template: Use this template when something is broken.
+    Monero wallets remain non-custodial — private keys never leave the user’s device.
 
-    💡 Feature Request Template: Use this template to suggest new ideas for the app.
+    Backend uses environment variables for sensitive data; never commit .env files.
 
-⚖️ License
+    All communication between client and server is encrypted via HTTPS.
 
-MyZubster is distributed under a dual-licensing approach: it is available under both the MIT License and the GNU General Public License v3 (GPLv3). Please read our respective LICENSE files to understand your rights and obligations regarding the use of this project.
-💬 Community
+    Push notifications support UnifiedPush (self-hosted ntfy.sh) as an alternative to Firebase.
 
-Got questions? Need help getting set up? Feel free to open an issue or join our discussions!
+    Admin Panel uses role-based access control (Admin/Moderator).
+
+If you find a security issue, please contact the maintainer privately.
+📄 License
+
+This project is licensed under either the MIT License or the GNU General Public License v3.0, at your option.
+
+SPDX-License-Identifier: MIT OR GPL-3.0-or-later
+🙏 Acknowledgments
+
+    Monero for privacy-first digital cash.
+
+    Mullvad VPN for secure networking.
+
+    UnifiedPush for decentralized push notifications.
+
+    OpenClaw for AI assistance.
+
+    All open-source libraries and contributors who make this project possible.
 
 🚀 Ready to join the community?
-Explore the code, report issues, or start contributing today!
