@@ -1,0 +1,3 @@
+PORT=3000
+MONGODB_URI=mongodb://localhost:27017/myzubster
+JWT_SECRET=il_tuo_segreto
