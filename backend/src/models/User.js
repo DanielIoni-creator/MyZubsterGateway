@@ -37,7 +37,7 @@ const userSchema = new Schema({
         required: false,
         default: null,
         index: true,
-        sparse: true // Permette più utenti con null
+        sparse: true
     },
 
     // Profilo utente
@@ -73,7 +73,8 @@ const userSchema = new Schema({
         trim: true
     }],
 
-    // Reputazione e recensioni
+    // ========== SISTEMA DI REPUTAZIONE AVANZATO ==========
+    // Rating base (stelle)
     rating: {
         type: Number,
         default: 0,
@@ -85,6 +86,37 @@ const userSchema = new Schema({
         default: 0,
         min: 0
     },
+
+    // Lavori completati
+    totalJobsCompleted: {
+        type: Number,
+        default: 0,
+        min: 0
+    },
+
+    // Tasso di risposta (percentuale 0-100)
+    responseRate: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100
+    },
+
+    // Verifica identità (facoltativa)
+    isIdentityVerified: {
+        type: Boolean,
+        default: false
+    },
+
+    // Badge e certificazioni
+    badges: [{
+        type: String,
+        trim: true
+    }],
+    skillsVerified: [{
+        type: String,
+        trim: true
+    }],
 
     // Firebase FCM token per notifiche
     fcmToken: {
@@ -118,31 +150,37 @@ const userSchema = new Schema({
 }, {
     collection: 'users',
     versionKey: false,
-    strict: false // Permette flessibilità per campi extra
+    strict: false
 });
 
 // Indici per performance
 userSchema.index({ username: 1, email: 1 });
 userSchema.index({ rating: -1 });
+userSchema.index({ totalJobsCompleted: -1 });
 userSchema.index({ createdAt: -1 });
+userSchema.index({ isIdentityVerified: 1 });
+userSchema.index({ badges: 1 });
 
-// Middleware pre-save per hashare la password
+// Middleware pre-save per hashare la password e aggiornare updatedAt
 userSchema.pre('save', async function(next) {
-    if (!this.isModified('password')) return next();
-    try {
-        const salt = await bcrypt.genSalt(10);
-        this.password = await bcrypt.hash(this.password, salt);
-        this.updatedAt = new Date();
-        next();
-    } catch (error) {
-        next(error);
+    if (this.isModified('password')) {
+        try {
+            const salt = await bcrypt.genSalt(10);
+            this.password = await bcrypt.hash(this.password, salt);
+        } catch (error) {
+            return next(error);
+        }
     }
+    this.updatedAt = new Date();
+    next();
 });
 
 // Metodo per confrontare la password
 userSchema.methods.comparePassword = async function(candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);
 };
+
+// ========== METODI PER LA REPUTAZIONE ==========
 
 // Metodo statico per aggiornare il rating
 userSchema.statics.updateRating = async function(userId) {
@@ -166,6 +204,52 @@ userSchema.statics.updateRating = async function(userId) {
     });
 };
 
+// Metodo per incrementare i lavori completati
+userSchema.methods.incrementCompletedJobs = async function() {
+    this.totalJobsCompleted = (this.totalJobsCompleted || 0) + 1;
+    this.updatedAt = new Date();
+    await this.save();
+    return this.totalJobsCompleted;
+};
+
+// Metodo per aggiornare il tasso di risposta
+userSchema.methods.updateResponseRate = async function(responses, totalMessages) {
+    if (totalMessages === 0) {
+        this.responseRate = 0;
+    } else {
+        this.responseRate = Math.round((responses / totalMessages) * 100);
+    }
+    this.updatedAt = new Date();
+    await this.save();
+    return this.responseRate;
+};
+
+// Metodo per aggiungere un badge
+userSchema.methods.addBadge = async function(badgeName) {
+    if (!this.badges.includes(badgeName)) {
+        this.badges.push(badgeName);
+        this.updatedAt = new Date();
+        await this.save();
+    }
+    return this.badges;
+};
+
+// Metodo per rimuovere un badge
+userSchema.methods.removeBadge = async function(badgeName) {
+    this.badges = this.badges.filter(b => b !== badgeName);
+    this.updatedAt = new Date();
+    await this.save();
+    return this.badges;
+};
+
+// Metodo per verificare l'identità
+userSchema.methods.verifyIdentity = async function() {
+    this.isIdentityVerified = true;
+    this.updatedAt = new Date();
+    await this.save();
+    return this.isIdentityVerified;
+};
+
 // Metodo per ottenere il profilo pubblico (senza dati sensibili)
 userSchema.methods.getPublicProfile = function() {
     return {
@@ -178,10 +262,28 @@ userSchema.methods.getPublicProfile = function() {
         avatarUrl: this.avatarUrl,
         rating: this.rating,
         reviewCount: this.reviewCount,
+        totalJobsCompleted: this.totalJobsCompleted,
+        responseRate: this.responseRate,
+        isIdentityVerified: this.isIdentityVerified,
+        badges: this.badges,
+        skillsVerified: this.skillsVerified,
         skillsOffered: this.skillsOffered,
         skillsWanted: this.skillsWanted,
         moneroAddress: this.moneroAddress,
         createdAt: this.createdAt
+    };
+};
+
+// Metodo per ottenere il profilo completo (solo per admin/utente stesso)
+userSchema.methods.getFullProfile = function() {
+    return {
+        ...this.getPublicProfile(),
+        email: this.email,
+        phone: this.phone,
+        fcmToken: this.fcmToken,
+        online: this.online,
+        lastSeenAt: this.lastSeenAt,
+        updatedAt: this.updatedAt
     };
 };
 
