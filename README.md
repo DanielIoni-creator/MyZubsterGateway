@@ -1,6 +1,6 @@
 # 🧩 MyZubster: Privacy-First Skill Exchange
 
-**MyZubster** is an open-source Android app that connects neighbors to exchange skills and services — from plumbing and hairdressing to tutoring and tech support. With built-in Monero (XMR) payments, it’s designed for private, secure, peer-to-peer transactions without intermediaries.
+**MyZubster** is an open-source Android app that connects neighbors to exchange skills and services — from plumbing and hairdressing to tutoring and tech support. With built-in Monero (XMR) payments, optional escrow, and a complete booking system, it’s designed for private, secure, peer-to-peer transactions without intermediaries.
 
 [![License](https://img.shields.io/badge/License-MIT%20%7C%20GPLv3-blue?style=flat)](LICENSE)
 [![Android](https://img.shields.io/badge/Platform-Android-brightgreen)](https://developer.android.com/)
@@ -13,7 +13,7 @@
 
 ## 🚀 What is MyZubster?
 
-MyZubster is a hyperlocal skill-sharing platform. It lets people in the same neighborhood offer services, request help, chat, and pay using Monero — all in a privacy-first, self-hosted environment.
+MyZubster is a hyperlocal skill-sharing platform. It lets people in the same neighborhood offer services, request help, chat, book appointments, send quotes, and pay using Monero — all in a privacy-first, self-hosted environment.
 
 The goal is to empower communities to collaborate directly, bypassing centralized platforms and reducing costs.
 
@@ -30,16 +30,16 @@ The goal is to empower communities to collaborate directly, bypassing centralize
 - 💰 **Transparent Fee** — A fair 2% platform fee keeps the project sustainable.
 - 🛡️ **Recommended VPN Integration** — Works seamlessly with Mullvad VPN for extra privacy.
 
-### Recent Implementations (July 2026)
-- ✅ **Geolocation & Map** — Find skills near you with distance calculation and map visualization.
-- ✅ **Escrow System** — Optional escrow for secure transactions. Funds are locked until work is confirmed.
-- ✅ **Advanced Reputation System** — Total jobs completed, response rate, identity verification, and skill badges.
-- ✅ **Admin Panel** — Moderation tools for reports, users, skills, and activity logs with role-based access (Admin/Moderator).
-- ✅ **Self-Hosted Notifications** — UnifiedPush support (ntfy.sh) for privacy-first push notifications without Firebase.
-- ✅ **Monero Payment Integration** — One-time addresses, QR code generation, transaction tracking, and 2% platform commission.
+### Advanced Features (Implemented)
+- 📅 **Booking System** — Schedule appointments with calendar and time slot selection.
+- 📝 **Quotes & Estimates** — Professionals can send quotes; clients can accept or reject them.
+- 📋 **Complete Work History** — Track all completed jobs with detailed information.
+- 🛡️ **Optional Escrow** — Funds are locked until work is confirmed, increasing trust.
+- 🔔 **Real-time Notifications** — Push notifications for messages, quotes, and payment confirmations.
+- 🛠️ **Admin Panel** — Moderation tools for reports, users, skills, and activity logs with role-based access (Admin/Moderator).
 - ✅ **Automated Testing** — Unit tests for Kotlin (Android), API tests for Node.js backend, Monero integration tests, and CI/CD with GitHub Actions.
-- ✅ **Internationalization** — Full English UI and documentation, with support for additional languages.
-- ✅ **Dual Licensing** — MIT and GPLv3 licenses for maximum flexibility.
+- 🌍 **Internationalization** — Full English UI and documentation, with support for additional languages.
+- 🔄 **Dual Licensing** — MIT and GPLv3 licenses for maximum flexibility.
 
 ---
 
@@ -51,6 +51,8 @@ The goal is to empower communities to collaborate directly, bypassing centralize
 | **Backend** | Node.js, Express, MongoDB, JWT, bcrypt |
 | **Payments** | Monero Wallet RPC, MoneroPay |
 | **Escrow** | Custom escrow service with Monero multisig support |
+| **Bookings** | Calendar-based scheduling with time slots |
+| **Quotes** | Professional-client estimate system |
 | **Push Notifications** | UnifiedPush (ntfy.sh) / Firebase FCM (optional) |
 | **AI (optional)** | Groq, Gemini (for skill descriptions) |
 | **Testing** | JUnit (Android), Jest (Backend), MongoDB Memory Server |
@@ -79,8 +81,7 @@ npm install
 cp .env.example .env
 # Edit .env with your MongoDB URI, Monero RPC URL, and API keys.
 npm start
-# The backend will run on http://localhost:3000
-
+# The backend will run on http://localhost:3001
 Android App
 
     Open the project in Android Studio.
@@ -102,6 +103,52 @@ cd MyZubster
 
 # Run all tests with GitHub Actions (automated on every push)
 
+📅 Booking System
+
+MyZubster includes a complete booking system:
+Feature	Description
+Calendar View	Select available dates for services
+Time Slots	Choose from predefined time slots (09:00-18:00)
+Booking Status	Track status: pending, confirmed, in_progress, completed, cancelled
+Automatic Scheduling	Prevent double bookings with conflict detection
+
+Flow:
+
+    Client selects a service and views available slots.
+
+    Client chooses a date and time.
+
+    Booking is created with status 'pending'.
+
+    Professional receives notification and can confirm.
+
+📝 Quotes & Estimates System
+
+MyZubster allows professionals to send quotes to clients:
+Feature	Description
+Send Quote	Professionals can send an amount and description for a service
+Accept/Reject	Clients can accept or reject quotes
+Automatic Booking Update	Accepted quotes automatically confirm the booking
+Quote History	Track all sent and received quotes
+
+Flow:
+
+    Professional sends a quote with amount and description.
+
+    Client receives notification and reviews the quote.
+
+    Client accepts or rejects the quote.
+
+    Booking status updates accordingly.
+
+📋 Work History
+
+MyZubster tracks all completed jobs:
+Feature	Description
+Complete History	View all completed jobs
+Infinite Scroll	Load more history as you scroll
+Job Details	See service title, category, professional, amount, and date
+Filtering	Filter by category (coming soon)
 🛡️ Escrow System
 
 MyZubster includes an optional escrow system for secure transactions:
@@ -124,23 +171,6 @@ Flow:
 
     Funds are released (minus 2% platform fee).
 
-🗺️ Geolocation & Map
-
-MyZubster includes geolocation features to help users find services nearby:
-
-    Distance Calculation: Shows how far each service is from your location.
-
-    Map Visualization: Displays available skills on an interactive map.
-
-    Nearby Search: Filter skills by distance radius.
-
-    Address Autocomplete: Easy address entry when creating a service.
-
-API Example
-bash
-
-GET /api/skills/nearby?lat=44.1&lng=12.5&radius=10
-
 🛠️ Admin Panel
 
 MyZubster includes a complete admin panel for community management:
@@ -158,7 +188,8 @@ Android Unit Tests	JUnit, Mockito	Models, ViewModels, Utils
 Backend API Tests	Jest, Supertest	Authentication, Users, Skills, Reviews
 Monero Integration Tests	Jest, Supertest	Payment creation, status checks, webhooks
 Escrow Tests	Jest, Supertest	Escrow creation, funding, release, disputes
-Geolocation Tests	Jest, Supertest	Nearby search, distance calculation
+Booking Tests	Jest, Supertest	Booking creation, conflict detection, status updates
+Quote Tests	Jest, Supertest	Quote creation, acceptance, rejection
 CI/CD	GitHub Actions	Auto-run on every push and PR
 🤝 How to Contribute
 
@@ -207,3 +238,14 @@ SPDX-License-Identifier: MIT OR GPL-3.0-or-later
 
 🚀 Ready to join the community?
 Explore the code, report issues, or start contributing today!
+text
+
+
+---
+
+## ✅ Salva e carica su GitHub
+
+```powershell
+git add README.md
+git commit -m "Aggiornato README in inglese con tutti i nuovi sviluppi: prenotazioni, preventivi, storico lavori, escrow"
+git push origin main

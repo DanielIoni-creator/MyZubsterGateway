@@ -20,8 +20,8 @@ class QuoteDialog(private val bookingId: String) : DialogFragment() {
         val inflater = requireActivity().layoutInflater
         val view = inflater.inflate(R.layout.dialog_quote, null)
 
-        val etAmount = view.findViewById<EditText>(R.id.etQuoteAmount)
-        val etDescription = view.findViewById<EditText>(R.id.etQuoteDescription)
+        val etAmount = view.findViewById<EditText>(R.id.etAmount)
+        val etDescription = view.findViewById<EditText>(R.id.etDescription)
         val btnSend = view.findViewById<Button>(R.id.btnSendQuote)
         val btnCancel = view.findViewById<Button>(R.id.btnCancel)
 

@@ -1,136 +1,53 @@
 package com.myzubster.services
 
-import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat
-import com.google.firebase.messaging.FirebaseMessagingService
-import com.google.firebase.messaging.RemoteMessage
 import com.myzubster.R
-import com.myzubster.activities.PaymentActivity
-import com.myzubster.network.NotificationApiService
-import com.myzubster.ui.chat.ChatActivity
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import com.myzubster.MainActivity
 
-class NotificationService : FirebaseMessagingService() {
-    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+class NotificationService {
 
-    override fun onNewToken(token: String) {
-        super.onNewToken(token)
-        android.util.Log.d(TAG, "FCM token aggiornato: $token")
-        registerToken(token)
+    companion object {
+        const val CHANNEL_ID = "myzubster_channel"
+        const val CHANNEL_NAME = "MyZubster Notifiche"
+        const val NOTIFICATION_ID = 1001
+        const val EXTRA_CONTACT_USER_ID = "extra_contact_user_id"
+        const val EXTRA_CHAT_ID = "extra_chat_id"
     }
 
-    override fun onMessageReceived(message: RemoteMessage) {
-        super.onMessageReceived(message)
+    fun sendNotification(context: Context, title: String, message: String) {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        val type = message.data["type"] ?: "generic"
-        val title = message.notification?.title
-            ?: message.data["title"]
-            ?: when (type) {
-                TYPE_PAYMENT_CONFIRMED -> "Pagamento confermato"
-                TYPE_MESSAGE_RECEIVED -> "Nuovo messaggio"
-                else -> "MyZubster"
-            }
-        val body = message.notification?.body
-            ?: message.data["body"]
-            ?: "Hai una nuova notifica"
-
-        showNotification(title, body, message.data)
-    }
-
-    private fun registerToken(token: String) {
-        val userId = currentUserId()
-        if (userId.isBlank()) return
-
-        serviceScope.launch {
-            runCatching { NotificationApiService().registerDeviceToken(userId, token) }
-                .onFailure { error -> android.util.Log.w(TAG, "Registrazione token FCM fallita: ${error.message}") }
-        }
-    }
-
-    private fun showNotification(title: String, body: String, data: Map<String, String>) {
-        createNotificationChannel()
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-        ) {
-            android.util.Log.w(TAG, "Permesso POST_NOTIFICATIONS non concesso; notifica non mostrata")
-            return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            notificationManager.createNotificationChannel(channel)
         }
 
-        val intent = targetIntent(data)
-        val stableKey = data["paymentId"] ?: data["messageId"] ?: data["chatId"] ?: System.currentTimeMillis().toString()
+        val intent = Intent(context, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
-            this,
-            stableKey.hashCode(),
+            context,
+            0,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setContentTitle(title)
-            .setContentText(body)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
-            .setAutoCancel(true)
+            .setContentText(message)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentIntent(pendingIntent)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
             .build()
 
-        NotificationManagerCompat.from(this).notify(stableKey.hashCode(), notification)
-    }
-
-    private fun targetIntent(data: Map<String, String>): Intent {
-        return when (data["type"]) {
-            TYPE_PAYMENT_CONFIRMED -> Intent(this, PaymentActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                data["paymentId"]?.let { putExtra(PaymentActivity.EXTRA_PAYMENT_ID, it) }
-            }
-            TYPE_MESSAGE_RECEIVED -> Intent(this, ChatActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                data["senderId"]?.let { putExtra(ChatActivity.EXTRA_CONTACT_USER_ID, it) }
-                data["chatId"]?.let { putExtra(ChatActivity.EXTRA_CHAT_ID, it) }
-            }
-            else -> Intent(this, ChatActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            }
-        }
-    }
-
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            "Notifiche MyZubster",
-            NotificationManager.IMPORTANCE_DEFAULT
-        ).apply {
-            description = "Notifiche per pagamenti Monero, messaggi e aggiornamenti MyZubster"
-        }
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        manager.createNotificationChannel(channel)
-    }
-
-    private fun currentUserId(): String = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        .getString(KEY_USER_ID, "")
-        .orEmpty()
-
-    companion object {
-        private const val TAG = "NotificationService"
-        const val CHANNEL_ID = "myzubster_notifications"
-        const val TYPE_PAYMENT_CONFIRMED = "payment_confirmed"
-        const val TYPE_MESSAGE_RECEIVED = "message_received"
-        private const val PREFS_NAME = "myzubster_notifications"
-        private const val KEY_USER_ID = "user_id"
+        notificationManager.notify(NOTIFICATION_ID, notification)
     }
 }

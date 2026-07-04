@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="true"
@@ -10,6 +12,7 @@
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
         android:usesCleartextTraffic="true">
 
+        <!-- Main Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -19,7 +22,46 @@
             </intent-filter>
         </activity>
 
+        <!-- Chat -->
+        <activity android:name=".ui.chat.ChatActivity" android:exported="false" />
+
+        <!-- Profilo -->
+        <activity android:name=".ui.profile.CreateProfileActivity" android:exported="false" />
+
+        <!-- Competenze -->
+        <activity android:name=".ui.skills.CreateSkillActivity" android:exported="false" />
+
+        <!-- Pagamenti -->
+        <activity android:name=".activities.PaymentActivity" android:exported="false" />
+
+        <!-- Dettaglio Skill -->
+        <activity android:name=".activities.SkillDetailActivity" android:exported="false" />
+
+        <!-- Impostazioni -->
         <activity android:name=".ui.settings.SettingsActivity" android:exported="false" />
+
+        <!-- Prenotazioni -->
+        <activity android:name=".activities.BookCalendarActivity" android:exported="false" />
+
+        <!-- Preventivi -->
+        <activity
+            android:name=".activities.BookingDetailActivity"
+            android:exported="false"
+            android:label="Dettaglio Prenotazione" />
+
+        <!-- Firebase Service -->
+        <service
+            android:name=".services.MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- Notification Receiver -->
+        <receiver
+            android:name=".receivers.NotificationReceiver"
+            android:exported="false" />
 
     </application>
 
