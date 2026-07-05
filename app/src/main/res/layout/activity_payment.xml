@@ -1,101 +1,119 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:padding="24dp">
+    android:padding="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
 
         <TextView
-            android:id="@+id/paymentActivityTitleText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Pagamento Monero"
-            android:textSize="26sp"
-            android:textStyle="bold" />
+            android:text="💳 Pagamento"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="24dp" />
 
-        <TextView
-            android:id="@+id/paymentAmount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Importo da pagare: 0.00 XMR"
-            android:textSize="22sp"
-            android:textStyle="bold" />
-
+        <!-- QR Code -->
         <ImageView
-            android:id="@+id/qrCodeImage"
-            android:layout_width="280dp"
-            android:layout_height="280dp"
-            android:layout_marginTop="16dp"
-            android:adjustViewBounds="true"
-            android:background="#FFFFFFFF"
-            android:contentDescription="QR Code indirizzo Monero"
-            android:padding="8dp" />
+            android:id="@+id/ivQRCode"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_marginBottom="16dp"
+            android:background="@android:color/white"
+            android:padding="16dp" />
 
+        <!-- Stato -->
         <TextView
+            android:id="@+id/tvPaymentStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Indirizzo Monero"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/moneroAddress"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:background="#11000000"
-            android:fontFamily="monospace"
-            android:padding="12dp"
-            android:text="Generazione indirizzo..."
-            android:textIsSelectable="true"
-            android:textSize="12sp" />
-
-        <Button
-            android:id="@+id/paymentActivityCopyAddressButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:enabled="false"
-            android:text="Copia indirizzo" />
-
-        <ProgressBar
-            android:id="@+id/paymentActivityProgress"
-            style="?android:attr/progressBarStyleLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:indeterminate="true" />
-
-        <TextView
-            android:id="@+id/paymentStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:gravity="center"
-            android:text="In attesa di pagamento..."
+            android:text="Stato: In attesa"
             android:textSize="16sp"
-            android:textStyle="bold" />
+            android:gravity="center"
+            android:padding="8dp"
+            android:background="@drawable/status_background" />
 
-        <Button
-            android:id="@+id/paymentActivityOpenWalletButton"
+        <!-- Dettagli -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:enabled="false"
-            android:text="Apri wallet Monero" />
+            android:orientation="vertical"
+            android:layout_marginTop="16dp"
+            android:padding="16dp"
+            android:background="@android:color/white"
+            android:elevation="4dp">
 
-        <Button
-            android:id="@+id/btnCancel"
+            <TextView
+                android:id="@+id/tvPaymentAmount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Importo: 0.00 XMR"
+                android:padding="4dp" />
+
+            <TextView
+                android:id="@+id/tvPaymentFee"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Fee (2%): 0.00 XMR"
+                android:padding="4dp" />
+
+            <TextView
+                android:id="@+id/tvPaymentNet"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Netto: 0.00 XMR"
+                android:padding="4dp" />
+
+            <TextView
+                android:id="@+id/tvPaymentAddress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Indirizzo: -"
+                android:padding="4dp"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvPaymentConfirmations"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Conferme: 0/10"
+                android:padding="4dp" />
+
+        </LinearLayout>
+
+        <!-- Pulsanti -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Annulla" />
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp">
+
+            <Button
+                android:id="@+id/btnRefreshStatus"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="🔄 Aggiorna"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+            <Button
+                android:id="@+id/btnReleaseFunds"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="✅ Rilascia"
+                android:enabled="false" />
+
+        </LinearLayout>
+
     </LinearLayout>
+
 </ScrollView>
