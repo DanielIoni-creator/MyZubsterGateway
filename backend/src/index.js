@@ -15,9 +15,14 @@ app.use(express.urlencoded({ extended: true }));
 // API Versioning - v1
 app.use('/api/v1', require('./api/v1'));
 
-// Payment routes (AGGIUNTO)
+// Payment routes
 const paymentRoutes = require('./payment/routes');
 app.use('/api/v1/payments', paymentRoutes);
+
+// ============ SWAGGER DOCUMENTATION ============
+const { swaggerUi, specs } = require('./api/v1/swagger');
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+console.log(`📖 API Docs: http://localhost:${PORT}/api-docs`);
 
 // Health check
 app.get('/health', (req, res) => {
@@ -50,5 +55,6 @@ app.listen(PORT, () => {
   console.log(`🚀 MyZubster Backend running on port ${PORT}`);
   console.log(`📚 API v1: http://localhost:${PORT}/api/v1`);
   console.log(`💰 Payments: http://localhost:${PORT}/api/v1/payments`);
+  console.log(`📖 API Docs: http://localhost:${PORT}/api-docs`);
   console.log(`❤️  Health: http://localhost:${PORT}/health`);
 });
