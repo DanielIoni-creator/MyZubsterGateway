@@ -12,8 +12,12 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// API Versioning - SOLO v1 (rimosso v2)
+// API Versioning - v1
 app.use('/api/v1', require('./api/v1'));
+
+// Payment routes (AGGIUNTO)
+const paymentRoutes = require('./payment/routes');
+app.use('/api/v1/payments', paymentRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
@@ -45,5 +49,6 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`🚀 MyZubster Backend running on port ${PORT}`);
   console.log(`📚 API v1: http://localhost:${PORT}/api/v1`);
+  console.log(`💰 Payments: http://localhost:${PORT}/api/v1/payments`);
   console.log(`❤️  Health: http://localhost:${PORT}/health`);
 });
