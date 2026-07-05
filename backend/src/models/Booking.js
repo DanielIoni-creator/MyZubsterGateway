@@ -1,62 +1,87 @@
 const mongoose = require('mongoose');
+const { Schema } = mongoose;
 
-const bookingSchema = new mongoose.Schema({
-    skillId: {
-        type: String,
-        required: true
-    },
-    clientId: {
-        type: String,
-        required: true
-    },
-    professionalId: {
-        type: String,
-        required: true
-    },
-    date: {
-        type: Date,
-        required: true
-    },
-    timeSlot: {
-        type: String,
-        required: true,
-        enum: ['09:00-10:00', '10:00-11:00', '11:00-12:00', '12:00-13:00',
-                '14:00-15:00', '15:00-16:00', '16:00-17:00', '17:00-18:00']
-    },
-    status: {
-        type: String,
-        enum: ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'],
-        default: 'pending'
-    },
-    quoteAmount: {
-        type: Number,
-        default: null
-    },
-    quoteStatus: {
-        type: String,
-        enum: ['pending', 'accepted', 'rejected'],
-        default: null
-    },
-    notes: {
-        type: String,
-        trim: true,
-        maxlength: 500
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
-    updatedAt: {
-        type: Date,
-        default: Date.now
-    },
-    completedAt: {
-        type: Date,
-        default: null
-    }
+const bookingSchema = new Schema({
+  clientId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  professionalId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  skillId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Skill',
+    required: true
+  },
+  date: {
+    type: Date,
+    required: true
+  },
+  timeSlot: {
+    type: String,
+    required: true
+  },
+  amount: {
+    type: Number,
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'],
+    default: 'pending'
+  },
+  completedAt: {
+    type: Date,
+    default: null
+  },
+  notes: {
+    type: String,
+    default: ''
+  },
+  location: {
+    type: String,
+    default: ''
+  }
 }, {
-    collection: 'bookings',
-    versionKey: false
+  timestamps: true
 });
 
-module.exports = mongoose.model('Booking', bookingSchema);
+// Middleware per aggiornare completedAt quando lo status diventa 'completed'
+bookingSchema.pre('findOneAndUpdate', function(next) {
+  const update = this.getUpdate();
+  if (update.status === 'completed' && !update.completedAt) {
+    update.completedAt = new Date();
+  }
+  next();
+});
+
+// Metodi di utilità
+bookingSchema.methods.isCompleted = function() {
+  return this.status === 'completed';
+};
+
+bookingSchema.methods.isCancelled = function() {
+  return this.status === 'cancelled';
+};
+
+bookingSchema.methods.isInProgress = function() {
+  return this.status === 'in_progress';
+};
+
+bookingSchema.methods.getFormattedStatus = function() {
+  const statusMap = {
+    'pending': 'In attesa',
+    'confirmed': 'Confermata',
+    'in_progress': 'In corso',
+    'completed': 'Completata',
+    'cancelled': 'Cancellata'
+  };
+  return statusMap[this.status] || this.status;
+};
+
+// ✅ CORREZIONE: Evita la sovrascrittura del modello
+module.exports = mongoose.models.Booking || mongoose.model('Booking', bookingSchema);
