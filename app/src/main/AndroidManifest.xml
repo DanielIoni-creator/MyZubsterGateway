@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permissions -->
+    <!-- Permessi necessari per il funzionamento dell'app -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
@@ -16,116 +16,22 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:label="MyZubster"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyZubster"
         android:usesCleartextTraffic="true"
-        tools:targetApi="31">
+        tools:targetApi="33">
 
-        <!-- Auth Activities -->
-        <activity
-            android:name=".ui.auth.LoginActivity"
-            android:exported="true"
-            android:theme="@style/Theme.MyZubster">
+        <!-- Qui vanno definite tutte le Activity, i Service e i Receiver dell'app -->
+        <!-- Esempio:
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity
-            android:name=".ui.auth.RegisterActivity"
-            android:exported="false"
-            android:theme="@style/Theme.MyZubster" />
-
-        <!-- Main Activity -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="false"
-            android:theme="@style/Theme.MyZubster" />
-
-        <!-- Booking Activities -->
-        <activity
-            android:name=".activities.BookingHistoryActivity"
-            android:exported="false"
-            android:theme="@style/Theme.MyZubster"
-            android:parentActivityName=".MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
-        </activity>
-
-        <activity
-            android:name=".activities.BookingDetailActivity"
-            android:exported="false"
-            android:theme="@style/Theme.MyZubster" />
-
-        <!-- Payment Activity -->
-        <activity
-            android:name=".payment.ui.PaymentActivity"
-            android:exported="false"
-            android:theme="@style/Theme.MyZubster"
-            android:parentActivityName=".MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
-        </activity>
-
-        <!-- Other Activities -->
-        <activity
-            android:name=".activities.ProfileActivity"
-            android:exported="false"
-            android:theme="@style/Theme.MyZubster" />
-
-        <activity
-            android:name=".activities.SkillsActivity"
-            android:exported="false"
-            android:theme="@style/Theme.MyZubster" />
-
-        <activity
-            android:name=".activities.ChatActivity"
-            android:exported="false"
-            android:theme="@style/Theme.MyZubster" />
-
-        <activity
-            android:name=".escrow.EscrowActivity"
-            android:exported="false"
-            android:theme="@style/Theme.MyZubster" />
-
-        <activity
-            android:name=".activities.ReviewActivity"
-            android:exported="false"
-            android:theme="@style/Theme.MyZubster" />
-
-        <activity
-            android:name=".activities.SettingsActivity"
-            android:exported="false"
-            android:theme="@style/Theme.MyZubster" />
-
-        <!-- Services -->
-        <service
-            android:name=".services.NotificationService"
-            android:exported="false" />
-
-        <service
-            android:name=".services.MyFirebaseMessagingService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
-
-        <!-- Providers -->
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths" />
-        </provider>
+        -->
 
     </application>
 
