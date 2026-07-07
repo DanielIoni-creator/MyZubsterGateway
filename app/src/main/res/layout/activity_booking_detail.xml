@@ -7,85 +7,92 @@
     android:padding="16dp"
     android:background="#F5F5F5">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar"
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
-        android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
-        app:title="Dettaglio Prenotazione"
-        app:titleTextColor="@android:color/white"
-        app:navigationIcon="@drawable/ic_arrow_back"
-        app:navigationContentDescription="Back" />
-
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="4dp">
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        android:layout_marginBottom="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="16dp"
+            android:background="#FFFFFF">
 
             <TextView
-                android:id="@+id/tvQuoteAmount"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="💰 Importo: -"
-                android:textSize="16sp"
-                android:layout_marginBottom="8dp" />
+                android:text="Dettagli Prenotazione"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#2196F3" />
 
             <TextView
-                android:id="@+id/tvQuoteDescription"
-                android:layout_width="match_parent"
+                android:id="@+id/tvBookingId"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📝 Descrizione: -"
-                android:textSize="14sp"
-                android:layout_marginBottom="8dp" />
+                android:text="ID: "
+                android:layout_marginTop="8dp"
+                android:textSize="14sp" />
 
             <TextView
-                android:id="@+id/tvQuoteStatus"
-                android:layout_width="match_parent"
+                android:id="@+id/tvServiceName"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📌 Stato: -"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:text="Servizio: "
+                android:layout_marginTop="4dp"
+                android:textSize="14sp" />
 
+            <TextView
+                android:id="@+id/tvProfessionalName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Professionista: "
+                android:layout_marginTop="4dp"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tvBookingStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Stato: "
+                android:layout_marginTop="4dp"
+                android:textSize="14sp" />
         </LinearLayout>
+    </androidx.cardview.widget.CardView>
 
-    </com.google.android.material.card.MaterialCardView>
-
-    <LinearLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="16dp">
+        android:text="Preventivi Ricevuti"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#333333"
+        android:layout_marginBottom="8dp" />
 
-        <Button
-            android:id="@+id/btnAcceptQuote"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="✅ Accetta"
-            android:backgroundTint="#4CAF50"
-            android:textColor="#FFFFFF"
-            android:visibility="gone"
-            android:layout_marginEnd="8dp" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvQuotes"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
-        <Button
-            android:id="@+id/btnRejectQuote"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="❌ Rifiuta"
-            android:backgroundTint="#F44336"
-            android:textColor="#FFFFFF"
-            android:visibility="gone" />
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
 
-    </LinearLayout>
+    <TextView
+        android:id="@+id/tvEmpty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nessun preventivo disponibile"
+        android:textSize="16sp"
+        android:textColor="#999999"
+        android:layout_gravity="center"
+        android:visibility="gone" />
 
 </LinearLayout>

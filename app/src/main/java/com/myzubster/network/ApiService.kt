@@ -1,48 +1,72 @@
 package com.myzubster.network
 
-import com.myzubster.models.*
-import retrofit2.Response
+import com.myzubster.data.model.Quote
+import com.myzubster.data.model.QuoteUpdateRequest
+import com.myzubster.data.model.NotificationRegisterRequest
+import com.myzubster.data.model.NotificationRegisterResponse
+import retrofit2.Call
 import retrofit2.http.*
 
 interface ApiService {
-
-    // ============ AUTH ============
-    @POST("api/v1/auth/login")
-    suspend fun login(
-        @Body request: LoginRequest
-    ): Response<AuthResponse>
-
-    @POST("api/v1/auth/register")
-    suspend fun register(
-        @Body request: RegisterRequest
-    ): Response<AuthResponse>
-
-    // ============ BOOKINGS ============
-    @GET("api/v1/bookings/history/{userId}")
-    suspend fun getBookingHistory(
-        @Path("userId") userId: String,
-        @Query("page") page: Int = 1,
-        @Query("limit") limit: Int = 10,
-        @Query("status") status: String? = null
-    ): Response<BookingHistoryResponse>
-
-    // ============ PAYMENTS ============
-    @POST("api/v1/payments")
-    suspend fun createPayment(
-        @Header("Authorization") token: String,
-        @Body request: CreatePaymentRequest
-    ): Response<PaymentResponse>
-
-    @GET("api/v1/payments/{paymentId}/status")
-    suspend fun checkPaymentStatus(
-        @Path("paymentId") paymentId: String,
-        @Header("Authorization") token: String
-    ): Response<PaymentStatusResponse>
-
-    // ============ SKILLS ============
-    @GET("api/v1/skills")
-    suspend fun getSkills(
-        @Query("page") page: Int = 1,
-        @Query("limit") limit: Int = 20
-    ): Response<SkillsResponse>
+    
+    // =============================================
+    // QUOTES ENDPOINTS
+    // =============================================
+    
+    // GET: Ottieni tutti i preventivi di una prenotazione
+    @GET("/quotes/booking/{bookingId}")
+    fun getQuotesByBookingId(@Path("bookingId") bookingId: String): Call<List<Quote>>
+    
+    // PUT: Aggiorna un preventivo esistente
+    @PUT("/quotes/{quoteId}")
+    fun updateQuote(
+        @Path("quoteId") quoteId: String,
+        @Body request: QuoteUpdateRequest
+    ): Call<Quote>
+    
+    // =============================================
+    // BOOKINGS ENDPOINTS
+    // =============================================
+    
+    // GET: Ottieni storico prenotazioni
+    @GET("/bookings/history")
+    fun getBookingHistory(): Call<List<Any>>
+    
+    // =============================================
+    // NOTIFICATIONS ENDPOINTS
+    // =============================================
+    
+    // POST: Registra il dispositivo per le notifiche push
+    @POST("/notifications/register")
+    fun registerNotification(
+        @Body request: NotificationRegisterRequest
+    ): Call<NotificationRegisterResponse>
+    
+    // DELETE: Disregistra il dispositivo dalle notifiche
+    @DELETE("/notifications/unregister")
+    fun unregisterNotification(
+        @Query("deviceToken") deviceToken: String
+    ): Call<Void>
+    
+    // GET: Ottieni lo stato delle notifiche per un utente
+    @GET("/notifications/status")
+    fun getNotificationStatus(
+        @Query("userId") userId: String
+    ): Call<NotificationRegisterResponse>
+    
+    // =============================================
+    // ALTRI ENDPOINT (DA AGGIUNGERE FUTURAMENTE)
+    // =============================================
+    
+    // GET: Ottieni dettaglio di un singolo preventivo
+    // @GET("/quotes/{quoteId}")
+    // fun getQuoteById(@Path("quoteId") quoteId: String): Call<Quote>
+    
+    // DELETE: Elimina un preventivo
+    // @DELETE("/quotes/{quoteId}")
+    // fun deleteQuote(@Path("quoteId") quoteId: String): Call<Void>
+    
+    // POST: Crea un nuovo preventivo
+    // @POST("/quotes")
+    // fun createQuote(@Body request: QuoteCreateRequest): Call<Quote>
 }

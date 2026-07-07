@@ -1,13 +1,18 @@
 package com.myzubster.network
 
 import com.myzubster.BuildConfig
+import com.myzubster.data.model.NotificationRegisterRequest
+import com.myzubster.data.model.NotificationRegisterResponse
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Body
-import retrofit2.http.POST
+import retrofit2.http.*
 import java.util.concurrent.TimeUnit
+
+// =============================================
+// MODELLI DATI (inclusi qui per compatibilità)
+// =============================================
 
 data class RegisterDeviceTokenRequest(
     val userId: String,
@@ -17,13 +22,38 @@ data class RegisterDeviceTokenRequest(
 
 data class RegisterDeviceTokenResponse(
     val ok: Boolean,
-    val userId: String? = null
+    val userId: String? = null,
+    val message: String? = null
 )
 
+// =============================================
+// INTERFACE RETROFIT
+// =============================================
+
 private interface NotificationApi {
+    
+    // Endpoint per registrare il token
     @POST("api/notifications/register-token")
-    suspend fun registerDeviceToken(@Body request: RegisterDeviceTokenRequest): RegisterDeviceTokenResponse
+    suspend fun registerDeviceToken(
+        @Body request: RegisterDeviceTokenRequest
+    ): RegisterDeviceTokenResponse
+    
+    // Endpoint per disregistrare il token
+    @DELETE("api/notifications/unregister-token")
+    suspend fun unregisterDeviceToken(
+        @Query("token") token: String
+    ): RegisterDeviceTokenResponse
+    
+    // Endpoint per verificare lo stato
+    @GET("api/notifications/status")
+    suspend fun getNotificationStatus(
+        @Query("userId") userId: String
+    ): RegisterDeviceTokenResponse
 }
+
+// =============================================
+// SERVICE PRINCIPALE
+// =============================================
 
 class NotificationApiService(
     baseUrl: String = BuildConfig.API_BASE_URL,
@@ -36,7 +66,9 @@ class NotificationApiService(
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
-            .addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC })
+            .addInterceptor(HttpLoggingInterceptor().apply { 
+                level = HttpLoggingInterceptor.Level.BODY 
+            })
             .build()
 
         api = Retrofit.Builder()
@@ -47,6 +79,21 @@ class NotificationApiService(
             .create(NotificationApi::class.java)
     }
 
+    // Registra il dispositivo per le notifiche
     suspend fun registerDeviceToken(userId: String, token: String): RegisterDeviceTokenResponse =
-        api.registerDeviceToken(RegisterDeviceTokenRequest(userId = userId, token = token))
+        api.registerDeviceToken(
+            RegisterDeviceTokenRequest(
+                userId = userId,
+                token = token,
+                platform = "android"
+            )
+        )
+
+    // Disregistra il dispositivo dalle notifiche
+    suspend fun unregisterDeviceToken(token: String): RegisterDeviceTokenResponse =
+        api.unregisterDeviceToken(token)
+
+    // Ottieni lo stato delle notifiche
+    suspend fun getNotificationStatus(userId: String): RegisterDeviceTokenResponse =
+        api.getNotificationStatus(userId)
 }
