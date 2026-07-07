@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Permissions -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application
+        android:name=".MyZubsterApplication"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MyZubster"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="31">
+
+        <!-- ============ AUTH ACTIVITIES ============ -->
+        <activity
+            android:name=".ui.auth.LoginActivity"
+            android:exported="true"
+            android:theme="@style/Theme.MyZubster">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.auth.RegisterActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyZubster" />
+
+        <!-- ============ MAIN ACTIVITY ============ -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyZubster" />
+
+        <!-- ============ BOOKING ACTIVITIES ============ -->
+        <activity
+            android:name=".activities.BookingHistoryActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyZubster"
+            android:parentActivityName=".MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+        </activity>
+
+        <activity
+            android:name=".activities.BookingDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyZubster" />
+
+        <!-- ============ PAYMENT ACTIVITY ============ -->
+        <activity
+            android:name=".payment.ui.PaymentActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyZubster"
+            android:parentActivityName=".MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+        </activity>
+
+        <!-- ============ REVIEWS ACTIVITIES ============ -->
+        <activity
+            android:name=".ui.reviews.CreateReviewActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyZubster"
+            android:parentActivityName=".MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+        </activity>
+
+        <activity
+            android:name=".ui.reviews.UserReviewsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyZubster"
+            android:parentActivityName=".MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+        </activity>
+
+        <activity
+            android:name=".ui.reviews.TargetReviewsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyZubster"
+            android:parentActivityName=".MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+        </activity>
+
+        <!-- ============ OTHER ACTIVITIES ============ -->
+        <activity
+            android:name=".activities.ProfileActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyZubster" />
+
+        <activity
+            android:name=".activities.SkillsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyZubster" />
+
+        <activity
+            android:name=".activities.ChatActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyZubster" />
+
+        <activity
+            android:name=".escrow.EscrowActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyZubster" />
+
+        <activity
+            android:name=".activities.ReviewActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyZubster" />
+
+        <activity
+            android:name=".activities.SettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MyZubster" />
+
+        <!-- ============ SERVICES ============ -->
+        <service
+            android:name=".services.NotificationService"
+            android:exported="false" />
+
+        <service
+            android:name=".services.MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- ============ PROVIDERS ============ -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+    </application>
+
+</manifest>

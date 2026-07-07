@@ -1,0 +1,34 @@
+{
+  "name": "myzubster-platform",
+  "version": "0.4.0-beta.1",
+  "private": true,
+  "description": "MyZubster Platform - Complete ecosystem",
+  "workspaces": [
+    "backend",
+    "api-gateway",
+    "web-dashboard",
+    "admin-panel"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:gateway\" \"npm run dev:web\" \"npm run dev:admin\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:gateway": "cd api-gateway && npm run dev",
+    "dev:web": "cd web-dashboard && npm start",
+    "dev:admin": "cd admin-panel && npm start",
+    "docker:up": "docker-compose -f docker/docker-compose.yml up -d",
+    "docker:down": "docker-compose -f docker/docker-compose.yml down",
+    "docker:logs": "docker-compose -f docker/docker-compose.yml logs -f",
+    "test": "cd backend && npm test",
+    "test:coverage": "cd backend && npm run test:coverage"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "swagger-jsdoc": "^6.3.0",
+    "swagger-ui-express": "^5.0.1"
+  }
+}

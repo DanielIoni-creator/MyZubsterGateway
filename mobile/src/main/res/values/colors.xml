@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary colors -->
+    <color name="primary">#6200EE</color>
+    <color name="primary_dark">#3700B3</color>
+    <color name="accent">#03DAC5</color>
+    
+    <!-- Legacy color names (per compatibilità con bg_status.xml) -->
+    <color name="colorPrimary">#6200EE</color>
+    <color name="colorPrimaryDark">#3700B3</color>
+    <color name="colorAccent">#03DAC5</color>
+    
+    <!-- Basic colors -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
+    <color name="colorWhite">#FFFFFF</color>
+    <color name="colorBlack">#000000</color>
+    <color name="colorGray">#808080</color>
+    <color name="colorLightGray">#D3D3D3</color>
+    
+    <!-- UI colors -->
+    <color name="text_primary">#000000</color>
+    <color name="background">#FFFFFF</color>
+    <color name="error">#B00020</color>
+    <color name="ic_launcher_background">#FFFFFF</color>
+    
+    <!-- Status colors -->
+    <color name="status_pending">#FFA726</color>
+    <color name="status_confirmed">#42A5F5</color>
+    <color name="status_in_progress">#AB47BC</color>
+    <color name="status_completed">#66BB6A</color>
+    <color name="status_cancelled">#EF5350</color>
+</resources>

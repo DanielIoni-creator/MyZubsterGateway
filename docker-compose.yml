@@ -1,0 +1,204 @@
+# =============================================
+# MYZUBSTER - DOCKER COMPOSE
+# Setup completo per sviluppo e produzione
+# =============================================
+
+version: '3.8'
+
+services:
+  # ─── DATABASE ───
+  postgres:
+    image: postgres:15-alpine
+    container_name: myzubster-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: myzubster
+      POSTGRES_PASSWORD: myzubster123
+      POSTGRES_DB: myzubster
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-db:/docker-entrypoint-initdb.d
+    networks:
+      - myzubster-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myzubster"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── REDIS (cache) ───
+  redis:
+    image: redis:7-alpine
+    container_name: myzubster-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - myzubster-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── MONERO NODE (opzionale) ───
+  monero:
+    image: monero:latest
+    container_name: myzubster-monero
+    restart: unless-stopped
+    environment:
+      MONERO_NETWORK: stagenet
+    ports:
+      - "18081:18081"
+      - "18082:18082"
+    volumes:
+      - monero_data:/home/monero/.bitmonero
+    networks:
+      - myzubster-network
+    profiles:
+      - monero
+    command: >
+      --stagenet
+      --rpc-bind-ip=0.0.0.0
+      --rpc-bind-port=18081
+      --confirm-external-bind
+      --non-interactive
+      --restricted-rpc
+
+  # ─── BACKEND NODE.JS ───
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: myzubster-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://myzubster:myzubster123@postgres:5432/myzubster
+      REDIS_URL: redis://redis:6379
+      WEB3_PROVIDER: http://localhost:8545
+      FEE_CONTRACT_ADDRESS: ${FEE_CONTRACT_ADDRESS:-0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512}
+      GOVERNANCE_TOKEN_ADDRESS: ${GOVERNANCE_TOKEN_ADDRESS:-0x5FbDB2315678afecb367f032d93F642f64180aa3}
+      MONERO_RPC_URL: http://monero:18081
+      MONERO_WALLET_PASSWORD: myzubster_wallet
+      JWT_SECRET: ${JWT_SECRET:-myzubster_jwt_secret_key_2026}
+      JWT_EXPIRES_IN: 7d
+      ENABLE_FEE_MONITORING: "true"
+      ENABLE_GOVERNANCE: "true"
+      ENABLE_STAKING: "true"
+      ENABLE_AUTO_DISTRIBUTION: "true"
+      LOG_LEVEL: info
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - myzubster-network
+    command: npm run dev
+
+  # ─── FRONTEND REACT ───
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: myzubster-frontend
+    restart: unless-stopped
+    environment:
+      REACT_APP_API_URL: http://localhost:3000/api
+      REACT_APP_FEE_CONTRACT: ${FEE_CONTRACT_ADDRESS:-0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512}
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - myzubster-network
+    command: npm start
+
+  # ─── HARDHAT NODE (blockchain locale) ───
+  hardhat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.hardhat
+    container_name: myzubster-hardhat
+    restart: unless-stopped
+    environment:
+      HARDHAT_NETWORK: hardhat
+    ports:
+      - "8545:8545"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - myzubster-network
+    command: npx hardhat node --hostname 0.0.0.0 --port 8545
+
+  # ─── ADMIN PANEL (opzionale) ───
+  admin:
+    build:
+      context: ./admin-panel
+      dockerfile: Dockerfile
+    container_name: myzubster-admin
+    restart: unless-stopped
+    environment:
+      REACT_APP_API_URL: http://localhost:3000/api
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./admin-panel:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - myzubster-network
+    profiles:
+      - admin
+    command: npm start
+
+  # ─── NGINX (reverse proxy) ───
+  nginx:
+    image: nginx:alpine
+    container_name: myzubster-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - myzubster-network
+    profiles:
+      - production
+
+# ─── VOLUMI ───
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  monero_data:
+    driver: local
+
+# ─── NETWORK ───
+networks:
+  myzubster-network:
+    driver: bridge
+    name: myzubster-network

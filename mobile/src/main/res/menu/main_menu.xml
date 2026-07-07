@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    
+    <item
+        android:id="@+id/action_profile"
+        android:title="Profilo"
+        android:icon="@drawable/ic_profile"
+        app:showAsAction="never" />
+    
+    <item
+        android:id="@+id/action_booking_history"
+        android:title="Storico Prenotazioni"
+        android:icon="@drawable/ic_history"
+        app:showAsAction="never" />
+    
+    <item
+        android:id="@+id/action_settings"
+        android:title="Impostazioni"
+        android:icon="@drawable/ic_settings"
+        app:showAsAction="never" />
+    
+    <item
+        android:id="@+id/action_logout"
+        android:title="Logout"
+        android:icon="@drawable/ic_logout"
+        app:showAsAction="never" />
+</menu>

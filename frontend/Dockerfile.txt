@@ -1,0 +1,17 @@
+# frontend/Dockerfile
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Installa dipendenze
+COPY package*.json ./
+RUN npm ci
+
+# Copia il codice
+COPY . .
+
+# Esponi la porta
+EXPOSE 3001
+
+# Avvia il frontend
+CMD ["npm", "start"]

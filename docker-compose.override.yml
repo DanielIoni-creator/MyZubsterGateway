@@ -1,0 +1,19 @@
+# docker-compose.override.yml
+# Configurazioni specifiche per sviluppo
+
+version: '3.8'
+
+services:
+  backend:
+    command: npm run dev
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  frontend:
+    command: npm start
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules

@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6
+    container_name: myzubster-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-password}
+      MONGO_INITDB_DATABASE: myzubster
+
+  redis:
+    image: redis:7-alpine
+    container_name: myzubster-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: ../docker/backend.Dockerfile
+    container_name: myzubster-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+      - redis
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - MONGODB_URI=mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-password}@mongodb:27017/myzubster
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET:-secret}
+    volumes:
+      - ../backend:/app
+      - /app/node_modules
+
+  api-gateway:
+    build:
+      context: ../api-gateway
+      dockerfile: ../docker/gateway.Dockerfile
+    container_name: myzubster-gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - backend
+    environment:
+      - PORT=8080
+      - BACKEND_URL=http://backend:5000
+    volumes:
+      - ../api-gateway:/app
+      - /app/node_modules
+
+  web-dashboard:
+    build:
+      context: ../web-dashboard
+      dockerfile: ../docker/web.Dockerfile
+    container_name: myzubster-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api-gateway
+    environment:
+      - REACT_APP_API_URL=http://localhost:8080/api/v1
+    volumes:
+      - ../web-dashboard:/app
+      - /app/node_modules
+
+  admin-panel:
+    build:
+      context: ../admin-panel
+      dockerfile: ../docker/admin.Dockerfile
+    container_name: myzubster-admin
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    depends_on:
+      - api-gateway
+    environment:
+      - REACT_APP_ADMIN_API_URL=http://localhost:8080/api/v1
+    volumes:
+      - ../admin-panel:/app
+      - /app/node_modules
+
+volumes:
+  mongodb_data:
+  redis_data:

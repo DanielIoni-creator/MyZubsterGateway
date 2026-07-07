@@ -1,0 +1,77 @@
+[
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_governanceToken", "type": "address" }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "amount", "type": "uint256" },
+      { "internalType": "uint256", "name": "volume", "type": "uint256" }
+    ],
+    "name": "calculateFee",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "totalFee", "type": "uint256" }
+    ],
+    "name": "calculateDistribution",
+    "outputs": [
+      { "internalType": "uint256", "name": "treasuryAmount", "type": "uint256" },
+      { "internalType": "uint256", "name": "stakingAmount", "type": "uint256" },
+      { "internalType": "uint256", "name": "communityAmount", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "currentFee",
+    "outputs": [
+      { "internalType": "uint256", "name": "baseFee", "type": "uint256" },
+      { "internalType": "uint256", "name": "variableRate", "type": "uint256" },
+      { "internalType": "uint256", "name": "discountThreshold", "type": "uint256" },
+      { "internalType": "uint256", "name": "discountRate", "type": "uint256" },
+      { "internalType": "uint256", "name": "timestamp", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getCurrentFee",
+    "outputs": [
+      { "internalType": "uint256", "name": "baseFee", "type": "uint256" },
+      { "internalType": "uint256", "name": "variableRate", "type": "uint256" },
+      { "internalType": "uint256", "name": "discountThreshold", "type": "uint256" },
+      { "internalType": "uint256", "name": "discountRate", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "description", "type": "string" },
+      { "internalType": "uint256", "name": "newBaseFee", "type": "uint256" },
+      { "internalType": "uint256", "name": "newVariableRate", "type": "uint256" }
+    ],
+    "name": "createProposal",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "totalFee", "type": "uint256" }
+    ],
+    "name": "distributeFees",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

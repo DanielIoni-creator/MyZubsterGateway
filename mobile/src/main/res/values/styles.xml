@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.MyZubster" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#FF6F00</item>
+        <item name="colorPrimaryVariant">#E65100</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+    </style>
+</resources>
