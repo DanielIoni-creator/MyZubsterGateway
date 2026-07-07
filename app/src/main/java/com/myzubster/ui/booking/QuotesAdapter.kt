@@ -12,7 +12,8 @@ import com.myzubster.data.model.QuoteStatus
 
 class QuotesAdapter(
     private val onAcceptClick: (Quote) -> Unit,
-    private val onRejectClick: (Quote) -> Unit
+    private val onRejectClick: (Quote) -> Unit,
+    private val onEditClick: (Quote) -> Unit
 ) : RecyclerView.Adapter<QuotesAdapter.QuoteViewHolder>() {
 
     private var quotes: List<Quote> = emptyList()
@@ -41,6 +42,7 @@ class QuotesAdapter(
         private val tvStatus: TextView = itemView.findViewById(R.id.tvStatus)
         private val btnAccept: Button = itemView.findViewById(R.id.btnAccept)
         private val btnReject: Button = itemView.findViewById(R.id.btnReject)
+        private val btnEdit: Button = itemView.findViewById(R.id.btnEdit)
 
         fun bind(quote: Quote) {
             tvProfessionalName.text = quote.professionalName
@@ -49,19 +51,23 @@ class QuotesAdapter(
             
             when (quote.status) {
                 QuoteStatus.PENDING -> {
-                    tvStatus.text = "In attesa"
+                    tvStatus.text = "⏳ In attesa"
                     tvStatus.setBackgroundColor(0xFFFFC107.toInt())
                 }
                 QuoteStatus.ACCEPTED -> {
-                    tvStatus.text = "Accettato"
+                    tvStatus.text = "✅ Accettato"
                     tvStatus.setBackgroundColor(0xFF4CAF50.toInt())
                 }
                 QuoteStatus.REJECTED -> {
-                    tvStatus.text = "Rifiutato"
+                    tvStatus.text = "❌ Rifiutato"
                     tvStatus.setBackgroundColor(0xFFF44336.toInt())
                 }
                 QuoteStatus.EXPIRED -> {
-                    tvStatus.text = "Scaduto"
+                    tvStatus.text = "⏰ Scaduto"
+                    tvStatus.setBackgroundColor(0xFF9E9E9E.toInt())
+                }
+                QuoteStatus.WITHDRAWN -> {
+                    tvStatus.text = "↩️ Ritirato"
                     tvStatus.setBackgroundColor(0xFF9E9E9E.toInt())
                 }
             }
@@ -75,6 +81,9 @@ class QuotesAdapter(
                 btnAccept.visibility = View.GONE
                 btnReject.visibility = View.GONE
             }
+
+            btnEdit.visibility = View.VISIBLE
+            btnEdit.setOnClickListener { onEditClick(quote) }
         }
     }
 }

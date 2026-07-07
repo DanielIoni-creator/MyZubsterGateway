@@ -1,0 +1,226 @@
+[
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_activity_booking_history.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/activity_booking_history.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/anim_slide_in_left.xml.flat",
+        "source": "com.myzubster.app-main-50:/anim/slide_in_left.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_activity_payment.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/activity_payment.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/drawable_ic_skills.xml.flat",
+        "source": "com.myzubster.app-main-50:/drawable/ic_skills.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_fragment_search_skills.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/fragment_search_skills.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_fragment_booking_history.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/fragment_booking_history.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_activity_chat.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/activity_chat.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_activity_settings.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/activity_settings.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_item_notification.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/item_notification.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_activity_book_calendar.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/activity_book_calendar.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_activity_login.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/activity_login.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/drawable_ic_lock.xml.flat",
+        "source": "com.myzubster.app-main-50:/drawable/ic_lock.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/drawable_ic_pending.xml.flat",
+        "source": "com.myzubster.app-main-50:/drawable/ic_pending.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_activity_escrow.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/activity_escrow.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/drawable_ic_add.xml.flat",
+        "source": "com.myzubster.app-main-50:/drawable/ic_add.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/anim_fade_out.xml.flat",
+        "source": "com.myzubster.app-main-50:/anim/fade_out.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/drawable_qr_code_background.xml.flat",
+        "source": "com.myzubster.app-main-50:/drawable/qr_code_background.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/drawable_ic_check.xml.flat",
+        "source": "com.myzubster.app-main-50:/drawable/ic_check.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_fragment_payment.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/fragment_payment.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/drawable_ic_booking.xml.flat",
+        "source": "com.myzubster.app-main-50:/drawable/ic_booking.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_item_escrow_transaction.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/item_escrow_transaction.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/drawable_bg_status.xml.flat",
+        "source": "com.myzubster.app-main-50:/drawable/bg_status.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_item_quote.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/item_quote.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_item_booking_history.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/item_booking_history.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/anim_slide_out_left.xml.flat",
+        "source": "com.myzubster.app-main-50:/anim/slide_out_left.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/drawable_ic_launcher_round.xml.flat",
+        "source": "com.myzubster.app-main-50:/drawable/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_activity_main.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_dialog_quote.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/dialog_quote.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_dialog_payment_success.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/dialog_payment_success.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_activity_skill_detail.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/activity_skill_detail.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/drawable_ic_launcher.xml.flat",
+        "source": "com.myzubster.app-main-50:/drawable/ic_launcher.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/drawable_status_background.xml.flat",
+        "source": "com.myzubster.app-main-50:/drawable/status_background.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_activity_create_skill.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/activity_create_skill.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/menu_bottom_nav_menu.xml.flat",
+        "source": "com.myzubster.app-main-50:/menu/bottom_nav_menu.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_dialog_review.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/dialog_review.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/drawable_ic_arrow_back.xml.flat",
+        "source": "com.myzubster.app-main-50:/drawable/ic_arrow_back.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_item_skill.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/item_skill.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_activity_booking_detail.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/activity_booking_detail.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/drawable_ic_profile.xml.flat",
+        "source": "com.myzubster.app-main-50:/drawable/ic_profile.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/anim_fade_in.xml.flat",
+        "source": "com.myzubster.app-main-50:/anim/fade_in.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_activity_edit_quote.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/activity_edit_quote.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_dialog_escrow_request.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/dialog_escrow_request.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/anim_slide_in_right.xml.flat",
+        "source": "com.myzubster.app-main-50:/anim/slide_in_right.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.myzubster.app-main-50:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_item_review.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/item_review.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/drawable_ic_work.xml.flat",
+        "source": "com.myzubster.app-main-50:/drawable/ic_work.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_fragment_escrow_status.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/fragment_escrow_status.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/drawable_bg_unread.xml.flat",
+        "source": "com.myzubster.app-main-50:/drawable/bg_unread.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/drawable_ic_home.xml.flat",
+        "source": "com.myzubster.app-main-50:/drawable/ic_home.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_activity_notifications.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/activity_notifications.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_activity_notification_settings.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/activity_notification_settings.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/drawable_ic_search.xml.flat",
+        "source": "com.myzubster.app-main-50:/drawable/ic_search.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_activity_create_profile.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/activity_create_profile.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/layout_fragment_profile.xml.flat",
+        "source": "com.myzubster.app-main-50:/layout/fragment_profile.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/drawable_ic_check_circle.xml.flat",
+        "source": "com.myzubster.app-main-50:/drawable/ic_check_circle.xml"
+    },
+    {
+        "merged": "com.myzubster.app-debug-48:/anim_slide_out_right.xml.flat",
+        "source": "com.myzubster.app-main-50:/anim/slide_out_right.xml"
+    }
+]

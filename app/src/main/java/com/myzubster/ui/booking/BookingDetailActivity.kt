@@ -1,5 +1,6 @@
 package com.myzubster.ui.booking
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -10,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.myzubster.R
 import com.myzubster.network.ApiClient
+import com.myzubster.ui.quote.EditQuoteActivity
 
 class BookingDetailActivity : AppCompatActivity() {
 
@@ -97,12 +99,22 @@ class BookingDetailActivity : AppCompatActivity() {
     private fun initAdapter() {
         adapter = QuotesAdapter(
             onAcceptClick = { quote -> 
-                Toast.makeText(this, "Preventivo accettato!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "✅ Preventivo accettato!", Toast.LENGTH_SHORT).show()
                 viewModel.updateQuoteStatus(quote, accept = true)
+                val bookingId = intent.getStringExtra("BOOKING_ID")
+                bookingId?.let { viewModel.loadQuotes(it) }
             },
             onRejectClick = { quote ->
-                Toast.makeText(this, "Preventivo rifiutato", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "❌ Preventivo rifiutato", Toast.LENGTH_SHORT).show()
                 viewModel.updateQuoteStatus(quote, accept = false)
+                val bookingId = intent.getStringExtra("BOOKING_ID")
+                bookingId?.let { viewModel.loadQuotes(it) }
+            },
+            onEditClick = { quote ->
+                val intent = Intent(this, EditQuoteActivity::class.java)
+                intent.putExtra("QUOTE_ID", quote.id)
+                // Non passiamo l'oggetto intero per evitare problemi di Serializable
+                startActivity(intent)
             }
         )
         rvQuotes.layoutManager = LinearLayoutManager(this)

@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".MyZubsterApplication"
@@ -16,6 +17,7 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="33">
 
+        <!-- Activity Principale -->
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -23,7 +25,19 @@
             </intent-filter>
         </activity>
 
+        <!-- UI: Booking -->
         <activity android:name=".ui.booking.BookingDetailActivity" />
+
+        <!-- UI: Quote (Preventivi) -->
+        <activity android:name=".ui.quote.EditQuoteActivity" />
+
+        <!-- UI: Notifications -->
+        <activity android:name=".ui.notification.NotificationSettingsActivity" />
+        <activity android:name=".ui.notification.NotificationActivity" />
+
+        <!-- UI: Auth -->
+        <activity android:name=".activities.LoginActivity" />
+        <activity android:name=".activities.BookingHistoryActivity" />
 
     </application>
 

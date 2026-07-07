@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="booking_filter_options">
+        <item>Tutti</item>
+        <item>In attesa</item>
+        <item>Confermata</item>
+        <item>In corso</item>
+        <item>Completata</item>
+        <item>Annullata</item>
+    </string-array>
+    <color name="accent">#03DAC5</color>
+    <color name="background">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="colorAccent">#03DAC5</color>
+    <color name="colorBlack">#000000</color>
+    <color name="colorGray">#808080</color>
+    <color name="colorLightGray">#D3D3D3</color>
+    <color name="colorPrimary">#6200EE</color>
+    <color name="colorPrimaryDark">#3700B3</color>
+    <color name="colorWhite">#FFFFFF</color>
+    <color name="error">#B00020</color>
+    <color name="ic_launcher_background">#FFFFFF</color>
+    <color name="primary">#6200EE</color>
+    <color name="primary_dark">#3700B3</color>
+    <color name="status_cancelled">#EF5350</color>
+    <color name="status_completed">#66BB6A</color>
+    <color name="status_confirmed">#42A5F5</color>
+    <color name="status_in_progress">#AB47BC</color>
+    <color name="status_pending">#FFA726</color>
+    <color name="text_primary">#000000</color>
+    <color name="transparent">#00000000</color>
+    <color name="white">#FFFFFF</color>
+    <dimen name="payment_dialog_padding">24dp</dimen>
+    <string name="app_name">MyZubster</string>
+    <string name="gcm_defaultSenderId" translatable="false">1071198758688</string>
+    <string name="google_api_key" translatable="false">AIzaSyCYhFxgU6BMfZxTGkNqqoPISA_jhg6BqL4</string>
+    <string name="google_app_id" translatable="false">1:1071198758688:android:98deeb7c4e6e925d4a9945</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyCYhFxgU6BMfZxTGkNqqoPISA_jhg6BqL4</string>
+    <string name="google_storage_bucket" translatable="false">serviceexchange-monero.firebasestorage.app</string>
+    <string name="payment_status_confirmed">Pagamento ricevuto</string>
+    <string name="payment_status_detected">Pagamento rilevato, attendo conferme</string>
+    <string name="payment_status_pending">In attesa del pagamento</string>
+    <string name="project_id" translatable="false">serviceexchange-monero</string>
+    <string name="request_payment">Richiedi Pagamento</string>
+    <style name="Theme.MyZubster" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#FF6F00</item>
+        <item name="colorPrimaryVariant">#E65100</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+    </style>
+</resources>

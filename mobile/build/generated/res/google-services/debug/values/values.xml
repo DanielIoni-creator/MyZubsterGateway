@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gcm_defaultSenderId" translatable="false">1071198758688</string>
+    <string name="google_api_key" translatable="false">AIzaSyCYhFxgU6BMfZxTGkNqqoPISA_jhg6BqL4</string>
+    <string name="google_app_id" translatable="false">1:1071198758688:android:98deeb7c4e6e925d4a9945</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyCYhFxgU6BMfZxTGkNqqoPISA_jhg6BqL4</string>
+    <string name="google_storage_bucket" translatable="false">serviceexchange-monero.firebasestorage.app</string>
+    <string name="project_id" translatable="false">serviceexchange-monero</string>
+</resources>
