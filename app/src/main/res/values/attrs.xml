@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dichiarazione globale degli attributi (UNA SOLA VOLTA) -->
+    <attr name="copyLabel" format="string" />
+    <attr name="copyMessage" format="string" />
+    <attr name="enableCopy" format="boolean" />
+    
+    <!-- Riferimenti agli attributi globali -->
+    <declare-styleable name="CopyableTextView">
+        <attr name="copyLabel" />
+        <attr name="copyMessage" />
+        <attr name="enableCopy" />
+    </declare-styleable>
+    
+    <declare-styleable name="CopyButton">
+        <attr name="copyLabel" />
+        <attr name="copyMessage" />
+    </declare-styleable>
+</resources>

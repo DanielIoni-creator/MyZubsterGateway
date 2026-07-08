@@ -11,6 +11,7 @@ import com.myzbuster.app.qr.QRCodeData
 import com.myzbuster.app.qr.QRCodeGenerator
 import com.myzbuster.app.qr.QRType
 import com.myzbuster.app.ui.base.BaseActivity
+import com.myzbuster.app.utils.ClipboardUtils
 import com.myzbuster.app.utils.QRCodeUtils
 
 class QRCodeActivity : BaseActivity() {
@@ -19,6 +20,7 @@ class QRCodeActivity : BaseActivity() {
     private lateinit var qrTitleTextView: TextView
     private lateinit var qrSubtitleTextView: TextView
     private lateinit var shareButton: Button
+    private lateinit var copyAddressButton: Button  // Pulsante Copia Indirizzo
     
     private var qrData: QRCodeData? = null
     private var qrBitmap: Bitmap? = null
@@ -37,6 +39,7 @@ class QRCodeActivity : BaseActivity() {
         qrTitleTextView = findViewById(R.id.qr_title_text)
         qrSubtitleTextView = findViewById(R.id.qr_subtitle_text)
         shareButton = findViewById(R.id.qr_share_button)
+        copyAddressButton = findViewById(R.id.copy_address_button)  // Inizializza il pulsante
     }
     
     private fun loadQRData() {
@@ -96,11 +99,27 @@ class QRCodeActivity : BaseActivity() {
     }
     
     private fun setupListeners() {
+        // Pulsante Condividi QR
         shareButton.setOnClickListener {
             qrBitmap?.let { bitmap ->
                 QRCodeUtils.shareQRCode(this, bitmap)
             } ?: run {
                 Toast.makeText(this, "Nessun QR da condividere", Toast.LENGTH_SHORT).show()
+            }
+        }
+        
+        // Pulsante Copia Indirizzo
+        copyAddressButton.setOnClickListener {
+            val address = qrData?.paymentAddress ?: "Indirizzo non disponibile"
+            if (address != "Indirizzo non disponibile") {
+                ClipboardUtils.copyToClipboard(
+                    context = this,
+                    text = address,
+                    label = "Indirizzo pagamento",
+                    successMessage = "✅ Indirizzo copiato negli appunti!"
+                )
+            } else {
+                Toast.makeText(this, "Nessun indirizzo disponibile", Toast.LENGTH_SHORT).show()
             }
         }
     }
