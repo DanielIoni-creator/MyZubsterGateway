@@ -1,8 +1,18 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/web-dashboard/build/index.html" }
+    {
+      "source": "/api/(.*)",
+      "destination": "/api"
+    }
   ],
   "builds": [
-    { "src": "web-dashboard/**", "use": "@vercel/static-build" }
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "web-dashboard/build/**",
+      "use": "@vercel/static-build"
+    }
   ]
 }
