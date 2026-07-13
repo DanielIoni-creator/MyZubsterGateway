@@ -1,13 +1,10 @@
 {
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api"
-    }
+    { "source": "/(.*)", "destination": "/web-dashboard/build/index.html" }
   ],
   "builds": [
     {
-      "src": "server.js",
+      "src": "api/index.js",
       "use": "@vercel/node"
     },
     {
