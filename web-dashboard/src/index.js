@@ -1,10 +1,11 @@
+// src/index.js
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { Bookings } from './pages/Bookings';
+import App from './App';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <Bookings />
+    <App />
   </React.StrictMode>
 );

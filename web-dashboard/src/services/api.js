@@ -1,91 +1,56 @@
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api/v1';
+// src/services/api.js
+import axios from 'axios';
 
-class ApiService {
-  constructor() {
-    this.baseUrl = API_URL;
-    this.token = localStorage.getItem('token');
-  }
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-  setToken(token) {
-    this.token = token;
-    localStorage.setItem('token', token);
-  }
+// Crea istanza axios
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-  async request(endpoint, options = {}) {
-    const headers = {
-      'Content-Type': 'application/json',
-      ...options.headers
-    };
-
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
+// Interceptor per il token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      ...options,
-      headers
-    });
+// ========== AUTH ==========
+export const register = (email, password, name) => 
+  api.post('/auth/register', { email, password, name });
 
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error || 'Request failed');
-    }
-    return data;
-  }
+export const login = (email, password) => 
+  api.post('/auth/login', { email, password });
 
-  getBookings(userId, params = {}) {
-    const query = new URLSearchParams(params).toString();
-    return this.request(`/bookings/history/${userId}?${query}`);
-  }
+export const getProfile = () => 
+  api.get('/auth/profile');
 
-  createBooking(data) {
-    return this.request('/bookings', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    });
-  }
+// ========== ORDERS ==========
+export const createOrder = (items, total, currency = 'XMR') => 
+  api.post('/orders', { items, total, currency });
 
-  updateBookingStatus(id, status) {
-    return this.request(`/bookings/${id}/status`, {
-      method: 'PUT',
-      body: JSON.stringify({ status })
-    });
-  }
+export const getOrders = () => 
+  api.get('/orders/user/me');
 
-  getBooking(id) {
-    return this.request(`/bookings/${id}`);
-  }
+export const getOrder = (orderId) => 
+  api.get(`/orders/${orderId}`);
 
-  getSkills(params = {}) {
-    const query = new URLSearchParams(params).toString();
-    return this.request(`/skills?${query}`);
-  }
+export const cancelOrder = (orderId) => 
+  api.put(`/orders/${orderId}/cancel`);
 
-  createSkill(data) {
-    return this.request('/skills', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    });
-  }
+// ========== PAYMENTS ==========
+export const startPayment = (orderId, amount) => 
+  api.post(`/orders/${orderId}/pay`, { amount });
 
-  login(email, password) {
-    return this.request('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password })
-    });
-  }
+export const getPaymentStatus = (paymentId) => 
+  api.get(`/orders/payments/${paymentId}/status`);
 
-  register(data) {
-    return this.request('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    });
-  }
-
-  logout() {
-    this.token = null;
-    localStorage.removeItem('token');
-  }
-}
-
-export default new ApiService();
+export default api;
