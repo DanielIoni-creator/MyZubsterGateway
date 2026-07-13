@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 💬 Discussions
+    url: https://github.com/DanielIoni-creator/MyZubsterAPP/discussions
+    about: Ask questions and discuss ideas here
+  - name: 📖 Documentation
+    url: https://github.com/DanielIoni-creator/MyZubsterAPP/blob/main/README.md
+    about: Check the documentation for common questions
