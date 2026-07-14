@@ -1,6 +1,7 @@
 // src/pages/Dashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import { QRCodeSVG } from 'qrcode.react';
 import { getOrders, createOrder, startPayment, getPaymentStatus, cancelOrder } from '../services/api';
 
 const Dashboard = ({ user, onLogout }) => {
@@ -8,6 +9,8 @@ const Dashboard = ({ user, onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [paying, setPaying] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [newOrder, setNewOrder] = useState({ 
     items: [{ name: '', quantity: 1, price: 0 }], 
     total: 0 
@@ -44,6 +47,10 @@ const Dashboard = ({ user, onLogout }) => {
       toast.success(`Ordine creato! ID: ${response.data.order.orderNumber}`);
       setNewOrder({ items: [{ name: '', quantity: 1, price: 0 }], total: 0 });
       await loadOrders();
+      
+      // Avvia automaticamente il pagamento
+      const orderId = response.data.order.id;
+      await handleStartPayment(orderId, newOrder.total);
     } catch (error) {
       toast.error(error.response?.data?.error || 'Errore creazione ordine');
     } finally {
@@ -51,32 +58,68 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
-  const handlePayOrder = async (orderId, amount) => {
+  const handleStartPayment = async (orderId, amount) => {
     setPaying(true);
     try {
       const response = await startPayment(orderId, amount);
-      const paymentId = response.data.payment.id;
-      toast.info(`Pagamento avviato! Payment ID: ${paymentId}`);
+      const payment = response.data.payment;
       
-      setTimeout(async () => {
+      // Mostra il modal con i dettagli del pagamento
+      setSelectedPayment({
+        ...payment,
+        orderId: orderId,
+        confirmations: 0,
+        maxConfirmations: 10,
+      });
+      setShowPaymentModal(true);
+      
+      toast.info(`Pagamento avviato! Invia ${payment.amount} XMR al seguente indirizzo.`);
+      
+      // Avvia il monitoraggio in background (ogni 10 secondi per 10 minuti)
+      let attempts = 0;
+      const maxAttempts = 60;
+      
+      const checkPaymentStatus = async () => {
+        attempts++;
         try {
-          const statusRes = await getPaymentStatus(paymentId);
+          const statusRes = await getPaymentStatus(payment.id);
           if (statusRes.data.status === 'confirmed') {
             toast.success('✅ Pagamento confermato!');
-          } else {
-            toast.info(`Stato: ${statusRes.data.status}`);
+            await loadOrders();
+            setShowPaymentModal(false);
+            setSelectedPayment(null);
+            setPaying(false);
+            return;
+          } else if (statusRes.data.status === 'pending') {
+            // Aggiorna il modal con lo stato corrente
+            setSelectedPayment(prev => ({
+              ...prev,
+              confirmations: statusRes.data.confirmations || 0,
+              maxConfirmations: statusRes.data.maxConfirmations || 10,
+            }));
           }
-          await loadOrders();
         } catch (err) {
-          toast.error('Errore verifica stato');
-        } finally {
+          console.log('Monitoraggio in corso...');
+        }
+        
+        if (attempts < maxAttempts) {
+          setTimeout(checkPaymentStatus, 10000); // Riprova tra 10 secondi
+        } else {
+          toast.info('⏳ Il pagamento richiede ~20 minuti. Controlla più tardi.');
           setPaying(false);
         }
-      }, 4000);
+      };
+      
+      setTimeout(checkPaymentStatus, 5000);
+      
     } catch (error) {
       toast.error(error.response?.data?.error || 'Errore pagamento');
       setPaying(false);
     }
+  };
+
+  const handlePayOrder = async (orderId, amount) => {
+    await handleStartPayment(orderId, amount);
   };
 
   const handleCancelOrder = async (orderId) => {
@@ -88,6 +131,12 @@ const Dashboard = ({ user, onLogout }) => {
     } catch (error) {
       toast.error(error.response?.data?.error || 'Errore annullamento');
     }
+  };
+
+  const handleClosePaymentModal = () => {
+    setShowPaymentModal(false);
+    setSelectedPayment(null);
+    setPaying(false);
   };
 
   const addItem = () => {
@@ -108,6 +157,205 @@ const Dashboard = ({ user, onLogout }) => {
     items[index][field] = value;
     const total = items.reduce((sum, i) => sum + (i.quantity * i.price), 0);
     setNewOrder({ ...newOrder, items, total });
+  };
+
+  // Componente per il modal di pagamento
+  const PaymentModal = () => {
+    if (!selectedPayment) return null;
+
+    const currencySymbol = selectedPayment.currency || 'XMR';
+    const confirmations = selectedPayment.confirmations || 0;
+    const maxConfirmations = selectedPayment.maxConfirmations || 10;
+    const progress = Math.min(100, (confirmations / maxConfirmations) * 100);
+    const isConfirmed = selectedPayment.status === 'confirmed';
+
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000
+      }}>
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '16px',
+          padding: '30px',
+          maxWidth: '450px',
+          width: '90%',
+          maxHeight: '90vh',
+          overflow: 'auto',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.3)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h3 style={{ margin: 0, color: '#1a1a2e' }}>
+              {isConfirmed ? '✅ Pagamento confermato!' : '💳 Pagamento ' + currencySymbol}
+            </h3>
+            <button
+              onClick={handleClosePaymentModal}
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '24px',
+                cursor: 'pointer',
+                color: '#6b7280'
+              }}
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Stato del pagamento */}
+          {!isConfirmed && confirmations > 0 && (
+            <div style={{
+              background: '#f0fdf4',
+              padding: '12px',
+              borderRadius: '8px',
+              marginBottom: '15px',
+              border: '1px solid #bbf7d0'
+            }}>
+              <p style={{ margin: 0, fontSize: '14px', color: '#166534' }}>
+                🔄 Pagamento in corso: {confirmations}/{maxConfirmations} conferme
+              </p>
+              <div style={{
+                width: '100%',
+                height: '6px',
+                backgroundColor: '#dcfce7',
+                borderRadius: '3px',
+                marginTop: '6px',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  width: `${progress}%`,
+                  height: '100%',
+                  backgroundColor: '#22c55e',
+                  borderRadius: '3px',
+                  transition: 'width 0.5s ease'
+                }} />
+              </div>
+            </div>
+          )}
+
+          {isConfirmed && (
+            <div style={{
+              background: '#dcfce7',
+              padding: '12px',
+              borderRadius: '8px',
+              marginBottom: '15px',
+              border: '1px solid #bbf7d0',
+              textAlign: 'center'
+            }}>
+              <p style={{ margin: 0, fontSize: '16px', color: '#166534', fontWeight: '600' }}>
+                🎉 Pagamento ricevuto e confermato!
+              </p>
+            </div>
+          )}
+
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+            <div style={{
+              background: '#f8f9fa',
+              padding: '15px',
+              borderRadius: '12px',
+              marginBottom: '15px'
+            }}>
+              <p style={{ margin: '0 0 5px 0', color: '#6b7280', fontSize: '14px' }}>
+                Importo da inviare
+              </p>
+              <p style={{ margin: 0, fontSize: '28px', fontWeight: 'bold', color: '#1a1a2e' }}>
+                {selectedPayment.amount} {currencySymbol}
+              </p>
+              {selectedPayment.fee && (
+                <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#6b7280' }}>
+                  Fee inclusa: {selectedPayment.fee} {currencySymbol} (2%)
+                </p>
+              )}
+            </div>
+
+            {/* QR Code */}
+            {!isConfirmed && (
+              <div style={{
+                background: 'white',
+                padding: '15px',
+                borderRadius: '12px',
+                display: 'inline-block',
+                border: '2px solid #e5e7eb'
+              }}>
+                <QRCodeSVG
+                  value={selectedPayment.address}
+                  size={200}
+                  level="L"
+                  includeMargin={true}
+                />
+              </div>
+            )}
+
+            {/* Indirizzo */}
+            {!isConfirmed && (
+              <div style={{
+                marginTop: '15px',
+                background: '#f3f4f6',
+                padding: '12px',
+                borderRadius: '8px',
+                wordBreak: 'break-all'
+              }}>
+                <p style={{ margin: '0 0 5px 0', fontSize: '12px', color: '#6b7280' }}>
+                  Indirizzo di pagamento
+                </p>
+                <p style={{ margin: 0, fontSize: '12px', fontFamily: 'monospace', color: '#1a1a2e' }}>
+                  {selectedPayment.address}
+                </p>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(selectedPayment.address);
+                    toast.success('Indirizzo copiato!');
+                  }}
+                  style={{
+                    marginTop: '8px',
+                    padding: '6px 16px',
+                    background: '#4f46e5',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '12px'
+                  }}
+                >
+                  📋 Copia indirizzo
+                </button>
+              </div>
+            )}
+
+            {!isConfirmed && (
+              <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '15px' }}>
+                ⏳ Il pagamento verrà confermato automaticamente dopo 10 conferme (~20 minuti)
+              </p>
+            )}
+          </div>
+
+          <button
+            onClick={handleClosePaymentModal}
+            style={{
+              width: '100%',
+              padding: '12px',
+              background: isConfirmed ? '#22c55e' : '#4f46e5',
+              color: 'white',
+              border: 'none',
+              borderRadius: '10px',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            {isConfirmed ? '✅ Pagamento completato!' : 'Ho capito, aspetto il pagamento'}
+          </button>
+        </div>
+      </div>
+    );
   };
 
   if (loading) {
@@ -153,9 +401,14 @@ const Dashboard = ({ user, onLogout }) => {
                 {order.paymentStatus === 'confirmed' && (
                   <p style={{ color: '#059669', fontWeight: 600 }}>✅ Pagato</p>
                 )}
+                {order.paymentId && order.paymentStatus === 'pending' && (
+                  <p style={{ color: '#d97706', fontWeight: 600 }}>
+                    ⏳ In attesa di pagamento
+                  </p>
+                )}
               </div>
               <div className="order-actions">
-                {order.status === 'pending' && (
+                {order.status === 'pending' && order.paymentStatus !== 'confirmed' && (
                   <>
                     <button 
                       className="btn-pay" 
@@ -227,6 +480,9 @@ const Dashboard = ({ user, onLogout }) => {
           </button>
         </div>
       </form>
+
+      {/* Payment Modal */}
+      {showPaymentModal && <PaymentModal />}
     </div>
   );
 };
