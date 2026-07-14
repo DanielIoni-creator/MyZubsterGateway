@@ -7,6 +7,9 @@ class PaymentService {
     this.confirmationDelay = parseInt(process.env.MOCK_PAYMENT_DELAY) || 3000;
     this.payments = new Map();
     this.monitorJobs = new Map();
+    this.maxConfirmations = 10;
+    this.pollingInterval = 10000;
+    this.maxAttempts = 60;
     
     console.log('[Payment] ⚙️ Servizio pagamenti avviato');
     console.log(`[Payment] 💰 Modalità: ${process.env.USE_REAL_MONERO === 'true' ? 'Monero Reale' : 'Mock'}`);
@@ -36,12 +39,12 @@ class PaymentService {
         expiresAt: new Date(Date.now() + 3600000).toISOString(),
         isMonero: true,
         confirmations: 0,
-        maxConfirmations: 10
+        maxConfirmations: this.maxConfirmations
       };
 
       this.payments.set(payment.id, payment);
       
-      // Avvia monitoraggio con callback di progresso
+      // Avvia monitoraggio
       this._startPaymentMonitoring(orderId, subaddress.addressIndex, payment.id);
       
       console.log(`[Payment] 💰 Pagamento Monero creato: ${payment.id}`);
@@ -91,7 +94,7 @@ class PaymentService {
     }
   }
 
-  // ========== MONITORAGGIO ==========
+  // ========== MONITORAGGIO PAGAMENTI ==========
   async _startPaymentMonitoring(orderId, addressIndex, paymentId) {
     console.log(`[Payment] 🔍 Avvio monitoraggio pagamento per ordine ${orderId}...`);
     
@@ -105,14 +108,18 @@ class PaymentService {
         console.log(`[Payment] 📊 Importo: ${result.payment.amount / 1e12} XMR`);
         console.log(`[Payment] 💰 Fee (2%): ${result.payment.fee / 1e12} XMR`);
         console.log(`[Payment] 💎 Netto: ${result.payment.netAmount / 1e12} XMR`);
+        if (result.payment.transferred) {
+          console.log(`[Payment] 📤 Netto trasferito al wallet GUI`);
+        }
         
-        // Aggiorna il pagamento con i dettagli
         const payment = this.payments.get(paymentId);
         if (payment) {
           payment.txid = result.payment.txid;
           payment.confirmations = result.payment.confirmations;
           payment.fee = result.payment.fee;
           payment.netAmount = result.payment.netAmount;
+          payment.transferred = result.payment.transferred;
+          payment.transferTxid = result.payment.transferTxid;
         }
         
         this.confirmPayment(paymentId).catch(err => {
@@ -128,7 +135,7 @@ class PaymentService {
       });
   }
 
-  // ========== MOCK ==========
+  // ========== MOCK PAYMENT ==========
   async _createMockPayment(orderId, amount, currency = 'XMR') {
     const paymentId = `mock_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
     
@@ -149,9 +156,7 @@ class PaymentService {
       qrCode: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${paymentId}`,
       memo: `Pagamento ordine ${orderId}`,
       expiresAt: new Date(Date.now() + 3600000).toISOString(),
-      isMonero: false,
-      confirmations: 0,
-      maxConfirmations: 1
+      isMonero: false
     };
 
     this.payments.set(paymentId, payment);
@@ -198,6 +203,10 @@ class PaymentService {
         order.paymentDetails.netAmount = payment.netAmount || 0;
         order.paymentDetails.txid = payment.txid;
         order.paymentDetails.feePercent = 2;
+        if (payment.transferred) {
+          order.paymentDetails.transferredToMain = true;
+          order.paymentDetails.transferTxid = payment.transferTxid;
+        }
       }
       
       order.updatedAt = new Date();
@@ -209,7 +218,7 @@ class PaymentService {
     }
   }
 
-  // ========== TEST ==========
+  // ========== TEST CONNESSIONE ==========
   async testMoneroConnection() {
     try {
       const address = await moneroService.getWalletAddress();
@@ -217,6 +226,15 @@ class PaymentService {
     } catch (error) {
       return { connected: false, error: error.message };
     }
+  }
+
+  // ========== SETTINGS ==========
+  setConfirmationDelay(delayMs) {
+    this.confirmationDelay = delayMs;
+  }
+
+  clearPayments() {
+    this.payments = new Map();
   }
 }
 

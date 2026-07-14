@@ -6,8 +6,8 @@ class MoneroService {
     this.rpcUrl = 'http://127.0.0.1:28083/json_rpc';
     this.feePercent = parseInt(process.env.MONERO_FEE_PERCENT) || 2;
     this.maxConfirmations = 10;
-    this.pollingInterval = 10000; // 10 secondi
-    this.maxAttempts = 60; // 10 minuti totali
+    this.pollingInterval = 10000;
+    this.maxAttempts = 60;
   }
 
   // Metodo per inviare richieste RPC
@@ -112,11 +112,9 @@ class MoneroService {
         attempts++;
 
         try {
-          // Controlla pagamento (min 1 conferma)
           const payment = await this.checkPayment(addressIndex, 1);
 
           if (payment) {
-            // Notifica progresso
             if (onProgress && payment.confirmations > lastConfirmations) {
               lastConfirmations = payment.confirmations;
               onProgress({
@@ -127,22 +125,26 @@ class MoneroService {
               });
             }
 
-            // Verifica se ha abbastanza conferme
             if (payment.confirmations >= this.maxConfirmations) {
               clearInterval(intervalId);
-              const fee = this.calculateFee(payment.amount);
+              
+              // Trasferisci il netto al wallet GUI
+              console.log(`[Monero] 📤 Trasferimento netto per ordine ${orderId}...`);
+              const transferResult = await this.transferNetAmount(payment.amount, orderId);
+              
               resolve({
                 orderId,
                 payment: {
                   txid: payment.txid,
                   amount: payment.amount,
-                  netAmount: fee.netAmount,
-                  fee: fee.fee,
+                  netAmount: transferResult.netAmount,
+                  fee: transferResult.fee,
                   feePercent: this.feePercent,
                   confirmations: payment.confirmations,
                   timestamp: payment.timestamp,
-                  paymentId: payment.paymentId,
-                  unlockTime: payment.unlockTime
+                  transferred: transferResult.transferred,
+                  mainWalletAddress: transferResult.mainWalletAddress,
+                  transferTxid: transferResult.txid
                 }
               });
               return;
@@ -208,6 +210,56 @@ class MoneroService {
     } catch (error) {
       console.error('[Monero] ❌ Errore sendTestTransaction:', error);
       throw error;
+    }
+  }
+
+  // 9. Trasferisci il netto al wallet GUI e trattieni la fee
+  async transferNetAmount(amount, orderId) {
+    try {
+      const fee = amount * (this.feePercent / 100);
+      const netAmount = amount - fee;
+      const mainWalletAddress = process.env.MONERO_MAIN_WALLET_ADDRESS;
+
+      if (!mainWalletAddress) {
+        console.warn('[Monero] ⚠️ MONERO_MAIN_WALLET_ADDRESS non configurato. Netto non trasferito.');
+        return { fee, netAmount, transferred: false };
+      }
+
+      console.log(`[Monero] 💰 Trasferimento netto a wallet GUI...`);
+      console.log(`[Monero] 📊 Importo: ${netAmount / 1e12} XMR`);
+      console.log(`[Monero] 💰 Fee (2%): ${fee / 1e12} XMR trattenuta`);
+
+      const result = await this.rpcRequest('transfer', {
+        destinations: [
+          {
+            address: mainWalletAddress,
+            amount: Math.floor(netAmount)
+          }
+        ],
+        account_index: 0,
+        priority: 1,
+        do_not_relay: false,
+        get_tx_key: true
+      });
+
+      console.log(`[Monero] ✅ Trasferito ${netAmount / 1e12} XMR al wallet GUI`);
+      console.log(`[Monero] 📦 TXID: ${result.tx_hash}`);
+
+      return {
+        fee: fee,
+        netAmount: netAmount,
+        transferred: true,
+        txid: result.tx_hash,
+        mainWalletAddress: mainWalletAddress
+      };
+    } catch (error) {
+      console.error('[Monero] ❌ Errore trasferimento netto:', error.message);
+      return { 
+        fee: amount * (this.feePercent / 100), 
+        netAmount: amount - (amount * (this.feePercent / 100)), 
+        transferred: false, 
+        error: error.message 
+      };
     }
   }
 }
