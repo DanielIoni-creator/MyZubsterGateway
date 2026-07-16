@@ -1,9 +1,10 @@
-// src/App.js
+// web-dashboard/src/App.js
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/Admin/AdminDashboard';
+import Users from './pages/Admin/Users';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 import { ToastContainer } from 'react-toastify';
@@ -30,10 +31,8 @@ function App() {
     <BrowserRouter>
       <div className="App">
         <Routes>
-          {/* Route pubblica per login */}
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
 
-          {/* Route protetta per la dashboard */}
           <Route
             path="/dashboard"
             element={
@@ -43,7 +42,6 @@ function App() {
             }
           />
 
-          {/* Route protetta per admin (SOLO admin) */}
           <Route
             path="/admin"
             element={
@@ -53,19 +51,23 @@ function App() {
             }
           />
 
-          {/* Redirect root */}
+          {/* 👇 Nuova route per la gestione utenti */}
           <Route
-            path="/"
+            path="/admin/users"
             element={
-              user ? (
-                <Navigate to="/dashboard" replace />
-              ) : (
-                <Navigate to="/login" replace />
-              )
+              <ProtectedRoute requireAdmin={true}>
+                <Users />
+              </ProtectedRoute>
             }
           />
 
-          {/* Fallback 404 */}
+          <Route
+            path="/"
+            element={
+              user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+            }
+          />
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
 
@@ -82,7 +84,6 @@ function App() {
           theme="light"
         />
 
-        {/* Footer con disclaimer */}
         <footer style={{
           textAlign: 'center',
           padding: '20px',

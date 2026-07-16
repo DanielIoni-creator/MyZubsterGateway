@@ -1,4 +1,4 @@
-// src/pages/Admin/AdminDashboard.jsx
+// web-dashboard/src/pages/Admin/AdminDashboard.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
@@ -9,37 +9,32 @@ const AdminDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
-  
-  // Filtri
   const [statusFilter, setStatusFilter] = useState('');
   const [searchOrder, setSearchOrder] = useState('');
   const [searchEmail, setSearchEmail] = useState('');
-  
-  // Paginazione
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalOrders, setTotalOrders] = useState(0);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showOrderModal, setShowOrderModal] = useState(false);
   const limit = 10;
 
-  // Fetch dashboard
+  // Fetch dashboard stats
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
         const response = await api.get('/admin/dashboard');
         if (response.data.success) {
           setStats(response.data.stats);
-        } else {
-          toast.error(response.data.error || 'Errore caricamento dashboard');
         }
       } catch (error) {
-        console.error('Errore dashboard:', error);
         toast.error('Errore caricamento dashboard');
       }
     };
     fetchDashboard();
   }, []);
 
-  // Fetch orders con filtri e paginazione
+  // Fetch orders with filters and pagination
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
@@ -55,52 +50,38 @@ const AdminDashboard = () => {
         setOrders(response.data.orders || []);
         setTotalPages(response.data.pagination?.pages || 1);
         setTotalOrders(response.data.pagination?.total || 0);
-      } else {
-        toast.error(response.data.error || 'Errore caricamento ordini');
       }
     } catch (error) {
-      console.error('Errore ordini:', error);
       toast.error('Errore caricamento ordini');
     } finally {
       setLoading(false);
     }
   }, [statusFilter, searchOrder, searchEmail, page]);
 
-  // Esegui fetch quando cambiano filtri o pagina
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
 
-  // Reset pagina quando cambiano i filtri
   useEffect(() => {
     setPage(1);
   }, [statusFilter, searchOrder, searchEmail]);
 
+  // Update order status
   const updateOrderStatus = async (orderId, status) => {
     if (updating) return;
     setUpdating(true);
     try {
-      const response = await api.put(`/admin/orders/${orderId}`, { status });
-      if (response.data.success) {
-        toast.success('Ordine aggiornato con successo');
-        fetchOrders();
-      } else {
-        toast.error(response.data.error || 'Errore aggiornamento ordine');
-      }
+      await api.put(`/admin/orders/${orderId}`, { status });
+      toast.success('Ordine aggiornato con successo');
+      fetchOrders();
     } catch (error) {
-      console.error('Errore aggiornamento:', error);
       toast.error('Errore aggiornamento ordine');
     } finally {
       setUpdating(false);
     }
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setPage(1);
-    fetchOrders();
-  };
-
+  // Reset all filters
   const resetFilters = () => {
     setStatusFilter('');
     setSearchOrder('');
@@ -108,20 +89,120 @@ const AdminDashboard = () => {
     setPage(1);
   };
 
-  if (loading && !orders.length) {
-    return <Loader fullScreen />;
-  }
+  // Open order details modal
+  const openOrderDetails = (order) => {
+    setSelectedOrder(order);
+    setShowOrderModal(true);
+  };
+
+  // Export orders to CSV
+  const exportOrdersCSV = () => {
+    if (orders.length === 0) {
+      toast.warning('Nessun ordine da esportare');
+      return;
+    }
+    const headers = ['OrderNumber', 'Utente', 'Totale', 'Valuta', 'Stato', 'Pagamento', 'Data'];
+    const rows = orders.map(order => [
+      order.orderNumber,
+      order.userId?.email || 'N/A',
+      order.total,
+      order.currency,
+      order.status,
+      order.paymentStatus,
+      new Date(order.createdAt).toLocaleString()
+    ]);
+    const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `orders_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    toast.success('CSV esportato con successo!');
+  };
+
+  // OrderDetailsModal component
+  const OrderDetailsModal = () => {
+    if (!selectedOrder) return null;
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000
+      }}>
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '16px',
+          padding: '30px',
+          maxWidth: '500px',
+          width: '90%',
+          maxHeight: '80vh',
+          overflow: 'auto',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.3)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={{ margin: 0, fontSize: '22px' }}>📋 Dettagli Ordine</h2>
+            <button
+              onClick={() => setShowOrderModal(false)}
+              style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#6b7280' }}
+            >
+              ✕
+            </button>
+          </div>
+          <div style={{ marginBottom: '16px' }}>
+            <p><strong>Order Number:</strong> {selectedOrder.orderNumber}</p>
+            <p><strong>Stato:</strong> <span className={`order-status ${selectedOrder.status}`}>{selectedOrder.status}</span></p>
+            <p><strong>Utente:</strong> {selectedOrder.userId?.name || selectedOrder.userId?.email || 'N/A'}</p>
+            <p><strong>Totale:</strong> {selectedOrder.total} {selectedOrder.currency}</p>
+            <p><strong>Pagamento:</strong> {selectedOrder.paymentStatus}</p>
+            <p><strong>Items:</strong> {selectedOrder.items?.length || 0}</p>
+            <p><strong>Creato:</strong> {new Date(selectedOrder.createdAt).toLocaleString()}</p>
+          </div>
+          <h3 style={{ fontSize: '16px', marginBottom: '8px' }}>🛒 Items</h3>
+          <ul style={{ paddingLeft: '20px', marginBottom: '16px' }}>
+            {selectedOrder.items?.map((item, idx) => (
+              <li key={idx}>{item.name} x{item.quantity} = {item.price * item.quantity} {selectedOrder.currency}</li>
+            ))}
+          </ul>
+          <button
+            onClick={() => setShowOrderModal(false)}
+            style={{
+              width: '100%',
+              padding: '12px',
+              background: '#4f46e5',
+              color: 'white',
+              border: 'none',
+              borderRadius: '10px',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            Chiudi
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  if (loading && !orders.length) return <Loader fullScreen />;
 
   return (
     <div style={{ padding: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <h1 style={{ fontSize: '28px', fontWeight: '700' }}>🛡️ Admin Panel</h1>
-        <span style={{ color: '#6b7280', fontSize: '14px' }}>
-          Totale ordini: {totalOrders} | Pagina {page} di {totalPages}
-        </span>
+        <span style={{ color: '#6b7280', fontSize: '14px' }}>Totale ordini: {totalOrders} | Pagina {page} di {totalPages}</span>
       </div>
 
-      {/* Statistiche */}
+      {/* Stats */}
       {stats && (
         <div className="stats-grid">
           <div className="stat-card" style={{ background: '#e3f2fd', borderLeft: '4px solid #1976d2' }}>
@@ -151,12 +232,12 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Filtri e Ricerca */}
-      <div style={{ 
-        display: 'flex', 
-        gap: '12px', 
-        marginBottom: '16px', 
-        flexWrap: 'wrap', 
+      {/* Filters and search */}
+      <div style={{
+        display: 'flex',
+        gap: '12px',
+        marginBottom: '16px',
+        flexWrap: 'wrap',
         alignItems: 'center',
         background: '#f8f9fa',
         padding: '16px',
@@ -218,7 +299,7 @@ const AdminDashboard = () => {
         />
 
         <button
-          onClick={handleSearch}
+          onClick={() => { setPage(1); fetchOrders(); }}
           style={{
             padding: '8px 20px',
             borderRadius: '8px',
@@ -246,9 +327,25 @@ const AdminDashboard = () => {
         >
           🔄 Reset
         </button>
+
+        <button
+          onClick={exportOrdersCSV}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: 'none',
+            background: '#10b981',
+            color: 'white',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: '600'
+          }}
+        >
+          📥 Esporta CSV
+        </button>
       </div>
 
-      {/* Lista ordini */}
+      {/* Orders list */}
       <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>
         📋 Ordini {statusFilter && `(${statusFilter})`}
         {searchOrder && ` - Ricerca: ${searchOrder}`}
@@ -258,13 +355,16 @@ const AdminDashboard = () => {
       {loading ? (
         <Loader />
       ) : orders.length === 0 ? (
-        <div className="empty-state">
-          <p>Nessun ordine trovato</p>
-        </div>
+        <div className="empty-state"><p>Nessun ordine trovato</p></div>
       ) : (
         <div className="orders-grid">
           {orders.map((order) => (
-            <div key={order._id} className="order-card fade-in">
+            <div
+              key={order._id}
+              className="order-card fade-in"
+              style={{ cursor: 'pointer' }}
+              onClick={() => openOrderDetails(order)}
+            >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span className="order-number" style={{ fontWeight: '600' }}>{order.orderNumber}</span>
                 <span className={`order-status ${order.status}`}>{order.status}</span>
@@ -305,16 +405,9 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Paginazione */}
+      {/* Pagination */}
       {totalPages > 1 && (
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '8px',
-          marginTop: '24px',
-          flexWrap: 'wrap'
-        }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '24px', flexWrap: 'wrap' }}>
           <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
@@ -329,11 +422,7 @@ const AdminDashboard = () => {
           >
             ◀ Precedente
           </button>
-
-          <span style={{ padding: '8px 16px', fontWeight: '600' }}>
-            Pagina {page} di {totalPages}
-          </span>
-
+          <span style={{ padding: '8px 16px', fontWeight: '600' }}>Pagina {page} di {totalPages}</span>
           <button
             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
@@ -350,6 +439,9 @@ const AdminDashboard = () => {
           </button>
         </div>
       )}
+
+      {/* Order Details Modal */}
+      {showOrderModal && <OrderDetailsModal />}
     </div>
   );
 };
