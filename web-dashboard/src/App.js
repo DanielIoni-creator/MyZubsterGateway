@@ -43,7 +43,7 @@ function App() {
             }
           />
 
-          {/* ✅ Route protetta per admin (SOLO admin) */}
+          {/* Route protetta per admin (SOLO admin) */}
           <Route
             path="/admin"
             element={
@@ -81,6 +81,26 @@ function App() {
           pauseOnHover
           theme="light"
         />
+
+        {/* Footer con disclaimer */}
+        <footer style={{
+          textAlign: 'center',
+          padding: '20px',
+          fontSize: '12px',
+          color: '#6b7280',
+          borderTop: '1px solid #e5e7eb',
+          marginTop: '40px'
+        }}>
+          <p>
+            © 2026 MyZubster.
+            <a href="/disclaimer" style={{ color: '#4f46e5', textDecoration: 'none', marginLeft: '8px' }}>
+              Disclaimer of Liability
+            </a>
+          </p>
+          <p style={{ marginTop: '4px', fontSize: '11px', color: '#9ca3af' }}>
+            MyZubster assumes no liability for misuse of the platform.
+          </p>
+        </footer>
       </div>
     </BrowserRouter>
   );
