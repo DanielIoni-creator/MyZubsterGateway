@@ -1,224 +1,218 @@
-## 🎯 Project Vision
+# MyZubster Marketplace 🛒
 
-MyZubster is designed as a **modular, self-hosted payment infrastructure for Monero**. The core backend handles all payment-related logic: generating subaddresses, monitoring transactions, and confirming payments.
+**Skills Marketplace built on MyZubster (Monero payment gateway)**
 
-This project is **open source (MIT + GPLv3)** and built to be **forked, extended, and integrated** into any application that needs to accept Monero payments.
-
-### 🧩 Modular Architecture
-MyZubster (Core)
-├── Payment Gateway (monero-wallet-rpc)
-├── JWT Authentication
-├── PostgreSQL Persistence
-├── REST API
-└── Payment Monitoring (cron job)
-│
-▼
-Marketplace App (Example)
-├── User Management
-├── Skills / Services
-├── Orders with Payment
-└── Seller Dashboard
-
-**Why this architecture?**
-- ✅ **Separation of concerns** — payment logic is isolated
-- ✅ **Reusable** — use the same payment core for any project
-- ✅ **Scalable** — add new apps without touching payment logic
-- ✅ **Open source** — fork and build your own solution
-## 🔧 Fork & Customize
-
-MyZubster is built to be **forked and customized** for your specific use case.
-
-### Step 1: Fork the repository
-
-```bash
-git clone https://github.com/DanielIoni-creator/MyZubsterAPP.git
-cd MyZubsterAPP
-Step 2: Choose your approach
-Approach	Description	When to use
-Use as-is	Deploy MyZubster as a standalone payment gateway	You have an existing app and just need payments
-Extend the API	Add new endpoints and business logic	You need custom functionality beyond payments
-Build a new app	Use the payment core as a module	You're building a new app from scratch
-Step 3: Configure for your use case
-env
-
-# Payment Gateway (MyZubster)
-MONERO_RPC_URL=http://localhost:18083
-MONERO_NETWORK=mainnet
-
-# Your App (e.g., Marketplace, E-commerce, SaaS)
-MYZUBSTER_API_URL=http://localhost:3000
-MYZUBSTER_API_TOKEN=your_jwt_token
-
-Example: Building a Marketplace
-
-We've included a marketplace example that demonstrates how to integrate MyZubster:
-
-    Users can register and become sellers
-
-    Sellers can list their skills/services
-
-    Buyers can purchase services with Monero
-
-    Payment is handled by MyZubster
-
-    Status is automatically updated when payment is confirmed
-
-See the Marketplace README for details.
-text
-
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-20.x-green.svg)](https://nodejs.org/)
+[![Monero](https://img.shields.io/badge/Monero-0.18.x-orange.svg)](https://www.getmonero.org/)
+[![Docker](https://img.shields.io/badge/Docker-ready-blue.svg)](https://www.docker.com/)
+[![Status](https://img.shields.io/badge/status-demo-orange.svg)]()
 
 ---
 
-### 📌 Sezione: "Marketplace Example"
+## 📖 What is this?
 
-```markdown
-## 🛒 Marketplace Example
+This is a **demonstration fork** of [MyZubster](https://github.com/DanielIoni-creator/MyZubsterAPP), configured as a **skills marketplace**. It shows how to integrate MyZubster as a payment gateway into a real-world application.
 
-The `marketplace/` folder contains a complete example application that demonstrates how to integrate MyZubster into a real-world scenario.
+**🔗 Core repository:** [DanielIoni-creator/MyZubsterAPP](https://github.com/DanielIoni-creator/MyZubsterAPP)
 
-### Features
+---
 
-- 👤 **User authentication** (JWT)
-- 🛠️ **Skill listing** (services/competencies)
-- 💰 **Monero payments** via MyZubster
-- 📦 **Order management**
-- 🔍 **Payment status tracking**
+## 🧩 Architecture
+MyZubster-Marketplace (Fork)
+├── core-backend/ # MyZubster (payment gateway module)
+│ ├── app.js
+│ ├── models/
+│ ├── routes/
+│ └── services/
+│
+├── models/ # Marketplace models (User, Skill, ServiceOrder)
+├── routes/ # Marketplace API routes
+├── middleware/ # JWT authentication
+├── server.js # Entry point
+├── package.json
+├── .env.example
+└── README.md
+text
 
-### Quick Start
+
+The **core-backend** folder contains the original MyZubster code, which acts as a payment gateway. The marketplace code lives in the root folder and communicates with the core via its REST API.
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Docker (for PostgreSQL and MyZubster core)
+- Node.js (v16+)
+- PostgreSQL (or use the Docker container)
+
+### 1️⃣ Start MyZubster Core (Payment Gateway)
 
 ```bash
-# Start the payment gateway
-cd backend
+cd core-backend
 docker-compose up -d
 
-# Start the marketplace
-cd marketplace
+This starts:
+
+    PostgreSQL on port 5432
+
+    MyZubster API on port 3000
+
+2️⃣ Configure Environment
+bash
+
+cp .env.example .env
+
+Edit .env with your values:
+env
+
+# Server
+PORT=4000
+NODE_ENV=development
+
+# Database (use the same PostgreSQL as core or a separate one)
+DATABASE_URL=postgresql://postgres:password@localhost:5432/marketplace
+
+# JWT
+JWT_SECRET=your_secret_key_here
+
+# MyZubster Core API (used for payments)
+MYZUBSTER_API_URL=http://localhost:3000
+MYZUBSTER_API_TOKEN=your_jwt_token_from_core
+
+3️⃣ Get a JWT Token from MyZubster Core
+bash
+
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@myzubster.com","password":"admin123"}'
+
+Copy the token from the response and paste it as MYZUBSTER_API_TOKEN in your .env.
+4️⃣ Start the Marketplace
+bash
+
 npm install
 npm start
 
-API Endpoints
-Method	Endpoint	Description
-POST	/api/users/register	Register a new user
-POST	/api/users/login	Login and get JWT token
-POST	/api/skills	Publish a skill (seller only)
-GET	/api/skills	List all skills
-POST	/api/orders	Create an order (buyer only)
-GET	/api/orders/my-orders	List user's orders
-GET	/api/orders/:id/payment-status	Check payment status
-Full Example
+The marketplace API will be available at http://localhost:4000.
+📋 API Endpoints
+Method	Endpoint	Description	Auth
+POST	/api/users/register	Register a new user	❌
+POST	/api/users/login	Login & get JWT token	❌
+POST	/api/users/become-seller	Become a seller	✅ JWT
+POST	/api/skills	Publish a skill	✅ JWT (seller only)
+GET	/api/skills	List all skills	❌
+GET	/api/skills/:id	Get skill details	❌
+POST	/api/orders	Purchase a skill (creates payment)	✅ JWT
+GET	/api/orders/my-orders	List user's orders	✅ JWT
+GET	/api/orders/:id/payment-status	Check payment status	✅ JWT
+GET	/api/health	Health check	❌
+🔄 Payment Flow
+
+    Buyer creates an order → Marketplace calls MyZubster API
+
+    MyZubster generates a Monero subaddress and returns it
+
+    Buyer sends Monero to the subaddress
+
+    MyZubster monitors the payment (cron job every 60s)
+
+    Marketplace checks payment status via API
+
+    Order status updates to paid when confirmed
+
+🧪 Testing
+Create a seller
 bash
 
-# 1. Register a seller
+# 1. Register a user
 curl -X POST http://localhost:4000/api/users/register \
   -H "Content-Type: application/json" \
   -d '{"email":"seller@example.com","password":"123","username":"seller","fullName":"Seller"}'
 
-# 2. Become a seller
+# 2. Login
+curl -X POST http://localhost:4000/api/users/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"seller@example.com","password":"123"}'
+
+# 3. Become a seller
 curl -X POST http://localhost:4000/api/users/become-seller \
   -H "Authorization: Bearer <token>" \
-  -d '{"moneroAddress":"<your_xmr_address>"}'
+  -H "Content-Type: application/json" \
+  -d '{"moneroAddress":"your_xmr_address"}'
 
-# 3. Create a skill
+Publish a skill
+bash
+
 curl -X POST http://localhost:4000/api/skills \
   -H "Authorization: Bearer <token>" \
-  -d '{"title":"Web Development","description":"Full stack web dev","category":"programming","price":100}'
+  -H "Content-Type: application/json" \
+  -d '{"title":"Web Development","description":"Full stack web development","category":"programming","price":100}'
 
-# 4. Register a buyer
+Purchase a skill (as a buyer)
+bash
+
+# 1. Register a buyer
 curl -X POST http://localhost:4000/api/users/register \
   -d '{"email":"buyer@example.com","password":"123","username":"buyer","fullName":"Buyer"}'
 
-# 5. Purchase the skill
+# 2. Login as buyer
+curl -X POST http://localhost:4000/api/users/login \
+  -d '{"email":"buyer@example.com","password":"123"}'
+
+# 3. Create order (replace skillId with actual ID)
 curl -X POST http://localhost:4000/api/orders \
   -H "Authorization: Bearer <buyer_token>" \
-  -d '{"skillId":1,"requirements":"I need a website for my business"}'
+  -H "Content-Type: application/json" \
+  -d '{"skillId":1,"requirements":"I need a website"}'
 
-text
+🔧 Customization
 
+This fork is meant to be customized. Here are common modifications:
+Modification	File(s)
+Add new skill categories	models/Skill.js
+Change order status flow	routes/orders.js
+Add reviews	Create models/Review.js & routes/reviews.js
+Add notifications	services/email.js or webhooks
+Change currency	.env → CURRENCY=USD
+🔄 Keeping Upstream Updates
 
----
+To sync with the original MyZubster core:
+bash
 
-### 📌 Sezione: "Open Source & Licensing"
+# Add the original repository as upstream (if not already)
+git remote add upstream https://github.com/DanielIoni-creator/MyZubsterAPP.git
 
-```markdown
-## 📄 Open Source & Licensing
+# Fetch and merge changes
+git fetch upstream
+git merge upstream/main
 
-MyZubster is dual-licensed:
+📄 License
 
-- **MIT License** — for the core payment gateway and marketplace example
-- **GNU GPLv3** — for the Android app and full-stack application
+This fork inherits the licenses from MyZubster:
 
-See the [LICENSE-MIT](LICENSE-MIT.txt) and [LICENSE-GPLv3](LICENSE-GPLv3.txt) files for details.
+    MIT for the core and marketplace code
 
-### Why dual license?
+    GPLv3 for the full-stack application
 
-- **MIT**: Encourages adoption and integration into commercial projects
-- **GPLv3**: Protects the freedom of the Android app and full-stack application
+See the LICENSE files in the root directory.
+🤝 Contributing
 
-### Contributions
+Contributions are welcome! Feel free to:
 
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+    Fork this repository
 
-### Fork, Build, Share
+    Create a branch for your feature
 
-This project is built for the community. Fork it, customize it, and share your improvements!
+    Submit a pull request
 
-📁 Crea il file marketplace/README.md
-powershell
+🔗 Links
 
-cd C:\Users\user\Desktop\MyZubster\MyZubster\marketplace
-notepad README.md
+    MyZubster Core: https://github.com/DanielIoni-creator/MyZubsterAPP
 
-Incolla:
-markdown
+    This Fork: https://github.com/DanielIoni-creator/MyZubster-Marketplace
 
-# MyZubster Marketplace Example
+    Docker Hub: https://hub.docker.com/r/myzubster/myzubster
 
-This is a reference implementation of a **competency marketplace** built on top of the MyZubster payment gateway.
-
-## Architecture
-
-Marketplace (Node.js + Express)
-├── User Management (JWT)
-├── Skills / Services
-├── Orders
-└── Integration with MyZubster (payments)
-text
-
-
-## Quick Start
-
-1. **Start MyZubster** (payment gateway)
-   ```bash
-   cd ../backend
-   docker-compose up -d
-
-    Configure environment
-    bash
-
-    cp .env.example .env
-    # Edit .env with your MyZubster API URL and token
-
-    Start the marketplace
-    bash
-
-    npm install
-    npm start
-
-API Reference
-
-See the main README.md for complete API documentation.
-Customization
-
-This is a template/example. You can:
-
-    Add new features (reviews, messaging, etc.)
-
-    Change the business logic
-
-    Connect to a frontend (React, Vue, etc.)
-
-    Add more payment methods (via MyZubster)
-
-License
-
-MIT (same as the main project)
+Built with ❤️ for the Monero community and local economies 🏘️
