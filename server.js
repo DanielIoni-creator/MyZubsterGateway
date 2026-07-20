@@ -56,34 +56,15 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/reviews', reviewRoutes);
 
 // ============================================
-// ENDPOINT PER GENERARE UN INDIRIZZO MONERO (MOCK)
+// WEBHOOK PER PAGAMENTI (MOCK)
 // ============================================
-app.post('/api/payments/initiate', async (req, res) => {
+app.post('/api/payments/webhook', async (req, res) => {
   try {
-    console.log('📝 Richiesta pagamento ricevuta:', req.body);
-
-    const { orderId, amount, currency } = req.body;
-
-    if (!orderId || !amount) {
-      return res.status(400).json({ error: 'orderId e amount obbligatori' });
-    }
-
-    // Mock: genera un indirizzo Monero fittizio per il test
-    const mockAddress = '8A1B2C3D4E5F6G7H8I9J0K' + Math.random().toString(36).substring(2, 8);
-
-    res.json({
-      success: true,
-      paymentId: 'pay_' + Date.now(),
-      moneroAddress: mockAddress,
-      moneroAmount: amount,
-      addressIndex: Math.floor(Math.random() * 1000),
-      network: 'testnet',
-      status: 'pending',
-      orderId: orderId
-    });
+    console.log('📝 Webhook ricevuto:', req.body);
+    res.json({ success: true, message: 'Webhook received' });
   } catch (error) {
-    console.error('❌ Errore creazione pagamento:', error);
-    res.status(500).json({ error: 'Errore creazione pagamento' });
+    console.error('❌ Webhook error:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
