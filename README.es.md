@@ -1,275 +1,221 @@
+# 🚀 MyZubsterGateway
 
+**MyZubsterGateway** es el backend open-source de **MyZubster** – una plataforma centrada en la privacidad, autoalojada para el intercambio de habilidades y servicios con **pagos en Monero (XMR)**, **servicio onion Tor** y una arquitectura completamente descentralizada.
 
-\---
+Construido con Node.js, Express, MongoDB, Nginx y Cloudflare.
 
+---
 
+## 🔗 Sitio y Comunidad
 
-\### 📝 `README.es.md` e `README.fr.md`
+| Plataforma | Enlace |
+| :--- | :--- |
+| **🌐 Sitio Clearnet** | [https://myzubster.com](https://myzubster.com) |
+| **🧅 Onion Tor** | `http://olqcnbdlt35k2stmmwvzhvuetu2fc4us2jnn5wg6y6wlcddihfmdomid.onion` |
+| **📦 GitHub** | [https://github.com/DanielIoni-creator/MyZubsterGateway](https://github.com/DanielIoni-creator/MyZubsterGateway) |
+| **📝 Dev.to** | [https://dev.to/danielioni](https://dev.to/danielioni) |
+| **💼 LinkedIn** | [https://linkedin.com/in/danielioni](https://linkedin.com/in/danielioni) |
+| **🐦 Twitter / X** | [https://twitter.com/DanielIoni](https://twitter.com/DanielIoni) |
 
+---
 
+## 📖 Lectura Adicional
 
-(Struttura identica, tradotti in spagnolo e francese – disponibili su richiesta)
+| Artículo | Enlace |
+| :--- | :--- |
+| **Visión** – *MyZubster: la plataforma open-source que podría cambiar la era financiera* | [Leer](https://dev.to/danielioni/myzubster-the-open-source-platform-that-could-change-the-financial-era-5hlp) |
+| **Guía de despliegue** – *De cero a producción: desplegar una app Node.js con Nginx, Cloudflare, systemd y Tor* | [Leer](https://dev.to/danielioni/from-zero-to-production-deploying-a-nodejs-app-with-nginx-cloudflare-systemd-and-tor-596l) |
+| **Experiencia** – *La larga noche del despliegue: cómo domamos DNS, Nginx, Tor y un firewall rebelde* | [Leer](https://dev.to/danielioni/the-long-night-of-deployment-how-we-tamed-dns-nginx-tor-and-a-rebel-firewall-...) |
+| **Integración Monero** – *Integrar pagos Monero en una app Node.js: guía completa* | [Leer](https://dev.to/danielioni/integrating-monero-payments-into-a-nodejs-app-a-complete-guide-...) |
+| **Migración Seraphis** – *La migración Seraphis de Monero y FCMP++: inmersión técnica* | [Leer](https://dev.to/danielioni/moneros-seraphis-migration-fcmp-a-technical-deep-dive-4ih) |
+| **Estado del proyecto** – *MyZubster: el estado actual del proyecto* | [Leer](https://dev.to/danielioni/myzubster-the-current-state-of-the-project-...) |
 
+---
 
+## ✨ Características
 
-\---
+- **🔐 Pagos Monero (XMR)** – Privados, no rastreables y resistentes a la censura.
+- **🧅 Servicio onion Tor** – Acceso anónimo a la plataforma.
+- **💻 Autoalojado** – Control total de tus datos e infraestructura.
+- **⚡ Node.js + Express** – Backend rápido, escalable y moderno.
+- **📦 MongoDB** – Base de datos flexible y fiable.
+- **🛡️ Nginx + Let's Encrypt** – Proxy inverso seguro con SSL.
+- **🌐 Cloudflare DNS** – Gestión DNS rápida y segura.
+- **🔁 systemd** – Inicio automático y recuperación ante caídas.
 
+---
 
+## 🧰 Stack Tecnológico
 
-\## 📁 2. REPOSITORY: `MyZubsterGateway` (`gateway/`)
+| Capa | Tecnología |
+| :--- | :--- |
+| **Backend** | Node.js + Express |
+| **Base de datos** | MongoDB |
+| **Proxy Inverso** | Nginx + Let's Encrypt |
+| **DNS** | Cloudflare |
+| **Gestión de Procesos** | systemd |
+| **Privacidad** | Servicio onion Tor |
+| **Pagos** | Monero (XMR) – testnet / mainnet |
+| **Frontend** | React + Vite + Tailwind |
+| **Control de Versiones** | Git + GitHub (SSH) |
 
+---
 
+## 📦 Instalación y Configuración
 
-\### 📝 `README.md` (Technical – Gateway)
+### Prerrequisitos
 
+- VPS Ubuntu 20.04 / 22.04
+- Node.js 20+
+- MongoDB
+- Nginx
+- Herramientas CLI Monero (para el wallet RPC)
+- Tor (opcional, para el servicio onion)
 
+### Clona el repositorio
 
-```markdown
-
-\# 🔒 MyZubster – Core Monero Gateway
-
-
-
-Self-hosted Monero payment gateway with unique subaddress generation, automatic payment monitoring, and webhook integration.
-
-
-
-\---
-
-
-
-\## 🎯 Overview
-
-
-
-MyZubster Gateway is the heart of the MyZubster ecosystem. It handles all Monero interactions, including:
-
-
-
-\- \*\*Subaddress Generation\*\* – Unique addresses per order for privacy and tracking
-
-\- \*\*Payment Monitoring\*\* – Automatic scanning of pending orders every 60 seconds
-
-\- \*\*Webhook Notifications\*\* – Real-time updates to your marketplace
-
-\- \*\*JWT Authentication\*\* – Secure API access
-
-
-
-\---
-
-
-
-\## 🔧 How the Gateway Works
-
-
-
-\### 1. Subaddress Generation
-
-
-
-When your application needs a new payment address for an order, it calls the gateway. The gateway communicates with the Monero wallet RPC to generate a \*\*unique subaddress\*\* for that specific order.
-
-
-
-```javascript
-
-async function generateSubaddress(label) {
-
-&#x20; const response = await fetch(`${MONERO\_RPC\_URL}/json\_rpc`, {
-
-&#x20;   method: 'POST',
-
-&#x20;   headers: { 'Content-Type': 'application/json' },
-
-&#x20;   body: JSON.stringify({
-
-&#x20;     jsonrpc: '2.0',
-
-&#x20;     id: '0',
-
-&#x20;     method: 'create\_address',
-
-&#x20;     params: { account\_index: 0, label: label }
-
-&#x20;   })
-
-&#x20; });
-
-&#x20; const data = await response.json();
-
-&#x20; return data.result.address;
-
-}
-
-2\. Payment Monitoring
-
-
-
-The gateway continuously monitors the blockchain for incoming payments using Monero RPC's get\_bulk\_payments method. This is done at a set interval (default: 60 seconds).
-
-3\. Webhook Notifications
-
-
-
-When a payment is confirmed (with the required number of confirmations), the gateway sends a webhook to your application.
-
-
-
-Example Webhook Payload:
-
-json
-
-
-
-{
-
-&#x20; "orderId": 123,
-
-&#x20; "status": "completed",
-
-&#x20; "txHash": "abcdef...",
-
-&#x20; "confirmations": 10,
-
-&#x20; "amountReceived": 0.00614
-
-}
-
-4\. JWT Authentication
-
-
-
-All API endpoints are secured with JWT (JSON Web Tokens).
-
-📡 API Endpoints
-
-Method	Endpoint	Description
-
-POST	/api/auth/login	Login \& get JWT token
-
-POST	/api/orders	Create order (generates subaddress)
-
-GET	/api/orders	List all orders
-
-GET	/api/orders/:id	Get order details
-
-GET	/api/health	Health check
-
-🚀 Quick Start
-
-Prerequisites
-
-
-
-&#x20;   Node.js 18+
-
-
-
-&#x20;   Monero Wallet RPC (testnet or mainnet)
-
-
-
-&#x20;   PostgreSQL or SQLite
-
-nstallation
-
-bash
-
-
-
+```bash
 git clone https://github.com/DanielIoni-creator/MyZubsterGateway.git
-
 cd MyZubsterGateway
+Instala las dependencias
+bash
 
 npm install
 
+Configura el entorno
+bash
+
 cp .env.example .env
+nano .env
 
-\# Edit .env with your configuration
+Configura la URI de MongoDB, el secreto JWT, la URL RPC de Monero y otras variables.
+Inicia el servidor
+bash
 
-node app.js
+node server.js
 
-Environment Variables
+Producción (systemd)
+bash
 
-env
+sudo cp myzubster-gateway.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable myzubster-gateway
+sudo systemctl start myzubster-gateway
 
+🔐 Integración Monero
+Configuración del Wallet RPC
 
+    Descarga las herramientas CLI Monero:
+    bash
 
-PORT=3000
+    wget https://downloads.getmonero.org/cli/linux64 -O monero-linux64.tar.bz2
+    tar -xjf monero-linux64.tar.bz2
+    mv monero-x86_64-linux-gnu-v* monero
+    cd monero
 
-NODE\_ENV=production
+    Crea un wallet (testnet):
+    bash
 
-MONERO\_RPC\_URL=http://localhost:18083
+    ./monero-wallet-cli --generate-new-wallet /root/monero-wallet/myzubster-wallet \
+      --password MyStrongPassword123 \
+      --testnet \
+      --daemon-address testnet.community:28081
 
-MONERO\_NETWORK=testnet
+    Inicia el wallet RPC:
+    bash
 
-MONERO\_MIN\_CONFIRMATIONS=10
+    nohup ./monero-wallet-rpc \
+      --wallet-file /root/monero-wallet/myzubster-wallet \
+      --password MyStrongPassword123 \
+      --rpc-bind-port 18083 \
+      --daemon-address testnet.community:28081 \
+      --testnet \
+      --disable-rpc-login \
+      --log-level 0 \
+      > /root/monero-wallet-rpc.log 2>&1 &
 
-JWT\_SECRET=your\_jwt\_secret
+    Actualiza .env:
+    text
 
-WEBHOOK\_URL=http://your-app.com/api/webhook/order-update
+    MONERO_RPC_URL=http://127.0.0.1:18083/json_rpc
+    MONERO_WALLET_ADDRESS=YOUR_PRIMARY_ADDRESS
+    MONERO_NETWORK=testnet
+    PAYMENT_MODE=monero
 
-WEBHOOK\_SECRET=your\_webhook\_secret
-
-📁 Project Structure
-
+🌐 Arquitectura de Despliegue
 text
 
+┌─────────────────────────────────────────────────────────────┐
+│                         Internet                             │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+                    ┌─────────────────┐
+                    │   Cloudflare    │
+                    │    (DNS + SSL)  │
+                    └─────────────────┘
+                              │
+                              ▼
+                    ┌─────────────────┐
+                    │  Nginx (Port 80/443) │
+                    └─────────────────┘
+                              │
+                              ▼
+                    ┌─────────────────┐
+                    │  Node.js App    │
+                    │  (Port 3000)    │
+                    └─────────────────┘
+                              │
+                              ▼
+                    ┌─────────────────┐
+                    │   MongoDB       │
+                    └─────────────────┘
+                              │
+                              ▼
+                    ┌─────────────────┐
+                    │  Monero Wallet  │
+                    │  RPC (18083)    │
+                    └─────────────────┘
+                              │
+                              ▼
+                    ┌─────────────────┐
+                    │  Tor Onion      │
+                    │  Service        │
+                    └─────────────────┘
 
+🤝 Contribuciones
 
-MyZubsterGateway/
+¡Las contribuciones son bienvenidas! Abre un issue o envía un pull request.
 
-├── app.js                 # Entry point
+    Haz un fork del repositorio
 
-├── models/               # Database models
+    Crea tu rama (git checkout -b feature/AmazingFeature)
 
-│   └── Order.js
+    Haz commit de tus cambios (git commit -m 'Añadir AmazingFeature')
 
-├── services/             # Business logic
+    Haz push a la rama (git push origin feature/AmazingFeature)
 
-│   ├── exchangeRate.js   # USD → XMR conversion
+    Abre un Pull Request
 
-│   └── paymentMonitor.js # RPC monitoring \& webhooks
+📄 Licencia
 
-├── routes/               # API routes
+Este proyecto está bajo la licencia GPLv3 – consulta el archivo LICENSE para más detalles.
+💬 Conéctate conmigo
 
-│   ├── auth.js
+    Sitio: https://myzubster.com
 
-│   └── orders.js
+    Tor: http://olqcnbdlt35k2stmmwvzhvuetu2fc4us2jnn5wg6y6wlcddihfmdomid.onion
 
-└── middleware/           # JWT authentication
+    GitHub: https://github.com/DanielIoni-creator
 
-&#x20;   └── auth.js
+    Dev.to: https://dev.to/danielioni
 
-📄 License
+    LinkedIn: https://linkedin.com/in/danielioni
 
+    Twitter: https://twitter.com/DanielIoni
 
+⭐ Apoyo
 
-MIT License
+Si te gusta este proyecto, ¡deja una estrella ⭐ en GitHub y compártelo con otros!
 
-🔗 Related Projects
-
-
-
-
-&#x20;   MyZubster-Marketplace – Marketplace Backend
-
-
-
-&#x20;   MyZubster-App – Android Mobile App
-
-
-Built with ❤️ for the Monero community.
-Follow the development of MyZubster and connect with me on social media:
-
-- 📖 **Blog & Articles**: [DEV.to - Daniel Ioni](https://dev.to/danielioni)
-- 🐦 **X (Twitter)**: [@myzubster](https://x.com/myzubster)
-- 💼 **LinkedIn**: [Daniel Ioni](https://www.linkedin.com/in/daniel-ioni-62b2b9423/)
-- 🐙 **GitHub**: [DanielIoni-creator](https://github.com/DanielIoni-creator)
-- 🎵 **TikTok**: [@h4x0r_23](https://www.tiktok.com/@h4x0r_23)
-
-**Stay updated on the journey!** 🚀
-
-
-
+Construido con ❤️ para la privacidad, la libertad y la descentralización.
