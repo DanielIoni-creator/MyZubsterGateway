@@ -1,39 +1,7 @@
-// server.js - MyZubster Gateway
-// Backend principale per la piattaforma MyZubster
-
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
+const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-
-// Carica le variabili d'ambiente
-dotenv.config();
-
-// Inizializza Express
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// ============================================
-// MIDDLEWARE
-// ============================================
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// ============================================
-// IMPORT MODELLI
-// ============================================
-require('./models/User');
-require('./models/Order');
-require('./models/Skill');
-require('./models/Offer');
-require('./models/Request');
-require('./models/Transaction');
-require('./models/Review');
-
-// ============================================
-// IMPORT ROUTE
-// ============================================
 const authRoutes = require('./routes/auth');
 const skillRoutes = require('./routes/skills');
 const offerRoutes = require('./routes/offers');
@@ -43,9 +11,21 @@ const paymentRoutes = require('./routes/payments');
 const transactionRoutes = require('./routes/transactions');
 const reviewRoutes = require('./routes/reviews');
 
-// ============================================
-// ROTTE API
-// ============================================
+dotenv.config();
+
+const app = express();
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Database connection
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('✅ Connesso a MongoDB'))
+  .catch(err => console.error('❌ Errore connessione MongoDB:', err));
+
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/skills', skillRoutes);
 app.use('/api/offers', offerRoutes);
@@ -55,58 +35,30 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/reviews', reviewRoutes);
 
-// ============================================
-// WEBHOOK PER PAGAMENTI (MOCK)
-// ============================================
+// Webhook (deve essere prima di express.json per raw body)
 app.post('/api/payments/webhook', async (req, res) => {
-  try {
-    console.log('📝 Webhook ricevuto:', req.body);
-    res.json({ success: true, message: 'Webhook received' });
-  } catch (error) {
-    console.error('❌ Webhook error:', error);
-    res.status(500).json({ error: error.message });
-  }
+  // ... gestione webhook ...
 });
 
-// ============================================
-// ROTTA DI TEST
-// ============================================
+// Health check
 app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'OK',
-    message: 'MyZubster Gateway is running!',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
-  });
+  res.status(200).json({ status: 'OK', message: 'Server is running' });
 });
 
-// ============================================
-// CONNESSIONE AL DATABASE
-// ============================================
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/myzubster';
+// 🔥 ROTTA PER LA ROOT - RISOLVE IL 404
+app.get('/', (req, res) => {
+  res.send('Benvenuto su MyZubsterGateway API. Vai su /api/health per lo stato.');
+});
 
-mongoose.connect(MONGODB_URI)
-  .then(() => {
-    console.log('✅ Connesso a MongoDB');
-    console.log(`📦 Database: ${MONGODB_URI}`);
-  })
-  .catch((err) => {
-    console.error('❌ Errore connessione MongoDB:', err);
-    process.exit(1);
-  });
+// Gestione 404 (deve essere l'ultima)
+app.use((req, res, next) => {
+  res.status(404).json({ error: 'Not Found' });
+});
 
-// ============================================
-// AVVIO DEL SERVER
-// ============================================
+// Avvio server
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server avviato sulla porta ${PORT}`);
   console.log(`🌐 URL: http://localhost:${PORT}`);
   console.log(`🔍 Health check: http://localhost:${PORT}/api/health`);
 });
-
-// Gestione errori non catturati
-process.on('unhandledRejection', (err) => {
-  console.error('❌ Unhandled Rejection:', err);
-});
-
-module.exports = app;
