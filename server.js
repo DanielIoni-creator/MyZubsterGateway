@@ -17,11 +17,13 @@ const aiRoutes = require('./routes/ai');
 const escrowRoutes = require('./routes/escrow');
 const tariRoutes = require('./routes/tari');
 const onionRoutes = require('./routes/onion');
+const osintRoutes = require('./routes/osint');
+const scannerRoutes = require('./routes/scanner');
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 app.use(cors());
 app.use(express.json());
@@ -42,6 +44,8 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/escrow', escrowRoutes);
 app.use('/api/tari', tariRoutes);
 app.use('/api/onion', onionRoutes);
+app.use('/api/osint', osintRoutes);
+app.use('/api/scanner', scannerRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
