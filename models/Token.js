@@ -6,7 +6,7 @@ const TokenSchema = new mongoose.Schema({
   totalSupply: { type: Number, required: true },
   assetValue: { type: Number, required: true },
   tokenPrice: { type: Number, required: true },
-  contractAddress: { type: String, required: true },
+  contractAddress: { type: String, default: "0x0000000000000000000000000000000000000000" },
   blockchain: { type: String, enum: ['tari', 'ethereum', 'polygon'], default: 'tari' },
   assetType: { type: String, enum: ['realestate', 'equity', 'commodity', 'art', 'debt', 'revenue'], required: true },
   assetDescription: { type: String, required: true },

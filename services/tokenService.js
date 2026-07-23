@@ -48,7 +48,8 @@ const createToken = async (tokenData) => {
       token: token._id,
       amount: tokenData.totalSupply,
       lockedAmount: 0,
-      createdAt: new Date(),
+      purchasePrice: tokenData.tokenPrice || 0,
+      walletAddress: tokenData.walletAddress || '0x0000000000000000000000000000000000000000'
     });
     await holding.save();
 
@@ -64,10 +65,8 @@ const purchaseTokens = async (userId, tokenId, amount, moneroTxid) => {
   if (!token) throw new Error('Token non trovato');
   if (token.status !== 'active') throw new Error('Token non disponibile');
 
-  // Calcola il prezzo totale (potresti avere una logica diversa)
   const totalPrice = amount * token.tokenPrice;
 
-  // Crea o aggiorna l'holding dell'acquirente
   let holding = await TokenHolding.findOne({ user: userId, token: tokenId });
   if (!holding) {
     holding = new TokenHolding({
@@ -75,13 +74,12 @@ const purchaseTokens = async (userId, tokenId, amount, moneroTxid) => {
       token: tokenId,
       amount: 0,
       lockedAmount: 0,
+      purchasePrice: token.tokenPrice,
+      walletAddress: '0x0000000000000000000000000000000000000000'
     });
   }
   holding.amount += amount;
   await holding.save();
-
-  // Qui potresti registrare la transazione Monero
-  // ...
 
   return holding;
 };
@@ -91,5 +89,5 @@ module.exports = {
   getTokenById,
   getUserHoldings,
   createToken,
-  purchaseTokens,
+  purchaseTokens
 };
