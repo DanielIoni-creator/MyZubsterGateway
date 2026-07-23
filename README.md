@@ -437,3 +437,4 @@ git push origin main
 ![Open Issues](https://img.shields.io/github/issues/DanielIoni-creator/MyZubsterGateway)
 ![Bounties](https://img.shields.io/badge/bounties-0.50%20XMR-blue)
 
+## Status
