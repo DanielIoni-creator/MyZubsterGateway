@@ -438,3 +438,4 @@ git push origin main
 ![Bounties](https://img.shields.io/badge/bounties-0.50%20XMR-blue)
 
 ## Status
+📚 **API Documentation**: [docs/API.md](docs/API.md)
