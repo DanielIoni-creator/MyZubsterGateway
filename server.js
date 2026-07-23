@@ -16,11 +16,12 @@ const marketplaceRoutes = require('./routes/marketplace');
 const aiRoutes = require('./routes/ai');
 const escrowRoutes = require('./routes/escrow');
 const tariRoutes = require('./routes/tari');
+const onionRoutes = require('./routes/onion');
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
@@ -40,6 +41,7 @@ app.use('/api/marketplace', marketplaceRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/escrow', escrowRoutes);
 app.use('/api/tari', tariRoutes);
+app.use('/api/onion', onionRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
