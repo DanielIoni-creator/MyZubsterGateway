@@ -16,3 +16,4 @@ nohup.out
 .env
 *.log
 *.lock
+.swp\n*.log\nnode_modules/\ndist/
