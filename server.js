@@ -19,6 +19,7 @@ const tariRoutes = require('./routes/tari');
 const onionRoutes = require('./routes/onion');
 const osintRoutes = require('./routes/osint');
 const scannerRoutes = require('./routes/scanner');
+const webhookRoutes = require('./routes/webhook');
 
 dotenv.config();
 
@@ -46,6 +47,7 @@ app.use('/api/tari', tariRoutes);
 app.use('/api/onion', onionRoutes);
 app.use('/api/osint', osintRoutes);
 app.use('/api/scanner', scannerRoutes);
+app.use('/api', webhookRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
