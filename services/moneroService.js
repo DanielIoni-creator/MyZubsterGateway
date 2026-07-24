@@ -1,122 +1,224 @@
 const axios = require('axios');
 const MoneroTransaction = require('../models/MoneroTransaction');
-const OrderBook = require('../models/OrderBook');
-const TokenHolding = require('../models/TokenHolding');
+const crypto = require('crypto');
 
-const WALLET_RPC_URL = process.env.MONERO_WALLET_RPC_URL || 'http://localhost:18083/json_rpc';
-const RPC_USER = process.env.MONERO_RPC_USER || '';
-const RPC_PASS = process.env.MONERO_RPC_PASSWORD || '';
+// Configurazione Monero (mainnet)
+const MONERO_RPC_URL = `http://localhost:${process.env.MONERO_RPC_PORT || 18081}/json_rpc`;
+const MONERO_DAEMON_ADDRESS = process.env.MONERO_DAEMON_ADDRESS || 'node.moneroworld.com:18081';
+const MONERO_NETWORK = process.env.MONERO_NETWORK || 'mainnet';
 
-const rpcRequest = async (method, params = {}) => {
-  const auth = RPC_USER && RPC_PASS ? { username: RPC_USER, password: RPC_PASS } : {};
-  try {
-    const response = await axios.post(WALLET_RPC_URL, {
-      jsonrpc: '2.0',
-      id: '0',
-      method,
-      params
-    }, { auth, timeout: 10000 });
-    if (response.data.error) throw new Error(response.data.error.message);
-    return response.data.result;
-  } catch (error) {
-    console.error(`RPC error (${method}):`, error.message);
-    throw error;
+class MoneroService {
+  constructor() {
+    console.log(`🔐 MoneroService avviato su ${MONERO_NETWORK}`);
+    console.log(`📡 Daemon: ${MONERO_DAEMON_ADDRESS}`);
   }
-};
 
-const createSubaddress = async (accountIndex = 0, label = '') => {
-  const result = await rpcRequest('create_address', {
-    account_index: accountIndex,
-    label
-  });
-  return result.address;
-};
+  /**
+   * Genera un subaddress per un ordine
+   */
+  async generateSubaddress(orderId) {
+    try {
+      const response = await axios.post(MONERO_RPC_URL, {
+        jsonrpc: '2.0',
+        id: '0',
+        method: 'create_address',
+        params: {
+          account_index: 0,
+          label: `Order-${orderId}`
+        }
+      });
 
-const createPayment = async (orderId, buyerId, amountXMR) => {
-  const subaddress = await createSubaddress(0, `Order ${orderId}`);
-  const transaction = new MoneroTransaction({
-    orderId,
-    buyerId,
-    subaddress,
-    amount: amountXMR,
-    status: 'pending'
-  });
-  await transaction.save();
-  return {
-    transactionId: transaction._id,
-    address: subaddress,
-    amount: amountXMR,
-    expiresAt: transaction.expiresAt
-  };
-};
+      if (response.data.error) {
+        throw new Error(response.data.error.message);
+      }
 
-const checkPayment = async (transactionId) => {
-  const transaction = await MoneroTransaction.findById(transactionId);
-  if (!transaction) throw new Error('Transaction not found');
+      const subaddress = response.data.result.address;
+      console.log(`✅ Subaddress generato per ordine ${orderId}: ${subaddress}`);
 
-  try {
-    const transfers = await rpcRequest('get_transfers', { in: true });
-    // Se non c'è campo "in", significa che non ci sono transazioni in entrata
-    if (!transfers || !transfers.in) {
-      console.log(`[checkPayment] Nessuna transazione in entrata per ${transactionId}`);
+      // Salva nel database
+      await MoneroTransaction.create({
+        orderId,
+        subaddress,
+        amount: 0, // sarà aggiornato quando l'utente imposta l'importo
+        status: 'pending',
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 ore
+      });
+
+      return subaddress;
+    } catch (error) {
+      console.error('❌ Errore generazione subaddress:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Verifica lo stato di un pagamento
+   */
+  async checkPayment(transactionId) {
+    try {
+      const tx = await MoneroTransaction.findById(transactionId);
+      if (!tx) {
+        throw new Error('Transazione non trovata');
+      }
+
+      // Query per verificare il pagamento sul mainnet
+      const response = await axios.post(MONERO_RPC_URL, {
+        jsonrpc: '2.0',
+        id: '0',
+        method: 'get_transfers',
+        params: {
+          subaddress: true,
+          account_index: 0
+        }
+      });
+
+      if (response.data.error) {
+        throw new Error(response.data.error.message);
+      }
+
+      // Cerca la transazione per il subaddress specifico
+      const transfers = response.data.result.incoming || [];
+      const found = transfers.find(t => t.address === tx.subaddress);
+
+      if (found) {
+        await MoneroTransaction.findByIdAndUpdate(transactionId, {
+          status: 'confirmed',
+          txHash: found.txid,
+          amount: found.amount,
+          confirmedAt: new Date()
+        });
+        console.log(`💰 Pagamento confermato per transazione ${transactionId}`);
+        return { status: 'confirmed', txHash: found.txid };
+      }
+
       return { status: 'pending' };
+    } catch (error) {
+      console.error('❌ Errore verifica pagamento:', error.message);
+      return { status: 'error', error: error.message };
     }
+  }
 
-    const amountAtomic = transaction.amount * 1e12;
-    const matchedTx = transfers.in.find(tx =>
-      tx.amount >= amountAtomic &&
-      new Date(tx.timestamp * 1000) > transaction.createdAt
-    );
+  /**
+   * Crea un wallet RPC per mainnet
+   */
+  async createWallet(walletName, password) {
+    try {
+      const response = await axios.post(MONERO_RPC_URL, {
+        jsonrpc: '2.0',
+        id: '0',
+        method: 'create_wallet',
+        params: {
+          filename: walletName,
+          password: password,
+          language: 'English'
+        }
+      });
 
-    if (matchedTx) {
-      transaction.amountPaid = matchedTx.amount / 1e12;
-      transaction.moneroTxid = matchedTx.txid;
-      transaction.confirmations = matchedTx.confirmations || 0;
-      transaction.status = 'confirmed';
-      await transaction.save();
-      await completeOrder(transaction.orderId);
-      return { status: 'confirmed', txid: matchedTx.txid };
+      if (response.data.error) {
+        throw new Error(response.data.error.message);
+      }
+
+      console.log(`✅ Wallet ${walletName} creato su ${MONERO_NETWORK}`);
+      return response.data.result;
+    } catch (error) {
+      console.error('❌ Errore creazione wallet:', error.message);
+      throw error;
     }
-    return { status: 'pending' };
-  } catch (error) {
-    console.error(`[checkPayment] Errore per ${transactionId}:`, error.message);
-    return { status: 'pending' };
   }
-};
 
-const completeOrder = async (orderId) => {
-  const order = await OrderBook.findById(orderId);
-  if (!order) throw new Error('Order not found');
-  const transaction = await MoneroTransaction.findOne({ orderId, status: 'confirmed' });
-  if (!transaction) throw new Error('Transaction not found');
+  /**
+   * Ottiene il saldo del wallet
+   */
+  async getBalance() {
+    try {
+      const response = await axios.post(MONERO_RPC_URL, {
+        jsonrpc: '2.0',
+        id: '0',
+        method: 'get_balance',
+        params: {
+          account_index: 0
+        }
+      });
 
-  const sellerHolding = await TokenHolding.findOne({ user: order.seller, token: order.token });
-  if (sellerHolding) {
-    sellerHolding.lockedAmount = Math.max(0, (sellerHolding.lockedAmount || 0) - order.amount);
-    sellerHolding.amount -= order.amount;
-    await sellerHolding.save();
+      if (response.data.error) {
+        throw new Error(response.data.error.message);
+      }
+
+      return {
+        balance: response.data.result.balance / 1e12, // XMR
+        unlockedBalance: response.data.result.unlocked_balance / 1e12
+      };
+    } catch (error) {
+      console.error('❌ Errore recupero saldo:', error.message);
+      throw error;
+    }
   }
-  let buyerHolding = await TokenHolding.findOne({ user: transaction.buyerId, token: order.token });
-  if (!buyerHolding) {
-    buyerHolding = new TokenHolding({
-      user: transaction.buyerId,
-      token: order.token,
-      amount: 0,
-      lockedAmount: 0
-    });
+
+  /**
+   * Invia una transazione su mainnet
+   */
+  async sendTransaction(destinationAddress, amount, paymentId = null) {
+    try {
+      const params = {
+        destinations: [{
+          address: destinationAddress,
+          amount: Math.round(amount * 1e12) // converti in atomic units
+        }],
+        account_index: 0,
+        subaddr_indices: [0],
+        priority: 1,
+        do_not_relay: false
+      };
+
+      if (paymentId) {
+        params.payment_id = paymentId;
+      }
+
+      const response = await axios.post(MONERO_RPC_URL, {
+        jsonrpc: '2.0',
+        id: '0',
+        method: 'transfer',
+        params: params
+      });
+
+      if (response.data.error) {
+        throw new Error(response.data.error.message);
+      }
+
+      console.log(`✅ Transazione inviata: ${response.data.result.tx_hash}`);
+      return response.data.result;
+    } catch (error) {
+      console.error('❌ Errore invio transazione:', error.message);
+      throw error;
+    }
   }
-  buyerHolding.amount += order.amount;
-  await buyerHolding.save();
 
-  order.status = 'filled';
-  order.moneroTxid = transaction.moneroTxid;
-  await order.save();
-  return order;
-};
+  /**
+   * Verifica che il wallet sia connesso a mainnet
+   */
+  async checkConnection() {
+    try {
+      const response = await axios.post(MONERO_RPC_URL, {
+        jsonrpc: '2.0',
+        id: '0',
+        method: 'get_info'
+      });
 
-module.exports = {
-  createSubaddress,
-  createPayment,
-  checkPayment,
-  completeOrder
-};
+      if (response.data.error) {
+        throw new Error(response.data.error.message);
+      }
+
+      const info = response.data.result;
+      console.log(`✅ Connesso a Monero ${MONERO_NETWORK}`);
+      console.log(`   Altura: ${info.height}`);
+      console.log(`   Versione: ${info.version}`);
+
+      return info;
+    } catch (error) {
+      console.error('❌ Errore connessione a Monero:', error.message);
+      throw error;
+    }
+  }
+}
+
+module.exports = new MoneroService();
