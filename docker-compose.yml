@@ -43,14 +43,20 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - MARKETPLACE_WEBHOOK_URL=${MARKETPLACE_WEBHOOK_URL:-http://marketplace:4000/webhook}
     ports:
-      - "3000:3000"
+      - "3001:3000"
     depends_on:
       mongodb:
         condition: service_healthy
     networks:
       - myzubster-network
     volumes:
+      - ./public:/app/public
       - gateway_logs:/app/logs
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   mongodb_data:
