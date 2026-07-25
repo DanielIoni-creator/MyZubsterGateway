@@ -25,17 +25,11 @@ const userRoutes = require('./routes/users');
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3002;  // Porta 3002
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Database connection
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/myzubster')
-  .then(() => console.log('✅ Connesso a MongoDB'))
-  .catch(err => console.error('❌ Errore connessione MongoDB:', err));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -62,17 +56,21 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server avviato sulla porta ${PORT}`);
-  console.log(`🌐 URL: http://localhost:${PORT}`);
-  console.log(`🔍 Health check: http://localhost:${PORT}/api/health`);
-  
-  // Start payment monitoring
-  startMonitoring();
-});
+// Connessione a MongoDB
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => {
+    console.log('✅ Connesso a MongoDB');
+    startMonitoring();
+    if (require.main === module) {
+      app.listen(PORT, '0.0.0.0', () => {
+        console.log(`🚀 Server avviato sulla porta ${PORT}`);
+        console.log(`🌐 URL: http://localhost:${PORT}`);
+        console.log(`🔍 Health check: http://localhost:${PORT}/api/health`);
+      });
+    }
+  })
+  .catch(err => {
+    console.error('❌ Errore connessione MongoDB:', err);
+  });
 
 module.exports = app;
-// Admin routes
-const adminRoutes = require('./routes/admin');
-app.use('/api/admin', adminRoutes);
