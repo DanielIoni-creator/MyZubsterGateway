@@ -20,7 +20,7 @@ const onionRoutes = require('./routes/onion');
 const osintRoutes = require('./routes/osint');
 const scannerRoutes = require('./routes/scanner');
 const bookingRoutes = require('./routes/bookings');
-const userRoutes = require('./routes/users'); // <-- NUOVA ROUTE
+const userRoutes = require('./routes/users');
 
 dotenv.config();
 
@@ -30,6 +30,12 @@ const PORT = process.env.PORT || 3002;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Database connection
+mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/myzubster')
+  .then(() => console.log('✅ Connesso a MongoDB'))
+  .catch(err => console.error('❌ Errore connessione MongoDB:', err));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -49,28 +55,21 @@ app.use('/api/onion', onionRoutes);
 app.use('/api/osint', osintRoutes);
 app.use('/api/scanner', scannerRoutes);
 app.use('/api/bookings', bookingRoutes);
-app.use('/api/users', userRoutes); // <-- NUOVA ROUTE REGISTRATA
+app.use('/api/users', userRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Connessione a MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log('✅ Connesso a MongoDB');
-    startMonitoring();
-    if (require.main === module) {
-      app.listen(PORT, '0.0.0.0', () => {
-        console.log(`🚀 Server avviato sulla porta ${PORT}`);
-        console.log(`🌐 URL: http://localhost:${PORT}`);
-        console.log(`🔍 Health check: http://localhost:${PORT}/api/health`);
-      });
-    }
-  })
-  .catch(err => {
-    console.error('❌ Errore connessione MongoDB:', err);
-  });
+// Start server
+app.listen(PORT, () => {
+  console.log(`🚀 Server avviato sulla porta ${PORT}`);
+  console.log(`🌐 URL: http://localhost:${PORT}`);
+  console.log(`🔍 Health check: http://localhost:${PORT}/api/health`);
+  
+  // Start payment monitoring
+  startMonitoring();
+});
 
 module.exports = app;

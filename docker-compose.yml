@@ -1,1 +1,77 @@
-# ... (contenuto del docker-compose.yml che ti ho dato) ...
+version: '3.8'
+services:
+  mongodb:
+    image: mongo:7-jammy
+    container_name: myzubster-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-securepassword}
+      MONGO_INITDB_DATABASE: myzubster
+    volumes:
+      - mongodb_data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - myzubster-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: myzubster-gateway
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MONGO_URI=mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-securepassword}@mongodb:27017/myzubster?authSource=admin
+      - MONERO_RPC_URL=${MONERO_RPC_URL:-http://monero:18081}
+      - MONERO_RPC_USERNAME=${MONERO_RPC_USERNAME:-user}
+      - MONERO_RPC_PASSWORD=${MONERO_RPC_PASSWORD:-pass}
+      - MONERO_NETWORK=${MONERO_NETWORK:-mainnet}
+      - JWT_SECRET=${JWT_SECRET}
+      - API_KEY=${API_KEY}
+    ports:
+      - "3000:3000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - myzubster-network
+    volumes:
+      - gateway_logs:/app/logs
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  monero:
+    image: monero:latest
+    container_name: myzubster-monero
+    restart: unless-stopped
+    command: --rpc-bind-ip=0.0.0.0 --rpc-bind-port=18081 --restricted-rpc --confirm-external-bind --non-interactive
+    ports:
+      - "18081:18081"
+      - "18080:18080"
+    volumes:
+      - monero_data:/home/monero/.bitmonero
+    networks:
+      - myzubster-network
+
+volumes:
+  mongodb_data:
+    driver: local
+  monero_data:
+    driver: local
+  gateway_logs:
+    driver: local
+
+networks:
+  myzubster-network:
+    driver: bridge
