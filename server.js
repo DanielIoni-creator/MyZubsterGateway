@@ -94,14 +94,21 @@ const authenticate = (req, res, next) => {
 // MIDDLEWARE
 // ============================================
 app.use(cors());
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use(express.json());
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use(express.urlencoded({ extended: true }));
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 
 app.use('/api', globalLimiter);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use('/api/auth/login', authLimiter);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use('/api/auth/register', authLimiter);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 
 app.use(express.static('public'));
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 
 // ============================================
 // DATABASE
@@ -118,32 +125,53 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/myzubster',
 // ============================================
 // Route pubbliche (senza autenticazione)
 app.use('/api/auth', authRoutes);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // Route protette (con autenticazione)
 app.use('/api', authenticate);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 
 app.use('/api/skills', skillRoutes);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use('/api/offers', offerRoutes);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use('/api/requests', requestRoutes);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use('/api/orders', orderRoutes);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use('/api/payments', paymentRoutes);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use('/api/transactions', transactionRoutes);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use('/api/reviews', reviewRoutes);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use('/api/tokens', tokenRoutes);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use('/api/ai', aiRoutes);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use('/api/escrow', escrowRoutes);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use('/api/tari', tariRoutes);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use('/api/onion', onionRoutes);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use('/api/osint', osintRoutes);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use('/api/scanner', scannerRoutes);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use('/api/bookings', bookingRoutes);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use('/api/users', userRoutes);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use('/api/admin', adminRoutes);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use('/api/dao', daoRoutes);
+pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 
 // ============================================
 // START SERVER
