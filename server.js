@@ -26,7 +26,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myzubster')
   .then(() => {
     console.log('✅ Connesso a MongoDB');
     startMonitoring();
@@ -58,34 +58,6 @@ app.get('/api/health', (req, res) => {
 app.get('/', (req, res) => {
   res.send('Benvenuto su MyZubsterGateway API. Vai su /api/health per lo stato.');
 });
-
-// --- ROUTE MONERO ---
-app.post('/api/payments/generate-address', async (req, res) => {
-  try {
-    const { orderId, label } = req.body;
-    const sub = await moneroService.generateSubaddress(label || `order-${orderId || 'test'}`);
-    res.json({
-      success: true,
-      subaddress: sub.address,
-      index: sub.index,
-      label: sub.label,
-    });
-  } catch (error) {
-    console.error('Errore generazione subaddress:', error);
-    res.status(500).json({ error: 'Errore nella generazione del subaddress' });
-  }
-});
-
-app.get('/api/payments/balance', async (req, res) => {
-  try {
-    const balance = await moneroService.getBalance();
-    res.json({ success: true, balance });
-  } catch (error) {
-    console.error('Errore recupero saldo:', error);
-    res.status(500).json({ error: 'Errore nel recupero del saldo' });
-  }
-});
-// --- FINE ROUTE MONERO ---
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Not Found' });
