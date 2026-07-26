@@ -35,7 +35,7 @@ const mintReputationNFT = async (userId, tokenId, amount) => {
   if (!tier) return null;
 
   const token = await Token.findById(tokenId);
-  if (!token) throw new Error('Token non trovato');
+  if (!token) return null; // Se il token non esiste, salta
 
   const existing = await ReputationNFT.findOne({
     user: userId,
@@ -85,8 +85,12 @@ const checkAndMintReputationNFTs = async () => {
 
   let mintedCount = 0;
   for (const h of holdings) {
-    const nft = await mintReputationNFT(h._id.user, h._id.token, h.totalAmount);
-    if (nft) mintedCount++;
+    try {
+      const nft = await mintReputationNFT(h._id.user, h._id.token, h.totalAmount);
+      if (nft) mintedCount++;
+    } catch (err) {
+      // Ignora errori (es. token non trovato)
+    }
   }
 
   console.log(`[ReputationService] ✅ Mintati ${mintedCount} NFT di reputazione`);
