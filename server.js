@@ -1,4 +1,5 @@
 const express = require('express');
+const { limiter, loginLimiter, heavyLimiter } = require("./middleware/rateLimiter");
 const cors = require('cors');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
@@ -98,6 +99,7 @@ pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use(express.json());
 pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 app.use(express.urlencoded({ extended: true }));
+app.use(limiter);
 pi/reputation, reputationRoutes);/a app.use("/api/reviews", reviewRoutes);
 
 app.use('/api', globalLimiter);
