@@ -17,8 +17,21 @@ async function askDeepSeek(prompt, systemPrompt = 'Sei un assistente AI per la p
             }
         });
 
-        return response.data.message.content;
+        const message = response.data && response.data.message;
+        if (!message || message.content === undefined || message.content === null) {
+            if (message && Array.isArray(message.tool_calls) && message.tool_calls.length > 0) {
+                throw new Error('Model returned tool_calls without content; content extraction not supported here.');
+            }
+            throw new Error('Model response missing content field.');
+        }
+        return message.content;
     } catch (error) {
+        if (error.message && (
+            error.message.includes('missing content') ||
+            error.message.includes('tool_calls')
+        )) {
+            throw error;
+        }
         console.error('❌ Errore Ollama:', error.response?.data || error.message);
         throw new Error('Impossibile ottenere risposta dal modello AI locale.');
     }
