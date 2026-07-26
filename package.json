@@ -9,22 +9,25 @@
     "test": "jest"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "mongoose": "^7.5.0",
-    "dotenv": "^16.3.1",
+    "axios": "^1.7.9",
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.0",
-    "axios": "^1.7.9"
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.2",
+    "express-rate-limit": "^8.6.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^7.8.11"
   },
   "devDependencies": {
     "jest": "^29.7.0",
-    "supertest": "^7.0.0",
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "supertest": "^7.0.0"
   },
   "jest": {
     "testEnvironment": "node",
-    "setupFiles": ["./tests/setup.js"],
+    "setupFiles": [
+      "./tests/setup.js"
+    ],
     "coveragePathIgnorePatterns": [
       "/node_modules/"
     ]

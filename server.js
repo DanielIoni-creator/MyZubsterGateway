@@ -26,11 +26,12 @@ const scannerRoutes = require('./routes/scanner');
 const bookingRoutes = require('./routes/bookings');
 const userRoutes = require('./routes/users');
 const adminRoutes = require('./routes/admin');
+const daoRoutes = require('./dao/governance');
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3002;
 
 // ============================================
 // RATE LIMITING
@@ -55,7 +56,6 @@ const authLimiter = rateLimit({
 // MIDDLEWARE DI AUTENTICAZIONE JWT
 // ============================================
 const authenticate = (req, res, next) => {
-  // Route pubbliche (senza autenticazione)
   const publicRoutes = [
     '/api/health',
     '/api/auth/login',
@@ -97,27 +97,34 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rate limiting
 app.use('/api', globalLimiter);
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 
-// Servire file statici (dashboard)
 app.use(express.static('public'));
 
 // ============================================
 // DATABASE
 // ============================================
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/myzubster')
+mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/myzubster', {
+  serverSelectionTimeoutMS: 30000,
+  socketTimeoutMS: 45000,
+})
   .then(() => console.log('✅ Connesso a MongoDB'))
   .catch(err => console.error('❌ Errore connessione MongoDB:', err));
 
 // ============================================
-// ROUTES (con autenticazione)
+// ROUTES
 // ============================================
+// Route pubbliche (senza autenticazione)
+app.use('/api/auth', authRoutes);
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Route protette (con autenticazione)
 app.use('/api', authenticate);
 
-app.use('/api/auth', authRoutes);
 app.use('/api/skills', skillRoutes);
 app.use('/api/offers', offerRoutes);
 app.use('/api/requests', requestRoutes);
@@ -136,13 +143,7 @@ app.use('/api/scanner', scannerRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
-
-// ============================================
-// HEALTH CHECK (pubblica)
-// ============================================
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+app.use('/api/dao', daoRoutes);
 
 // ============================================
 // START SERVER
