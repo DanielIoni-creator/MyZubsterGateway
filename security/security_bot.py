@@ -36,7 +36,7 @@ logging.basicConfig(
 # ============================================
 
 def run_nmap(target="localhost"):
-    """Esegue scansione nmap"""
+    """Esegue scansione nmap con timeout 120 secondi"""
     cmd = f"nmap -sV --script=default {target}"
     logging.info(f"🔍 Avvio nmap su {target}")
     logging.info(f"Esecuzione: {cmd}")
@@ -47,7 +47,7 @@ def run_nmap(target="localhost"):
         return "Timeout: nmap non completato"
 
 def run_nikto():
-    """Esegue scansione nikto su myzubster.com"""
+    """Esegue scansione nikto su myzubster.com con timeout 120 secondi"""
     cmd = "nikto -h https://myzubster.com -ssl"
     logging.info(f"🔍 Avvio nikto su myzubster.com")
     logging.info(f"Esecuzione: {cmd}")
@@ -59,7 +59,7 @@ def run_nikto():
         return "Timeout: nikto non completato"
 
 def run_sqlmap(target="localhost"):
-    """Esegue scansione sqlmap"""
+    """Esegue scansione sqlmap con timeout 120 secondi"""
     cmd = f"sqlmap -u {target} --batch --level=1 --risk=1"
     logging.info(f"🔍 Avvio sqlmap su {target}")
     logging.info(f"Esecuzione: {cmd}")
@@ -70,7 +70,7 @@ def run_sqlmap(target="localhost"):
         return "Timeout: sqlmap non completato"
 
 def run_gobuster(target="localhost"):
-    """Esegue scansione gobuster - CORRETTO"""
+    """Esegue scansione gobuster con timeout 120 secondi"""
     wordlist = "/usr/share/wordlists/dirb/common.txt"
     cmd = f"gobuster dir -u {target} -w {wordlist} -t 50 --no-error"
     logging.info(f"🔍 Avvio gobuster su {target} con wordlist: {wordlist}")
@@ -85,52 +85,13 @@ def run_gobuster(target="localhost"):
         return "Timeout: gobuster non completato"
 
 # ============================================
-# FUNZIONE DEEPSEEK
+# FUNZIONE DEEPSEEK - DISABILITATA
 # ============================================
 
 def analyze_with_deepseek(scan_results):
-    """Invia i risultati a DeepSeek per analisi"""
-    logging.info("🤖 Invio risultati a DeepSeek per l'analisi...")
-    
-    prompt = f"""
-    Analisi sicurezza:
-    1. Servizi esposti: {scan_results[:800]}
-    2. Vulnerabilità critiche?
-    3. Raccomandazioni
-    """
-    
-    try:
-        response = requests.post(
-            DEEPSEEK_URL,
-            json={
-                "model": DEEPSEEK_MODEL,
-                "prompt": prompt,
-                "stream": False
-            },
-            timeout=180
-        )
-        
-        if response.status_code == 200:
-            data = response.json()
-            analysis = data.get("response", "Nessuna risposta")
-            logging.info("✅ Analisi DeepSeek completata")
-            return analysis
-        else:
-            error_msg = f"Errore DeepSeek: {response.status_code}"
-            logging.error(error_msg)
-            return error_msg
-    except requests.exceptions.Timeout:
-        error_msg = "Errore DeepSeek: timeout"
-        logging.error(error_msg)
-        return error_msg
-    except requests.exceptions.ConnectionError:
-        error_msg = "Errore DeepSeek: connessione rifiutata"
-        logging.error(error_msg)
-        return error_msg
-    except Exception as e:
-        error_msg = f"Errore DeepSeek: {str(e)}"
-        logging.error(error_msg)
-        return error_msg
+    """DeepSeek disabilitato per performance e stabilit\u00e0"""
+    logging.info("🤖 DeepSeek disabilitato per performance")
+    return "Analisi DeepSeek disabilitata (timeout)"
 
 # ============================================
 # FUNZIONE ESCROW
@@ -209,16 +170,10 @@ def main():
     except Exception as e:
         results["escrow"] = {"error": str(e)}
     
-    # 3. DeepSeek
-    all_results = "\n".join([f"{k}:\n{v}" for k, v in results["scans"].items()])
-    results["deepseek_analysis"] = analyze_with_deepseek(all_results)
+    # 3. DeepSeek (disabilitato)
+    results["deepseek_analysis"] = "Analisi DeepSeek disabilitata (timeout)"
     
-    # 4. Minacce
-    if results["deepseek_analysis"] and "critical" in results["deepseek_analysis"].lower():
-        logging.warning("⚠️ Minaccia critica rilevata!")
-        block_ip("192.168.1.100")
-    
-    # 5. Report
+    # 4. Report
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     report_file = f"{REPORT_DIR}/security_report_{timestamp}.json"
     with open(report_file, 'w') as f:
