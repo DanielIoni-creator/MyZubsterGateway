@@ -193,3 +193,10 @@ This project is licensed under the MIT License.
 🧅 Tor: http://olqcnbdlt35k2stmmwvzhvuetu2fc4us2jnn5wg6y6wlcddihfmdomid.onion
 
 Built with ❤️ for privacy, freedom, and decentralization.
+
+## 📊 Badges
+
+![GitHub last commit](https://img.shields.io/github/last-commit/DanielIoni-creator/MyZubsterGateway)
+![GitHub issues](https://img.shields.io/github/issues/DanielIoni-creator/MyZubsterGateway)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/DanielIoni-creator/MyZubsterGateway)
+![GitHub](https://img.shields.io/github/license/DanielIoni-creator/MyZubsterGateway)
