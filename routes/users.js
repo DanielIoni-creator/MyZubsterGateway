@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+<<<<<<< HEAD
 
 // GET /api/users - Lista utenti (protetta)
 router.get('/', (req, res) => {
@@ -15,4 +16,7 @@ router.post('/', (req, res) => {
   res.status(201).json({ id: Date.now(), username, email });
 });
 
+=======
+router.get('/', (req, res) => res.json({ message: req.t('users.route') }));
+>>>>>>> pr52-pgp
 module.exports = router;

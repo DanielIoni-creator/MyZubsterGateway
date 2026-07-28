@@ -8,6 +8,7 @@ const User = require('../models/User');
 // REGISTRAZIONE
 // ============================================
 router.post('/register', async (req, res) => {
+<<<<<<< HEAD
     try {
         const { username, email, password, name } = req.body;
 
@@ -73,12 +74,23 @@ router.post('/register', async (req, res) => {
             error: 'Errore durante la registrazione' 
         });
     }
+=======
+  try {
+    const { username, email, password } = req.body;
+    const user = new User({ username, email, password });
+    await user.save();
+    res.status(201).json({ success: true, message: req.t('auth.registered') });
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
+  }
+>>>>>>> pr52-pgp
 });
 
 // ============================================
 // LOGIN
 // ============================================
 router.post('/login', async (req, res) => {
+<<<<<<< HEAD
     try {
         const { email, password } = req.body;
 
@@ -89,6 +101,15 @@ router.post('/login', async (req, res) => {
                 error: 'Email e password sono obbligatori' 
             });
         }
+=======
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(401).json({ success: false, error: req.t('auth.invalidCredentials') });
+
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) return res.status(401).json({ success: false, error: req.t('auth.invalidCredentials') });
+>>>>>>> pr52-pgp
 
         // Trova l'utente per email
         const user = await User.findOne({ email });
@@ -148,6 +169,7 @@ router.post('/login', async (req, res) => {
     }
 });
 
+<<<<<<< HEAD
 // ============================================
 // VERIFICA TOKEN
 // ============================================
@@ -188,4 +210,6 @@ router.get('/verify', async (req, res) => {
     }
 });
 
+=======
+>>>>>>> pr52-pgp
 module.exports = router;

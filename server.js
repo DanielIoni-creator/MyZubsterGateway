@@ -2,6 +2,41 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+<<<<<<< HEAD
+=======
+const i18nMiddleware = require('./middleware/i18n');
+
+// Carica le variabili d'ambiente
+dotenv.config();
+
+// Inizializza Express
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// ============================================
+// MIDDLEWARE
+// ============================================
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(i18nMiddleware);
+
+// ============================================
+// IMPORT MODELLI
+// ============================================
+require('./models/User');
+require('./models/Order');
+require('./models/Skill');
+require('./models/Offer');
+require('./models/Request');
+require('./models/Transaction');
+require('./models/Review');
+require('./models/EncryptedOrder');
+
+// ============================================
+// IMPORT ROUTE
+// ============================================
+>>>>>>> pr52-pgp
 const authRoutes = require('./routes/auth');
 const skillRoutes = require('./routes/skills');
 const offerRoutes = require('./routes/offers');
@@ -52,7 +87,17 @@ app.post('/api/payments/webhook', async (req, res) => {
 });
 
 app.get('/api/health', (req, res) => {
+<<<<<<< HEAD
   res.status(200).json({ status: 'OK', message: 'Server is running' });
+=======
+  res.json({
+    status: 'OK',
+    message: req.t('app.health'),
+    language: req.language,
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+>>>>>>> pr52-pgp
 });
 
 app.get('/', (req, res) => {

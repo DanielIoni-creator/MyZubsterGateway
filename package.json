@@ -13,11 +13,30 @@
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.6",
     "dotenv": "^16.6.1",
+<<<<<<< HEAD
     "express": "^4.22.2",
     "express-rate-limit": "^8.6.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^7.8.11",
     "winston": "^3.19.0"
+=======
+    "express": "^5.2.1",
+    "express-rate-limit": "^7.4.0",
+    "express-validator": "^7.3.2",
+    "handlebars": "^4.7.9",
+    "helmet": "^7.2.0",
+    "i18next": "^24.2.3",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^8.5.0",
+    "morgan": "^1.11.0",
+    "nodemailer": "^9.0.3",
+    "openpgp": "^6.3.1",
+    "socket.io": "^4.8.3",
+    "swagger-jsdoc": "^6.3.0",
+    "swagger-ui-express": "^5.0.1",
+    "winston": "^3.19.0",
+    "xss": "^1.0.15"
+>>>>>>> pr52-pgp
   },
   "devDependencies": {
     "jest": "^29.7.0",
