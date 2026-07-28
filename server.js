@@ -5,6 +5,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const rateLimit = require('express-rate-limit');
 
 // Carica le variabili d'ambiente
 dotenv.config();
@@ -19,6 +20,16 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Rate limiting globale per prevenire abusi/brute-force (bounty #39)
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minuti
+  max: 300, // max 300 richieste per IP per finestra
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Troppe richieste, riprova piu tardi.' },
+});
+app.use(globalLimiter);
 
 // ============================================
 // IMPORT MODELLI

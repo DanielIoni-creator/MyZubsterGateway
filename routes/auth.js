@@ -1,11 +1,21 @@
 const express = require('express');
 const router = express.Router();
+const rateLimit = require('express-rate-limit');
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+// Limite stretto su auth per prevenire brute-force (bounty #39)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minuti
+  max: 20, // max 20 tentativi per IP per finestra
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Troppi tentativi di login/registrazione, riprova piu tardi.' },
+});
+
 // REGISTRAZIONE
-router.post('/register', async (req, res) => {
+router.post('/register', authLimiter, async (req, res) => {
   try {
     const { username, email, password } = req.body;
     const user = new User({ username, email, password });
@@ -17,7 +27,7 @@ router.post('/register', async (req, res) => {
 });
 
 // LOGIN
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
