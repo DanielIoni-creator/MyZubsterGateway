@@ -16,6 +16,7 @@ const skillRoutes = require('./routes/skills');
 const webhookRoutes = require('./routes/webhooks');
 const plantRoutes = require('./routes/plants');
 const certificateRoutes = require("./routes/certificates");
+const petRoutes = require("./routes/pets");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
