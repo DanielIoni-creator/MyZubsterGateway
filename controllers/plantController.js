@@ -70,3 +70,47 @@ exports.getPlantById = async (req, res) => {
     });
   }
 };
+
+// GET plants with filters
+exports.getPlants = async (req, res) => {
+  try {
+    const { species, size, status, limit = 100 } = req.query;
+    
+    const filter = {};
+    if (species) filter.species = new RegExp(species, 'i');
+    if (size) filter.size = size;
+    if (status && status !== 'all') filter.status = status;
+    
+    const plants = await Plant.find(filter)
+      .limit(parseInt(limit))
+      .sort({ createdAt: -1 });
+    
+    res.json({ success: true, plants });
+  } catch (error) {
+    console.error('Get plants error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+// GET plant by ID
+exports.getPlantById = async (req, res) => {
+  try {
+    const plant = await Plant.findById(req.params.id);
+    if (!plant) {
+      return res.status(404).json({
+        success: false,
+        message: 'Plant not found'
+      });
+    }
+    res.json({ success: true, plant });
+  } catch (error) {
+    console.error('Get plant error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
