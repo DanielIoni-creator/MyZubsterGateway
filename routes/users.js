@@ -1,22 +1,27 @@
 const express = require('express');
 const router = express.Router();
-<<<<<<< HEAD
+const userController = require('../controllers/userController');
+const { authenticate, isAdmin } = require('../middleware/auth');
 
-// GET /api/users - Lista utenti (protetta)
-router.get('/', (req, res) => {
-  res.json({ users: [] });
-});
+// Get current user profile
+router.get('/profile', authenticate, userController.getProfile);
 
-// POST /api/users - Crea un nuovo utente
-router.post('/', (req, res) => {
-  const { username, email } = req.body;
-  if (!username || !email) {
-    return res.status(400).json({ error: 'Username e email sono obbligatori' });
-  }
-  res.status(201).json({ id: Date.now(), username, email });
-});
+// Update user profile
+router.put('/profile', authenticate, userController.updateProfile);
 
-=======
-router.get('/', (req, res) => res.json({ message: req.t('users.route') }));
->>>>>>> pr52-pgp
+// Get all users (admin only)
+router.get('/', authenticate, isAdmin, userController.getAllUsers);
+
+// Get user by ID (admin only)
+router.get('/:id', authenticate, isAdmin, userController.getUserById);
+
+// Update user role (admin only)
+router.patch('/:id/role', authenticate, isAdmin, userController.updateUserRole);
+
+// Delete user (admin only)
+router.delete('/:id', authenticate, isAdmin, userController.deleteUser);
+
+// Get user's orders
+router.get('/:id/orders', authenticate, isAdmin, userController.getUserOrders);
+
 module.exports = router;
