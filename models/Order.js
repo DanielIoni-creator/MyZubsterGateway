@@ -131,6 +131,10 @@ orderSchema.statics.findByPaymentId = function(paymentId) {
   return this.findOne({ paymentId });
 };
 
+orderSchema.statics.findAll = function(options = {}) {
+  return this.find(options.where || {});
+};
+
 // Metodi di istanza
 orderSchema.methods.isPayable = function() {
   return this.status === 'pending' && this.paymentStatus !== 'confirmed';

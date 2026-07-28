@@ -7,7 +7,7 @@ const authorizeAdmin = (req, res, next) => {
     next();
   } else {
     res.status(403).json({ 
-      error: 'Accesso negato. Permessi amministratore richiesti.' 
+      error: req.t('auth.adminRequired')
     });
   }
 };

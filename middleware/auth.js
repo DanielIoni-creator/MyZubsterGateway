@@ -8,7 +8,7 @@ const authenticate = async (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
-        error: 'Token mancante o formato non valido. Usa: Bearer <token>'
+        error: req.t('auth.tokenMissing')
       });
     }
 
@@ -16,7 +16,7 @@ const authenticate = async (req, res, next) => {
     const decoded = jwtService.verifyToken(token);
 
     if (!decoded) {
-      return res.status(401).json({ error: 'Token non valido o scaduto' });
+      return res.status(401).json({ error: req.t('auth.tokenInvalid') });
     }
 
     // Aggiungi i dati dell'utente alla request
@@ -29,7 +29,7 @@ const authenticate = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Errore autenticazione:', error);
-    return res.status(500).json({ error: 'Errore interno del server' });
+    return res.status(500).json({ error: req.t('error.internal') });
   }
 };
 
@@ -38,7 +38,7 @@ const authorizeAdmin = (req, res, next) => {
   if (req.user && req.user.role === 'admin') {
     next();
   } else {
-    res.status(403).json({ error: 'Accesso negato. Permessi amministratore richiesti.' });
+    res.status(403).json({ error: req.t('auth.adminRequired') });
   }
 };
 
