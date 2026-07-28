@@ -15,8 +15,8 @@ const offerRoutes = require('./routes/offers');
 const skillRoutes = require('./routes/skills');
 const webhookRoutes = require('./routes/webhooks');
 const plantRoutes = require('./routes/plants');
-const certificateRoutes = require("./routes/certificates");
-const petRoutes = require("./routes/pets");
+const certificateRoutes = require('./routes/certificates');
+const petRoutes = require('./routes/petRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -53,7 +53,9 @@ app.get('/', (req, res) => {
       offers: '/api/offers',
       skills: '/api/skills',
       webhooks: '/api/webhooks',
-      plants: '/api/plants'
+      plants: '/api/plants',
+      certificates: '/api/certificates',
+      pets: '/api/pets'
     }
   });
 });
@@ -77,6 +79,8 @@ app.use('/api/offers', authenticate, offerRoutes);
 app.use('/api/skills', authenticate, skillRoutes);
 app.use('/api/webhooks', authenticate, webhookRoutes);
 app.use('/api/plants', authenticate, plantRoutes);
+app.use('/api/certificates', authenticate, certificateRoutes);
+app.use('/api/pets', petRoutes);
 
 // Error handler
 app.use((err, req, res, next) => {
