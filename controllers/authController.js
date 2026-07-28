@@ -1,5 +1,8 @@
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+
+const JWT_SECRET = 'myzubster-super-secret-jwt-key-2026';
 
 exports.login = async (req, res) => {
   try {
@@ -20,7 +23,7 @@ exports.login = async (req, res) => {
       });
     }
 
-    const isMatch = await user.comparePassword(password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({
         success: false,
@@ -29,8 +32,8 @@ exports.login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, username: user.username, role: user.role },
-      process.env.JWT_SECRET,
+      { id: user._id, username: user.username, role: user.role || 'user' },
+      JWT_SECRET,
       { expiresIn: '7d' }
     );
 
@@ -41,8 +44,7 @@ exports.login = async (req, res) => {
         id: user._id,
         username: user.username,
         email: user.email,
-        role: user.role,
-        isVerified: user.isVerified
+        role: user.role || 'user'
       }
     });
   } catch (error) {
@@ -94,65 +96,6 @@ exports.register = async (req, res) => {
     });
   } catch (error) {
     console.error('Register error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-};
-
-exports.getProfile = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).select('-password');
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
-    res.json({
-      success: true,
-      user
-    });
-  } catch (error) {
-    console.error('Get profile error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-};
-
-exports.updateProfile = async (req, res) => {
-  try {
-    const { fullName, moneroAddress } = req.body;
-    const user = await User.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
-
-    if (fullName) user.fullName = fullName;
-    if (moneroAddress) user.moneroAddress = moneroAddress;
-    user.updatedAt = new Date();
-
-    await user.save();
-
-    res.json({
-      success: true,
-      message: 'Profile updated successfully',
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        fullName: user.fullName,
-        moneroAddress: user.moneroAddress
-      }
-    });
-  } catch (error) {
-    console.error('Update profile error:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error'

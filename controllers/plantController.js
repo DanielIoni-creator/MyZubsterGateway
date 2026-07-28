@@ -19,13 +19,11 @@ exports.registerPlant = async (req, res) => {
       age,
       size,
       owner: req.user.id,
-      moneroAddress
+      moneroAddress,
+      status: 'pending'
     });
 
     await plant.save();
-
-    // TODO: Process payment in XMR
-    // TODO: Send reward to user
 
     res.status(201).json({
       success: true,
@@ -43,10 +41,7 @@ exports.registerPlant = async (req, res) => {
 
 exports.getPlants = async (req, res) => {
   try {
-    const plants = await Plant.find({
-      status: 'verified',
-      ...req.query
-    }).limit(100);
+    const plants = await Plant.find({ status: 'verified' }).limit(100);
     res.json({ success: true, plants });
   } catch (error) {
     console.error('Get plants error:', error);
