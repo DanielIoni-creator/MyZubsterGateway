@@ -1,0 +1,13 @@
+{
+  "app.health": "Gerbang MyZubster sedang berjalan!",
+  "auth.registered": "Pengguna berjaya didaftarkan",
+  "auth.invalidCredentials": "Kelayakan tidak sah",
+  "users.route": "Laluan pengguna",
+  "payments.created": "Pembayaran berjaya dicipta",
+  "payments.notFound": "Pembayaran tidak ditemui",
+  "orders.listed": "Pesanan berjaya dimuatkan",
+  "orders.created": "Pesanan berjaya dicipta",
+  "orders.notFound": "Pesanan tidak ditemui",
+  "errors.validation": "Pengesahan gagal",
+  "errors.server": "Ralat pelayan"
+}

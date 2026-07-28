@@ -1,0 +1,13 @@
+{
+  "app.health": "MyZubster Gateway இயங்குகிறது!",
+  "auth.registered": "பயனர் வெற்றிகரமாக பதிவு செய்யப்பட்டார்",
+  "auth.invalidCredentials": "தவறான உள்நுழைவு விவரங்கள்",
+  "users.route": "பயனர் வழி",
+  "payments.created": "கட்டணம் வெற்றிகரமாக உருவாக்கப்பட்டது",
+  "payments.notFound": "கட்டணம் கிடைக்கவில்லை",
+  "orders.listed": "ஆர்டர்கள் வெற்றிகரமாக ஏற்றப்பட்டன",
+  "orders.created": "ஆர்டர் வெற்றிகரமாக உருவாக்கப்பட்டது",
+  "orders.notFound": "ஆர்டர் கிடைக்கவில்லை",
+  "errors.validation": "சரிபார்ப்பு தோல்வியடைந்தது",
+  "errors.server": "சேவையக பிழை"
+}
