@@ -1,0 +1,13 @@
+{
+  "app.health": "MyZubster Gateway 正在运行！",
+  "auth.registered": "用户注册成功",
+  "auth.invalidCredentials": "凭据无效",
+  "users.route": "用户路由",
+  "payments.created": "付款创建成功",
+  "payments.notFound": "未找到付款",
+  "orders.listed": "订单加载成功",
+  "orders.created": "订单创建成功",
+  "orders.notFound": "未找到订单",
+  "errors.validation": "验证失败",
+  "errors.server": "服务器错误"
+}

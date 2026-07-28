@@ -5,6 +5,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const i18nMiddleware = require('./middleware/i18n');
 
 // Carica le variabili d'ambiente
 dotenv.config();
@@ -19,6 +20,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(i18nMiddleware);
 
 // ============================================
 // IMPORT MODELLI
@@ -75,7 +77,8 @@ app.post('/api/payments/webhook', async (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
-    message: 'MyZubster Gateway is running!',
+    message: req.t('app.health'),
+    language: req.language,
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
