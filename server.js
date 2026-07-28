@@ -1,4 +1,3 @@
-// server.js - MyZubster Gateway
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -15,11 +14,13 @@ const userRoutes = require('./routes/users');
 const offerRoutes = require('./routes/offers');
 const skillRoutes = require('./routes/skills');
 const webhookRoutes = require('./routes/webhooks');
+const plantRoutes = require('./routes/plants');
+const certificateRoutes = require("./routes/certificates");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
-// Security middleware
+// Security
 app.use(helmet());
 app.use(cors({
   origin: process.env.CORS_ORIGIN || '*',
@@ -28,9 +29,8 @@ app.use(cors({
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
-  message: 'Too many requests from this IP, please try again later.'
+  windowMs: 15 * 60 * 1000,
+  max: 100
 });
 app.use('/api', limiter);
 
@@ -51,7 +51,8 @@ app.get('/', (req, res) => {
       users: '/api/users',
       offers: '/api/offers',
       skills: '/api/skills',
-      webhooks: '/api/webhooks'
+      webhooks: '/api/webhooks',
+      plants: '/api/plants'
     }
   });
 });
@@ -74,8 +75,9 @@ app.use('/api/users', authenticate, userRoutes);
 app.use('/api/offers', authenticate, offerRoutes);
 app.use('/api/skills', authenticate, skillRoutes);
 app.use('/api/webhooks', authenticate, webhookRoutes);
+app.use('/api/plants', authenticate, plantRoutes);
 
-// Error handling middleware
+// Error handler
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   res.status(err.status || 500).json({
@@ -84,7 +86,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Connect to MongoDB
+// MongoDB connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/tokenization', {
   useNewUrlParser: true,
   useUnifiedTopology: true
