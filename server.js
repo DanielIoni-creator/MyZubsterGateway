@@ -30,6 +30,7 @@ require('./models/Offer');
 require('./models/Request');
 require('./models/Transaction');
 require('./models/Review');
+require('./models/EncryptedOrder');
 
 // ============================================
 // IMPORT ROUTE
