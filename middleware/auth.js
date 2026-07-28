@@ -1,21 +1,48 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-module.exports = async (req, res, next) => {
+const authenticate = async (req, res, next) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    const token = req.headers.authorization?.split(' ')[1];
+
     if (!token) {
-      throw new Error();
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
     }
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id);
+
     if (!user) {
-      throw new Error();
+      return res.status(401).json({
+        success: false,
+        message: 'User not found'
+      });
     }
+
     req.user = user;
-    req.token = token;
     next();
   } catch (error) {
-    res.status(401).json({ error: 'Autenticazione richiesta' });
+    console.error('Auth error:', error);
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token'
+      });
+    }
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Token expired'
+      });
+    }
+    return res.status(500).json({
+      success: false,
+      message: 'Authentication error'
+    });
   }
 };
+
+module.exports = { authenticate };
