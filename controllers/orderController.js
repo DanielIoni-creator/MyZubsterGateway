@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const emailService = require('../services/emailService');
 
+// Create a new order
 exports.createOrder = async (req, res) => {
   try {
     const { userName, userEmail, items, total } = req.body;
@@ -18,8 +19,7 @@ exports.createOrder = async (req, res) => {
       userEmail,
       items,
       total,
-      status: 'pending',
-      createdAt: new Date()
+      status: 'pending'
     });
 
     await order.save();
@@ -41,6 +41,7 @@ exports.createOrder = async (req, res) => {
   }
 };
 
+// Get all orders for authenticated user
 exports.getUserOrders = async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user.id });
@@ -54,6 +55,7 @@ exports.getUserOrders = async (req, res) => {
   }
 };
 
+// Get order by ID
 exports.getOrderById = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -79,6 +81,7 @@ exports.getOrderById = async (req, res) => {
   }
 };
 
+// Update order status
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -96,7 +99,6 @@ exports.updateOrderStatus = async (req, res) => {
       });
     }
     order.status = status;
-    order.updatedAt = new Date();
     await order.save();
     res.json({ success: true, order });
   } catch (error) {
@@ -108,6 +110,7 @@ exports.updateOrderStatus = async (req, res) => {
   }
 };
 
+// Confirm payment
 exports.confirmPayment = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -124,7 +127,6 @@ exports.confirmPayment = async (req, res) => {
       });
     }
     order.status = 'paid';
-    order.updatedAt = new Date();
     await order.save();
     res.json({ success: true, order });
   } catch (error) {
@@ -136,6 +138,7 @@ exports.confirmPayment = async (req, res) => {
   }
 };
 
+// Complete order
 exports.completeOrder = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -152,7 +155,6 @@ exports.completeOrder = async (req, res) => {
       });
     }
     order.status = 'completed';
-    order.updatedAt = new Date();
     await order.save();
     res.json({ success: true, order });
   } catch (error) {
@@ -164,6 +166,7 @@ exports.completeOrder = async (req, res) => {
   }
 };
 
+// Cancel order
 exports.cancelOrder = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -180,7 +183,6 @@ exports.cancelOrder = async (req, res) => {
       });
     }
     order.status = 'cancelled';
-    order.updatedAt = new Date();
     await order.save();
     res.json({ success: true, order });
   } catch (error) {
