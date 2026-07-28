@@ -1,0 +1,13 @@
+{
+  "app.health": "MyZubster Gateway e attivo!",
+  "auth.registered": "Utente registrato con successo",
+  "auth.invalidCredentials": "Credenziali non valide",
+  "users.route": "Rotta utenti",
+  "payments.created": "Pagamento creato con successo",
+  "payments.notFound": "Pagamento non trovato",
+  "orders.listed": "Ordini caricati con successo",
+  "orders.created": "Ordine creato con successo",
+  "orders.notFound": "Ordine non trovato",
+  "errors.validation": "Validazione non riuscita",
+  "errors.server": "Errore del server"
+}
