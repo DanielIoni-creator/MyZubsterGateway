@@ -12,6 +12,9 @@ router.use(authorizeAdmin);
 // Dashboard
 router.get('/dashboard', adminController.getDashboardStats);
 
+// Aggregated stats (bounty #32)
+router.get('/stats', adminController.getStats);
+
 // Ordini
 router.get('/orders', adminController.getAllOrders);
 router.put('/orders/:orderId', logAdminAction('Aggiornamento ordine'), adminController.updateOrder);
