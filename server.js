@@ -34,6 +34,7 @@ require('./models/Transaction');
 require('./models/Review');
 require('./models/Webhook');
 require('./models/WebhookDelivery');
+require('./models/EncryptedOrder');
 
 // ============================================
 // IMPORT ROUTE

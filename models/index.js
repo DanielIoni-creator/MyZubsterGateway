@@ -8,5 +8,6 @@ module.exports = {
   Transaction: require('./Transaction'),
   Review: require('./Review'),
   Webhook: require('./Webhook'),
-  WebhookDelivery: require('./WebhookDelivery')
+  WebhookDelivery: require('./WebhookDelivery'),
+  EncryptedOrder: require('./EncryptedOrder')
 };
