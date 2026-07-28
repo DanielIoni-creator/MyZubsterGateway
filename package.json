@@ -32,6 +32,12 @@
   },
   "jest": {
     "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "modulePathIgnorePatterns": [
+      "<rootDir>/frontend"
+    ],
     "coveragePathIgnorePatterns": [
       "/node_modules/"
     ]
