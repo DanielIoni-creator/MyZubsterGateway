@@ -30,6 +30,8 @@ require('./models/Offer');
 require('./models/Request');
 require('./models/Transaction');
 require('./models/Review');
+require('./models/Webhook');
+require('./models/WebhookDelivery');
 
 // ============================================
 // IMPORT ROUTE
@@ -42,6 +44,7 @@ const orderRoutes = require('./routes/orders');
 const paymentRoutes = require('./routes/payments');
 const transactionRoutes = require('./routes/transactions');
 const reviewRoutes = require('./routes/reviews');
+const webhookRoutes = require('./routes/webhooks');
 
 // ============================================
 // ROTTE API
@@ -54,6 +57,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/webhooks', webhookRoutes);
 
 // ============================================
 // WEBHOOK PER PAGAMENTI (MOCK)

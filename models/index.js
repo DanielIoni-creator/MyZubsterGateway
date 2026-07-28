@@ -6,5 +6,7 @@ module.exports = {
   Offer: require('./Offer'),
   Request: require('./Request'),
   Transaction: require('./Transaction'),
-  Review: require('./Review')
+  Review: require('./Review'),
+  Webhook: require('./Webhook'),
+  WebhookDelivery: require('./WebhookDelivery')
 };
