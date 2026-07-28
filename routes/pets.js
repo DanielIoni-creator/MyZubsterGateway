@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const petController = require('../controllers/petController');
-const { authenticate } = require('../middleware/auth');
 
-// Route pubbliche (NFC lookup - SENZA autenticazione)
+// PUBBLICO - NFC lookup (NON richiede autenticazione)
 router.get('/nfc/:nfcId', petController.getPetByNfc);
 
-// Route protette
+// PROTETTE - richiedono autenticazione
+const { authenticate } = require('../middleware/auth');
 router.post('/register', authenticate, petController.registerPet);
 router.get('/', authenticate, petController.getPets);
 router.get('/:id', authenticate, petController.getPetById);

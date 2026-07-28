@@ -155,6 +155,7 @@ exports.deletePet = async (req, res) => {
   }
 };
 
+// PUBBLICO - NFC lookup NON richiede autenticazione
 exports.getPetByNfc = async (req, res) => {
   try {
     const { nfcId } = req.params;
