@@ -15,9 +15,7 @@ const plantSchema = new mongoose.Schema({
     lng: { type: Number, required: true }
   },
   photos: [{
-    type: String,
-    url: String,
-    ipfs: String
+    type: String
   }],
   age: {
     type: Number,
@@ -25,7 +23,8 @@ const plantSchema = new mongoose.Schema({
   },
   size: {
     type: String,
-    enum: ['seedling', 'small', 'medium', 'ancient']
+    enum: ['seedling', 'small', 'medium', 'ancient'],
+    default: 'medium'
   },
   health: {
     type: String,
