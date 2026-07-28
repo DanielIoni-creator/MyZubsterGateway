@@ -1,18 +1,28 @@
+// routes/orders.js
 const express = require('express');
 const router = express.Router();
+const orderController = require('../controllers/orderController');
+const { authenticate } = require('../middleware/auth');
 
-<<<<<<< HEAD
-router.get('/', (req, res) => {
-  res.json({ message: 'orders route' });
-=======
-router.get('/', async (req, res) => {
-  try {
-    const orders = await Order.find().populate('user');
-    res.json({ success: true, message: req.t('orders.listed'), data: orders });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
->>>>>>> pr52-pgp
-});
+// Create a new order (requires authentication)
+router.post('/', authenticate, orderController.createOrder);
+
+// Get all orders for the authenticated user
+router.get('/', authenticate, orderController.getUserOrders);
+
+// Get a specific order by ID
+router.get('/:id', authenticate, orderController.getOrderById);
+
+// Update order status
+router.patch('/:id/status', authenticate, orderController.updateOrderStatus);
+
+// Confirm payment for an order
+router.post('/:id/confirm-payment', authenticate, orderController.confirmPayment);
+
+// Complete an order
+router.post('/:id/complete', authenticate, orderController.completeOrder);
+
+// Cancel an order
+router.delete('/:id', authenticate, orderController.cancelOrder);
 
 module.exports = router;
