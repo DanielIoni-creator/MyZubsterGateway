@@ -2,6 +2,37 @@
 const router = express.Router();
 const Skill = require('../models/Skill');
 
+/**
+ * @openapi
+ * /api/skills:
+ *   post:
+ *     summary: Create a new skill
+ *     tags: [Skills]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               category:
+ *                 type: string
+ *               zone:
+ *                 type: string
+ *               user:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Skill created
+ *       400:
+ *         description: Invalid input
+ */
 // CREATE
 router.post('/', async (req, res) => {
   try {
@@ -13,6 +44,29 @@ router.post('/', async (req, res) => {
   }
 });
 
+/**
+ * @openapi
+ * /api/skills:
+ *   get:
+ *     summary: List skills
+ *     tags: [Skills]
+ *     parameters:
+ *       - in: query
+ *         name: category
+ *         schema: { type: string }
+ *       - in: query
+ *         name: zone
+ *         schema: { type: string }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *     responses:
+ *       200:
+ *         description: Paginated list of skills
+ */
 // READ ALL
 router.get('/', async (req, res) => {
   try {

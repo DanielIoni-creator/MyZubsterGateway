@@ -55,6 +55,7 @@ const transactionRoutes = require('./routes/transactions');
 const reviewRoutes = require('./routes/reviews');
 const adminRoutes = require('./routes/admin');
 const webhookRoutes = require('./routes/webhooks');
+const docsRoutes = require('./routes/docs');
 
 // ============================================
 // ROTTE API
@@ -69,6 +70,7 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/webhooks', webhookRoutes);
+app.use('/api/docs', docsRoutes);
 
 // ============================================
 // WEBHOOK PER PAGAMENTI (MOCK)
