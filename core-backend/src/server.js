@@ -1,96 +1,170 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const path = require('path');
 
-// Importa le route
-const authRoutes = require('./routes/authRoutes');
-const userRoutes = require('./routes/userRoutes');
-const skillRoutes = require('./routes/skillRoutes');
-const bookingRoutes = require('./routes/bookingRoutes');
-const bookingHistoryRoutes = require('./routes/bookingHistoryRoutes'); // 👈 NUOVA ROUTE
-const paymentRoutes = require('./routes/paymentRoutes');
-const reviewRoutes = require('./routes/reviewRoutes');
-const escrowRoutes = require('./routes/escrowRoutes');
-const quoteRoutes = require('./routes/quoteRoutes');
-const chatRoutes = require('./routes/chatRoutes');
-
-// Carica le variabili d'ambiente
-dotenv.config();
-
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
-  credentials: true
-}));
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve file statici (se necessario)
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-
-// ==================== ROUTES ====================
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/skills', skillRoutes);
-app.use('/api/bookings', bookingRoutes);
-app.use('/api/bookings', bookingHistoryRoutes); // 👈 NUOVA ROUTE PER LO STORICO
-app.use('/api/payments', paymentRoutes);
-app.use('/api/reviews', reviewRoutes);
-app.use('/api/escrow', escrowRoutes);
-app.use('/api/quotes', quoteRoutes);
-app.use('/api/chats', chatRoutes);
-
-// ==================== ROUTE DI TEST ====================
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Server is running' });
-});
-
-// ==================== GESTIONE ERRORI 404 ====================
-app.use((req, res) => {
-  res.status(404).json({ 
-    success: false, 
-    error: 'Endpoint non trovato' 
-  });
-});
-
-// ==================== GESTIONE ERRORI GLOBALE ====================
-app.use((err, req, res, next) => {
-  console.error('Errore del server:', err.stack);
-  res.status(500).json({ 
-    success: false, 
-    error: 'Errore interno del server' 
-  });
-});
-
-// ==================== CONNESSIONE AL DATABASE ====================
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myzubster', {
+// MongoDB connection
+mongoose.connect('mongodb://myzubster-mongodb:27017/myzubster', {
   useNewUrlParser: true,
-  useUnifiedTopology: true,
+  useUnifiedTopology: true
 })
-.then(() => {
-  console.log('✅ Connesso a MongoDB');
-  // Avvia il server solo dopo la connessione al database
-  app.listen(PORT, () => {
-    console.log(`🚀 Server avviato sulla porta ${PORT}`);
-    console.log(`📡 Ambiente: ${process.env.NODE_ENV || 'development'}`);
-  });
-})
-.catch((err) => {
-  console.error('❌ Errore di connessione a MongoDB:', err);
-  process.exit(1);
+.then(() => console.log('✅ Connesso a MongoDB'))
+.catch(err => console.error('❌ Errore MongoDB:', err));
+
+// Schema Token
+const TokenSchema = new mongoose.Schema({
+  name: String,
+  symbol: String,
+  totalSupply: Number,
+  assetValue: Number,
+  tokenPrice: Number,
+  contractAddress: String,
+  blockchain: String,
+  assetType: String,
+  assetDescription: String,
+  assetLocation: String,
+  issuer: String,
+  status: String,
+  owner: String, // Nuovo campo per il proprietario del token
+  createdAt: Date,
+  updatedAt: Date
 });
 
-// Gestione segnali di terminazione
-process.on('SIGINT', () => {
-  mongoose.connection.close(() => {
-    console.log('🛑 Connessione MongoDB chiusa');
-    process.exit(0);
+const Token = mongoose.model('Token', TokenSchema);
+
+// ============================================================
+// API ROUTES
+// ============================================================
+
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    service: 'MyZubsterGateway'
   });
+});
+
+// GET /api/tokens - Lista tutti i token
+app.get('/api/tokens', async (req, res) => {
+  try {
+    const tokens = await Token.find({}).sort({ createdAt: -1 });
+    res.json(tokens);
+  } catch (error) {
+    console.error('❌ Errore nel recupero dei token:', error);
+    res.status(500).json({ error: 'Errore nel recupero dei token' });
+  }
+});
+
+// GET /api/tokens/:id - Dettaglio token
+app.get('/api/tokens/:id', async (req, res) => {
+  try {
+    const token = await Token.findById(req.params.id);
+    if (!token) {
+      return res.status(404).json({ error: 'Token non trovato' });
+    }
+    res.json(token);
+  } catch (error) {
+    console.error('❌ Errore nel recupero del token:', error);
+    res.status(500).json({ error: 'Errore nel recupero del token' });
+  }
+});
+
+// ============================================================
+// NUOVO ENDPOINT: GET /api/tokens/balance/:walletAddress
+// ============================================================
+app.get('/api/tokens/balance/:walletAddress', async (req, res) => {
+  try {
+    const { walletAddress } = req.params;
+    
+    // Verifica che l'indirizzo wallet sia valido
+    if (!walletAddress || walletAddress.length < 10) {
+      return res.status(400).json({ error: 'Wallet address non valido' });
+    }
+
+    // Cerca tutti i token posseduti da questo wallet
+    const tokens = await Token.find({ owner: walletAddress });
+    
+    // Calcola il saldo totale
+    const totalBalance = tokens.reduce((total, token) => total + token.totalSupply, 0);
+    
+    res.json({
+      walletAddress,
+      tokens: tokens.map(t => ({
+        symbol: t.symbol,
+        name: t.name,
+        balance: t.totalSupply,
+        value: t.assetValue,
+        location: t.assetLocation
+      })),
+      totalBalance: totalBalance,
+      tokenCount: tokens.length
+    });
+  } catch (error) {
+    console.error('❌ Errore nel recupero del saldo:', error);
+    res.status(500).json({ error: 'Errore nel recupero del saldo del wallet' });
+  }
+});
+
+// POST /api/tokens - Crea nuovo token
+app.post('/api/tokens', async (req, res) => {
+  try {
+    const tokenData = {
+      ...req.body,
+      owner: req.body.owner || '6a5f742332b226d34448d39c',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    const token = new Token(tokenData);
+    await token.save();
+    res.status(201).json(token);
+  } catch (error) {
+    console.error('❌ Errore nella creazione del token:', error);
+    res.status(500).json({ error: 'Errore nella creazione del token' });
+  }
+});
+
+// DELETE /api/tokens/:id - Elimina token
+app.delete('/api/tokens/:id', async (req, res) => {
+  try {
+    const token = await Token.findByIdAndDelete(req.params.id);
+    if (!token) {
+      return res.status(404).json({ error: 'Token non trovato' });
+    }
+    res.json({ message: 'Token eliminato con successo' });
+  } catch (error) {
+    console.error('❌ Errore nella eliminazione del token:', error);
+    res.status(500).json({ error: 'Errore nella eliminazione del token' });
+  }
+});
+
+// ============================================================
+// ERROR HANDLING
+// ============================================================
+
+// 404 - Not Found
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not Found' });
+});
+
+// ============================================================
+// START SERVER
+// ============================================================
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server avviato sulla porta ${PORT}`);
+  console.log(`🌐 URL: http://localhost:${PORT}`);
+  console.log(`🔍 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`📋 Tokens: http://localhost:${PORT}/api/tokens`);
+  console.log(`💳 Balance: http://localhost:${PORT}/api/tokens/balance/:walletAddress`);
 });
 
 module.exports = app;

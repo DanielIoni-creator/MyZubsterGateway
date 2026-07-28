@@ -1,48 +1,21 @@
-// middleware/auth.js
-const jwtService = require('../services/jwtService');
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
-// Middleware per verificare il token JWT
-const authenticate = async (req, res, next) => {
+module.exports = async (req, res, next) => {
   try {
-    // Prendi il token dall'header Authorization
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        error: 'Token mancante o formato non valido. Usa: Bearer <token>'
-      });
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) {
+      throw new Error();
     }
-
-    const token = authHeader.split(' ')[1];
-    const decoded = jwtService.verifyToken(token);
-
-    if (!decoded) {
-      return res.status(401).json({ error: 'Token non valido o scaduto' });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      throw new Error();
     }
-
-    // Aggiungi i dati dell'utente alla request
-    req.user = {
-      id: decoded.userId,
-      email: decoded.email,
-      role: decoded.role
-    };
-
+    req.user = user;
+    req.token = token;
     next();
   } catch (error) {
-    console.error('Errore autenticazione:', error);
-    return res.status(500).json({ error: 'Errore interno del server' });
+    res.status(401).json({ error: 'Autenticazione richiesta' });
   }
-};
-
-// Middleware per verificare che l'utente sia admin
-const authorizeAdmin = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
-    next();
-  } else {
-    res.status(403).json({ error: 'Accesso negato. Permessi amministratore richiesti.' });
-  }
-};
-
-module.exports = {
-  authenticate,
-  authorizeAdmin
 };

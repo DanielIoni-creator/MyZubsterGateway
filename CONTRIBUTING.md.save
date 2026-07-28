@@ -1,0 +1,15 @@
+ Contributing to MyZubsterGateway
+
+Thank you for your interest! Please follow these guidelines to contribute.
+
+## How to Get Started
+1. Fork the repository.
+2. Create a branch for your feature: `git checkout -b feature/your-feature-name`.
+3. Make your changes and ensure the code works.
+4. Commit your changes: `git commit -m "Adds: clear description of changes"`.
+5. Push your branch: `git push origin feature/your-feature-name`.
+6. Open a Pull Request (PR) on GitHub.
+
+## Reporting a Bug
+- Use the "Bug report" template on GitHub.
+- Include
