@@ -1,7 +1,7 @@
 {
   "name": "myzubster-backend",
   "version": "1.0.0",
-  "description": "Backend per MyZubster con pagamenti Monero",
+  "description": "MyZubster Payment Gateway",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -11,7 +11,7 @@
     "test:coverage": "cross-env NODE_ENV=test jest --coverage"
   },
   "dependencies": {
-    "axios": "^1.7.9",
+    "axios": "^1.6.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.6",
     "compression": "^1.8.1",
@@ -26,6 +26,7 @@
     "handlebars": "^4.7.9",
     "helmet": "^7.2.0",
     "i18next": "^24.2.3",
+    "i18next-http-middleware": "^3.4.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.5.0",
     "morgan": "^1.11.0",
@@ -77,5 +78,14 @@
     "minimatch": "10.2.2",
     "path-to-regexp": "6.2.2",
     "smol-toml": "1.6.1"
-  }
+  },
+  "keywords": [
+    "monero",
+    "blockchain",
+    "gateway",
+    "payment",
+    "myzubster"
+  ],
+  "author": "DanielIoni-creator",
+  "license": "MIT"
 }
