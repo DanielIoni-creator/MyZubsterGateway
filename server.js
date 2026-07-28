@@ -19,7 +19,7 @@ const certificateRoutes = require('./routes/certificates');
 const petRoutes = require('./routes/petRoutes');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 // Security
 app.use(helmet());
@@ -78,7 +78,7 @@ app.use('/api/users', authenticate, userRoutes);
 app.use('/api/offers', authenticate, offerRoutes);
 app.use('/api/skills', authenticate, skillRoutes);
 app.use('/api/webhooks', authenticate, webhookRoutes);
-app.use('/api/plants', authenticate, plantRoutes);
+app.use('/api/plants', plantRoutes);
 app.use('/api/certificates', authenticate, certificateRoutes);
 app.use('/api/pets', petRoutes);
 
