@@ -3,6 +3,20 @@ const router = express.Router();
 const Webhook = require('../models/Webhook');
 const WebhookDelivery = require('../models/WebhookDelivery');
 const webhookService = require('../services/webhook.service');
+const legacyWebhookService = require('../services/webhookService');
+
+router.post('/test', async (req, res) => {
+  try {
+    const { targetUrl, payload } = req.body;
+    if (!targetUrl) {
+      return res.status(400).json({ error: 'targetUrl is required' });
+    }
+    const result = await legacyWebhookService.sendWebhookAsync(targetUrl, payload || { test: true });
+    res.json({ success: true, result });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
 router.post('/', async (req, res) => {
   try {

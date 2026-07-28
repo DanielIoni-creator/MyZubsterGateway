@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const mongoose = require('mongoose');
 const i18nMiddleware = require('./middleware/i18n');
+const { authenticate } = require('./middleware/auth');
 
 const authRoutes = require('./routes/auth');
 const skillRoutes = require('./routes/skills');
@@ -20,6 +21,8 @@ const marketplaceRoutes = require('./routes/marketplace');
 const reputationRoutes = require('./routes/reputation');
 const governanceRoutes = require('./routes/governance');
 const webhookRoutes = require('./routes/webhooks');
+const plantRoutes = require('./routes/plants');
+const certificateRoutes = require('./routes/certificates');
 const { startMonitoring } = require('./services/paymentMonitor');
 const reputationService = require('./services/reputationService');
 
@@ -35,7 +38,7 @@ require('./models/WebhookDelivery');
 require('./models/EncryptedOrder');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 app.use(helmet());
 app.use(cors({
@@ -66,7 +69,9 @@ app.get('/', (req, res) => {
       users: '/api/users',
       offers: '/api/offers',
       skills: '/api/skills',
-      webhooks: '/api/webhooks'
+      webhooks: '/api/webhooks',
+      plants: '/api/plants',
+      certificates: '/api/certificates'
     }
   });
 });
@@ -97,6 +102,8 @@ app.use('/api/marketplace', marketplaceRoutes);
 app.use('/api/reputation', reputationRoutes);
 app.use('/api/governance', governanceRoutes);
 app.use('/api/webhooks', webhookRoutes);
+app.use('/api/plants', authenticate, plantRoutes);
+app.use('/api/certificates', certificateRoutes);
 
 app.post('/api/payments/webhook', async (req, res) => {
   try {
@@ -111,6 +118,7 @@ app.use((req, res) => {
 });
 
 app.use((err, req, res, next) => {
+  console.error('Error:', err);
   res.status(err.status || 500).json({
     success: false,
     message: err.message || 'Internal server error'
