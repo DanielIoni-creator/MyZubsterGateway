@@ -30,6 +30,7 @@
     "mongoose": "^8.5.0",
     "morgan": "^1.11.0",
     "nodemailer": "^9.0.3",
+    "openpgp": "^6.3.1",
     "socket.io": "^4.8.3",
     "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1",
