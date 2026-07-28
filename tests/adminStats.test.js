@@ -19,9 +19,15 @@ jest.mock('../models/Transaction', () => ({
   aggregate: () => Promise.resolve(fakeStats.revenueAgg),
 }), { virtual: true });
 
-const { getStats } = require('../controllers/adminController');
-
 describe('getStats', () => {
+  let getStats;
+  beforeEach(() => {
+    // reset module registry so this file's mocks are authoritative regardless of other test files
+    jest.resetModules();
+    ({ getStats } = require('../controllers/adminController'));
+    fakeStats.revenueAgg = [{ total: 12.34 }];
+  });
+
   test('returns the required aggregate shape', async () => {
     const res = {};
     res.json = (payload) => { res._payload = payload; return res; };
