@@ -1,210 +1,274 @@
-# 🚀 MyZubster Gateway
+# 🌐 MyZubster Gateway
 
-**Monero Payment Engine for the MyZubster Ecosystem**
+**Backend API for MyZubster - Monero Payment Gateway & Animal Registry**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Monero](https://img.shields.io/badge/Powered%20by-Monero-orange)](https://www.getmonero.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-20.x-green)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-6.x-brightgreen)](https://mongodb.com/)
 
 ---
 
 ## 📌 What is MyZubster Gateway?
 
-MyZubster Gateway is the **payment engine** for the MyZubster ecosystem. It handles all interactions with the Monero blockchain:
+MyZubster Gateway is a **lightweight, privacy-first payment processor** built for the Monero (XMR) network. It enables decentralized, low-fee transactions with built-in support for webhooks, order management, and merchant dashboards.
 
-- ✅ Generates unique **subaddresses** for each order
-- ✅ **Monitors** the blockchain for incoming payments in real-time
-- ✅ Sends **webhooks** to the Marketplace when payments are confirmed
-- ✅ Manages **transaction history** and payment status
-
----
-## 🤖 About This Project
-
-**MyZubster is an experimental, open-source project.**
-
-- **Nature:** This project is partially developed and maintained by an AI agent (Claude) alongside human contributors.
-- **Status:** Alpha - The platform is in active development. Features may change.
-- **Bounties:** Real Monero (XMR) payments are made for completed contributions.
-- **Transparency:** All transactions are recorded in the public blockchain and tracked in `FUNDING.md`.
-
-## 🧩 Architecture
-
-┌─────────────────────────────────────────────────────────────────┐
-│ MyZubster Gateway │
-├─────────────────────────────────────────────────────────────────┤
-│ │
-│ ┌─────────────┐ ┌─────────────┐ ┌─────────────────┐ │
-│ │ Express │────▶│ MongoDB │────▶│ Monero RPC │ │
-│ │ Server │ │ (Database) │ │ Client │ │
-│ └─────────────┘ └─────────────┘ └─────────────────┘ │
-│ │
-│ ▼ ▼ │
-│ ┌──────────────────┐ ┌──────────────────┐ │
-│ │ Webhooks ──────┼──▶│ Marketplace │ │
-│ │ (Payment Conf) │ │ (port 4000) │ │
-│ └──────────────────┘ └──────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-text
-
+**Perfect for:**
+- 🛒 E-commerce platforms
+- 🎫 Ticketing and event systems
+- 🖥️ SaaS subscriptions
+- 🌿 Environmental and conservation projects
+- 🐾 Animal and plant registries
 
 ---
 
-## 🛠️ Tech Stack
+## ⚠️ IMPORTANT: Payment Policy
 
-| Layer | Technology | Purpose |
-|-------|------------|---------|
-| **Server** | Node.js + Express | RESTful API server |
-| **Database** | MongoDB | Store payments and transactions |
-| **Monero Client** | monero-javascript | Interact with Monero blockchain |
-| **Webhooks** | Axios | Notify Marketplace of payment confirmations |
-| **Security** | Helmet, CORS, JWT | API authentication and security |
+**This gateway accepts MONERO (XMR) ONLY.**
+
+| Accepted | Rejected |
+|----------|----------|
+| ✅ Monero (XMR) | ❌ USDC, USDT, ETH, BTC |
+| ✅ Privacy & anonymity | ❌ PayPal, bank transfers |
+| ✅ Micro-transactions (€0.10) | ❌ Fiat currencies |
+
+### Why Monero?
+
+| Feature | Monero (XMR) |
+|---------|--------------|
+| 🔒 Privacy | No KYC required |
+| 💰 Low Fees | Micro-transactions (€0.10) possible |
+| 🌍 Global | Anyone can participate from anywhere |
+| 🌿 Sustainable | 5% of fees go to conservation projects |
 
 ---
 
-## 🚀 Installation
+## 📊 Fee Structure
+
+**Registration is FREE.**
+
+MyZubster is an open-source, community-driven project. All registrations (animals, plants) are free.
+
+### How the Platform is Funded
+
+The platform is sustained through:
+- 💰 **Donations** – Voluntary contributions from the community
+- 🚀 **Premium Services** – Optional paid features (certificates, analytics)
+- 🤝 **Sponsors & Grants** – Corporate sponsorships and open source grants
+
+### Fund Allocation
+
+| Destination | Percentage |
+|-------------|------------|
+| Bounties | 90% |
+| Infrastructure | 5% |
+| Conservation | 5% |
+
+### Donate to Support MyZubster
+
+If you believe in this project, you can support us with a donation in Monero (XMR):
+
+**Wallet:** `45M4DW1ug8bdQowWpxucTpgsfjLbVxbYaAra79VewmBobuuhgqTjyD4R3DzpqLM2veiphcB16n24qN1QbLg3y2PYGK3Qkoe`
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- Node.js v18+
-- MongoDB v6+
-- Monero node (stagenet for testing)
+- **Node.js** 18+
+- **MongoDB** 6+
+- **Monero node** (local or remote)
 
-### Clone and Install
+### Installation
 
 ```bash
-git clone https://github.com/DanielIoni-creator/MyZubsterGateway.git
+# 1. Clone the repository
+git clone git@github.com:DanielIoni-creator/MyZubsterGateway.git
 cd MyZubsterGateway
+
+# 2. Install dependencies
 npm install
 
-Configure Environment
-bash
-
+# 3. Configure environment
 cp .env.example .env
-nano .env
+# Edit .env with your settings
 
-Example .env file:
-env
+# 4. Start the server
+npm startConfiguration
+
+Create a .env file with:
+bash
 
 # Server
 PORT=3000
 NODE_ENV=development
 
-# MongoDB
+# Database
 MONGODB_URI=mongodb://localhost:27017/myzubster
 
-# Monero RPC
-MONERO_RPC_URL=http://localhost:18081
-MONERO_RPC_USERNAME=
-MONERO_RPC_PASSWORD=
-MONERO_NETWORK=testnet
-
 # JWT
-JWT_SECRET=your_jwt_secret
+JWT_SECRET=your-secret-key
+JWT_EXPIRES_IN=7d
 
-# Webhook
-WEBHOOK_URL=http://localhost:4000/webhook/order-update
-WEBHOOK_SECRET=your_webhook_secret
+# Monero
+MONERO_RPC_URL=http://localhost:18081
+MONERO_WALLET_RPC_URL=http://localhost:18082
 
-# Logging
-LOG_LEVEL=info
-
-▶️ Running the Gateway
-bash
-
-npm run start
-
-Expected output:
-text
-
-🚀 Server avviato sulla porta 3000
-✅ Connesso a MongoDB
-📦 Database: mongodb://localhost:27017/myzubster
-
-🧪 Test Endpoints
-Health Check
-bash
-
-curl http://localhost:3000/api/health
-
-Response:
-json
-
-{"status":"OK","message":"MyZubster Gateway is running!","timestamp":"..."}
-
-Initiate Payment (Mock)
-bash
-
-curl -X POST http://localhost:3000/api/payments/initiate \
-  -H "Content-Type: application/json" \
-  -d '{"orderId":"test-123","amount":150,"currency":"USD"}'
-
-🔗 Webhook Integration
-
-The Gateway sends webhooks to the Marketplace when a payment is confirmed.
-
-Webhook payload:
-json
-
-{
-  "orderId": "test-123",
-  "txHash": "tx_123456789",
-  "status": "confirmed",
-  "amount": 150,
-  "timestamp": "2026-07-21T..."
-}
-
-📚 API Endpoints
+📡 API Endpoints
+Public Endpoints
 Method	Endpoint	Description
 GET	/api/health	Health check
-POST	/api/payments/initiate	Create a new payment
+POST	/api/auth/register	User registration
+POST	/api/auth/login	User login
+POST	/api/auth/refresh	Refresh JWT token
+Protected Endpoints (JWT required)
+Method	Endpoint	Description
+GET	/api/users/profile	Get user profile
+PUT	/api/users/profile	Update user profile
+Orders
+Method	Endpoint	Description
+POST	/api/orders	Create order
+GET	/api/orders	List orders
+GET	/api/orders/:id	Get order details
+PUT	/api/orders/:id/status	Update order status
+Payments
+Method	Endpoint	Description
+POST	/api/payments/process	Process payment
 GET	/api/payments/status/:id	Check payment status
-POST	/api/payments/webhook	Webhook receiver (mock)
-🔐 Security Best Practices
-Practice	Implementation
-JWT Authentication	All API endpoints require a valid JWT token
-Webhook Signing	HMAC-SHA256 signature verification
-Rate Limiting	Prevent DoS attacks
-Environment Variables	No hardcoded secrets
-HTTPS	Use TLS in production
-🐛 Troubleshooting
-"Cannot connect to MongoDB"
-bash
+Webhooks
+Method	Endpoint	Description
+POST	/api/webhooks	Register webhook
+GET	/api/webhooks	List webhooks
+PUT	/api/webhooks/:id	Update webhook
+DELETE	/api/webhooks/:id	Delete webhook
+Animals
+Method	Endpoint	Description
+POST	/api/animals/register	Register an animal
+GET	/api/animals	List animals
+GET	/api/animals/:id	Get animal details
+POST	/api/animals/:id/verify	Verify an animal
+Plants
+Method	Endpoint	Description
+POST	/api/plants/register	Register a plant
+GET	/api/plants	List plants
+GET	/api/plants/:id	Get plant details
+POST	/api/plants/:id/verify	Verify a plant
+🔐 Security
+Authentication
 
-# Check if MongoDB is running
-docker ps | grep mongodb
-# or
-ps aux | grep mongod
+    JWT-based authentication with refresh token rotation
 
-# Start MongoDB
-docker start mongodb
+    Role-based access control (RBAC) for admin endpoints
 
-"Cannot connect to Monero RPC"
-bash
+    Brute-force protection via BruteForceAI module
 
-# Check if Monero node is running
-curl http://localhost:18081/get_info
+    Rate limiting on all API endpoints (100 requests per minute per IP)
 
-# Start Monero node (testnet)
-monerod --testnet --rpc-bind-port 18081
+Data Protection
 
-"Webhook delivery failed"
-bash
+    PGP encryption for sensitive order data
 
-# Check if Marketplace is running
-curl http://localhost:4000/health
+    HTTPS/TLS 1.3 required in production
+
+    No PII or KYC data stored (privacy-first design)
+
+    Environment variables for all secrets (no hardcoded credentials)
+
+Blockchain Integration
+
+    Monero RPC with secure authentication
+
+    Transaction verification with double-spend protection
+
+    Wallet address validation (Monero addresses only, starting with 4 or 8)
+
+Webhooks
+
+    HMAC-SHA256 signatures for webhook payloads
+
+    Retry logic with exponential backoff
+
+    IP whitelisting for webhook endpoints (optional)
+
+Infrastructure
+
+    Docker containers with minimal attack surface
+
+    Security headers configured in Nginx
+
+    Automatic security updates via dependabot
+
+    Tor onion service for privacy-preserving access (optional)
+
+🛠️ Technology Stack
+Layer	Technology
+Backend	Node.js + Express
+Database	MongoDB + Mongoose
+Blockchain	Monero (XMR) RPC
+Authentication	JWT + bcrypt
+Security	Helmet, CORS, Rate Limiting
+Testing	Jest + Supertest
+Deployment	Docker + Vercel
+📂 Repository Structure
+text
+
+MyZubsterGateway/
+├── src/
+│   ├── api/           # API routes
+│   ├── controllers/   # Business logic
+│   ├── models/        # Database models
+│   ├── services/      # External services
+│   └── utils/         # Utilities
+├── tests/             # Unit and integration tests
+├── docs/              # Documentation
+├── security/          # Security tools
+├── .env.example       # Environment variables template
+├── server.js          # Entry point
+└── package.json       # Dependencies
+
+🔗 Related Projects
+Project	Description	Link
+Animal Registry	Documentation for animal registration	GitHub
+Plant Map	Global map for plant registration	GitHub
+Animal Map	Interactive map for animal registry	GitHub
+📚 Documentation
+
+    API Reference – Complete API documentation
+
+    Security Policy – Security guidelines
+
+    Contribution Guide – How to contribute
+
+    Fund Transparency – All transactions are public
+
+🤝 How to Contribute
+
+We welcome contributions! Open issues are available with 💰 bounties.
+Bounty Program
+Tier	XMR	Tasks
+Spicciolo	0.0005	Typo fix, docs
+Spiccioletto	0.001	Small fixes
+Spicciona	0.003	Unit tests
+SuperSpiccio	0.01	Features
+Premium	0.06	Complex features
+How to Claim
+
+    Browse issues with 💰 label
+
+    Comment "I'll take this!"
+
+    Open a PR with your Monero address
+
+    Get paid in XMR!
 
 📄 License
 
-This project is licensed under the MIT License.
-🌐 Connect with Me
+MIT – Free for everyone to use and modify.
+💚 Built with ❤️ for animals and plants by DanielIoni-creator
 
-📖 Blog & Articles: DEV.to - Daniel Ioni
-🐦 X (Twitter): @myzubster
-💼 LinkedIn: Daniel Ioni
-🐙 GitHub: DanielIoni-creator
-🧅 Tor: http://olqcnbdlt35k2stmmwvzhvuetu2fc4us2jnn5wg6y6wlcddihfmdomid.onion
+🌐 GitHub: @DanielIoni-creator
+🌟 Let's Build a Decentralized Ecosystem Together!
 
-Built with ❤️ for privacy, freedom, and decentralization.
+Every contribution counts. Join us in building a transparent, privacy-first platform for the world.
 
-## 📊 Badges
-
-![GitHub last commit](https://img.shields.io/github/last-commit/DanielIoni-creator/MyZubsterGateway)
-![GitHub issues](https://img.shields.io/github/issues/DanielIoni-creator/MyZubsterGateway)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/DanielIoni-creator/MyZubsterGateway)
-![GitHub](https://img.shields.io/github/license/DanielIoni-creator/MyZubsterGateway)
