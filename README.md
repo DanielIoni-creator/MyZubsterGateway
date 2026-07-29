@@ -1,7 +1,21 @@
-**Monero (XMR) Only Payment Gateway**
+# 🌍 MyZubster Gateway
+
+**Monero (XMR) Payment Gateway - Privacy-First, Decentralized Payments**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Monero](https://img.shields.io/badge/Powered%20by-Monero-orange)](https://www.getmonero.org/)
+
+---
+
+## 📌 What is MyZubster Gateway?
+
+MyZubster Gateway is a **lightweight, privacy-first payment processor** built for the Monero (XMR) network. It enables decentralized, low-fee transactions with built-in support for webhooks, order management, and merchant dashboards.
+
+**Perfect for:**
+- 🛒 E-commerce platforms
+- 🎫 Ticketing and event systems
+- 🖥️ SaaS subscriptions
+- 🌿 Environmental and conservation projects
 
 ---
 
@@ -9,30 +23,18 @@
 
 **This gateway accepts MONERO (XMR) ONLY.**
 
-- ✅ **Accepted:** Monero (XMR)
-- ❌ **Rejected:** USDC, USDT, ETH, BTC, BNB, SOL, or any other cryptocurrency
-- ❌ **Rejected:** PayPal, bank transfer, or any fiat currency
+| Accepted | Rejected |
+|----------|----------|
+| ✅ Monero (XMR) | ❌ USDC, USDT, ETH, BTC |
+| ✅ Privacy & anonymity | ❌ PayPal, bank transfers |
+| ✅ Micro-transactions | ❌ Fiat currencies |
 
 ### Why Monero?
 
-| Feature | Monero | Others |
-|---------|--------|--------|
-| Privacy | ✅ Complete | ❌ Public |
-| Low Fees | ✅ Micro-fees | ❌ High fees |
-| Decentralized | ✅ Fully | ❌ Centralized |
-| Global Access | ✅ Worldwide | ❌ Restricted |
-
----
-
-## 💰 Creator Wallet
-
-The 2% creator fee is sent to:
-
-45M4DW1ug8bdQowWpxucTpgsfjLbVxbYaAra79VewmBobuuhgqTjyD4R3DzpqLM2veiphcB16n24qN1QbLg3y2PYGK3Qkoe
-text
-
-
-**Verify:** https://xmrchain.net/address/45M4DW1ug8bdQowWpxucTpgsfjLbVxbYaAra79VewmBobuuhgqTjyD4R3DzpqLM2veiphcB16n24qN1QbLg3y2PYGK3Qkoe
+🔒 **Privacy** - No KYC required  
+💰 **Low Fees** - Micro-transactions (€0.10) possible  
+🌍 **Global** - Anyone can participate from anywhere  
+🌿 **Sustainable** - 5% of fees go to conservation projects  
 
 ---
 
@@ -40,54 +42,142 @@ text
 
 | Fee Type | Percentage | Destination |
 |----------|------------|-------------|
-| **Creator Fee** | **2%** | MyZubster platform creator |
-| **Conservation Fund** | **5%** | Environmental projects |
-| **Operations** | **93%** | Infrastructure, development |
+| **Creator Fee** | 2% | Platform development |
+| **Conservation Fund** | 5% | Environmental projects |
+| **Operations** | 93% | Infrastructure, hosting, support |
+
+**Creator Wallet:**45M4DW1ug8bdQowWpxucTpgsfjLbVxbYaAra79VewmBobuuhgqTjyD4R3DzpqLM2veiphcB16n24qN1QbLg3y2PYGK3Qkoe
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Quick Start
 
-### For Contributors
+### Prerequisites
 
-1. **Find an issue** with 💰 label
-2. **Claim it** by commenting "I'll take this!"
-3. **Complete the task** and open a PR
-4. **Include your Monero address** in PR description
-5. **Get paid** in XMR within 24 hours
+- Node.js 18+
+- MongoDB
+- Monero node (local or remote)
 
-### For Users
+### Installation
 
-1. **Register a plant** on MyZubster
-2. **Pay the registration fee** in XMR
-3. **Plant appears** on the global map
-4. **Earn rewards** in XMR
+```bash
+# 1. Clone the repository
+git clone https://github.com/DanielIoni-creator/MyZubsterGateway.git
+cd MyZubsterGateway
 
----
+# 2. Install dependencies
+npm install
 
-## 🔒 Privacy First
+# 3. Configure environment
+cp .env.example .env
+# Edit .env with your settings
 
-- No KYC required
-- No personal data stored
-- Payments are private by default
-- Your identity remains anonymous
+# 4. Start the server
+npm start
+Configuration
 
----
+Create a .env file with:
+# Server
+PORT=3000
+NODE_ENV=development
 
-## 🤝 Contribute
+# Database
+MONGODB_URI=mongodb://localhost:27017/myzubster
 
-We welcome:
-- 🌳 Plant registrations
-- 👨‍💻 Code contributions (bounties in XMR)
-- 💰 Donations to conservation fund (in XMR)
-- 🗺️ Mapping assistance
+# JWT
+JWT_SECRET=your-secret-key
+JWT_EXPIRES_IN=7d
 
----
+# Monero
+MONERO_RPC_URL=http://localhost:18081
+MONERO_WALLET_RPC_URL=http://localhost:18082
+📡 API Endpoints
+Endpoint	Method	Description
+/api/health	GET	Health check
+/api/auth/register	POST	User registration
+/api/auth/login	POST	User login
+/api/orders	POST	Create order
+/api/orders	GET	List orders
+/api/orders/:id	GET	Get order details
+/api/payments/process	POST	Process payment
+/api/webhooks	POST	Register webhook
+/api/webhooks/:id	DELETE	Delete webhook
+🔐 Security
 
-## 📄 License
+    JWT authentication for protected endpoints
 
-MIT - Free for everyone to use.
+    HMAC-SHA256 webhook signatures
 
----
+    Rate limiting on all API endpoints
 
-**Built with ❤️ for the planet by DanielIoni-creator**
+    Input validation and sanitization
+
+    No KYC or personal data storage
+
+    TLS/HTTPS required in production
+
+🔗 Webhooks
+
+Webhooks allow you to receive real-time notifications for order events:
+javascript
+
+{
+  "url": "https://your-app.com/webhook",
+  "events": ["order.created", "order.paid", "order.completed"],
+  "secret": "your-webhook-secret"
+}
+
+All webhook payloads are signed with HMAC-SHA256 using your secret.
+🤝 How to Contribute
+
+We welcome contributions! Open issues are available with 💰 bounties.
+Bounty Program
+Tier	XMR	Tasks
+Spicciolo	0.0005	Typo fix, docs
+Spiccioletto	0.001	Small fixes
+Spicciona	0.003	Unit tests
+SuperSpiccio	0.01	Features
+Premium	0.06	Complex features
+How to Claim
+
+    Browse issues with 💰 label
+
+    Comment "I'll take this!"
+
+    Open a PR with your Monero address
+
+    Get paid in XMR!
+
+📁 Repository Structure
+text
+
+MyZubsterGateway/
+├── src/
+│   ├── api/           # API routes
+│   ├── controllers/   # Business logic
+│   ├── models/        # Database models
+│   ├── services/      # External services
+│   └── utils/         # Utilities
+├── tests/             # Unit and integration tests
+├── docs/              # Documentation
+├── security/          # Security tools (BruteForceAI, onionscan)
+├── .env.example       # Environment variables template
+├── server.js          # Entry point
+└── package.json       # Dependencies
+
+🛠️ Technology Stack
+Layer	Technology
+Backend	Node.js + Express
+Database	MongoDB + Mongoose
+Blockchain	Monero (XMR) RPC
+Auth	JWT + bcrypt
+Testing	Jest + Supertest
+Deployment	Docker + Vercel
+📜 License
+
+MIT - Free for everyone to use and modify.
+💚 Thank You
+
+Thank you to everyone who has contributed to this project.
+
+🌱 Built with ❤️ for privacy and decentralization by DanielIoni-creator

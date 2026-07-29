@@ -24,3 +24,8 @@ typescript/
 *.backup
 *.backup
 routes/pets.js.old
+*.save
+*.backup
+*.log
+*.tmp
+*.swp
