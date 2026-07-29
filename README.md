@@ -1,5 +1,7 @@
 > **Part of the [MyZubster ecosystem](https://github.com/MyZubster-Ecosystem)**
 
+> **Part of the [MyZubster ecosystem](https://github.com/MyZubster-Ecosystem)**
+
 # 🌐 MyZubster Gateway
 
 **Backend API for MyZubster - Monero Payment Gateway & Animal Registry**
@@ -275,6 +277,10 @@ MIT – Free for everyone to use and modify.
 Every contribution counts. Join us in building a transparent, privacy-first platform for the world.
 
 # MyZubster-Ecosystem
+
+## 🌐 Ecosystem Hub
+
+**MyZubster Ecosystem**: https://github.com/MyZubster-Ecosystem
 
 ## 🌐 Ecosystem Hub
 
