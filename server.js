@@ -60,6 +60,10 @@ app.use('/api/monero', moneroRoutes);
 const userRoutes = require('./src/routes/users');
 app.use('/api/users', userRoutes);
 
+// Webhook admin routes (issue #42)
+const webhookRoutes = require('./routes/webhooks');
+app.use('/api/webhooks', webhookRoutes);
+
 // ===== ERROR HANDLER =====
 app.use((err, req, res, next) => {
   console.error('❌ Error:', err);
