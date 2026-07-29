@@ -402,3 +402,7 @@ MIT - Free for everyone to use.
 =======
 # DanielIoni-creator
 >>>>>>> main
+
+## 🤝 Contributi
+
+Contributi sono benvenuti! Dai un'occhiata alle [issue aperte]([Issues](https://github.com/DanielIoni-creator/MyZubsterGateway/issues)) e alla [roadmap]([Roadmap](https://github.com/users/DanielIoni-creator/projects/1)).
