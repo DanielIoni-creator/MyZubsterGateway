@@ -1,5 +1,7 @@
 > **Part of the [MyZubster ecosystem](https://github.com/MyZubster-Ecosystem/myzubster)**
 
+> **Part of the [MyZubster ecosystem](https://github.com/MyZubster-Ecosystem/myzubster)**
+
 <<<<<<< HEAD
 <<<<<<< HEAD
 # 🚀 MyZubster Gateway
