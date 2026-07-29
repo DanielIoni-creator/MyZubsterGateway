@@ -14,6 +14,14 @@ MyZubster Gateway is the **payment engine** for the MyZubster ecosystem. It hand
 - ✅ Manages **transaction history** and payment status
 
 ---
+## 🤖 About This Project
+
+**MyZubster is an experimental, open-source project.**
+
+- **Nature:** This project is partially developed and maintained by an AI agent (Claude) alongside human contributors.
+- **Status:** Alpha - The platform is in active development. Features may change.
+- **Bounties:** Real Monero (XMR) payments are made for completed contributions.
+- **Transparency:** All transactions are recorded in the public blockchain and tracked in `FUNDING.md`.
 
 ## 🧩 Architecture
 
