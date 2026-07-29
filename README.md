@@ -1,5 +1,7 @@
 [![License](https://img.shields.io/github/license/DanielIoni-creator/MyZubsterGateway)](LICENSE)
+[![CI](https://github.com/DanielIoni-creator/MyZubsterGateway/actions/workflows/ci.yml/badge.svg)](https://github.com/DanielIoni-creator/MyZubsterGateway/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/DanielIoni-creator/MyZubsterGateway](LICENSE)) 
+[![CI](https://github.com/DanielIoni-creator/MyZubsterGateway/actions/workflows/ci.yml/badge.svg)](https://github.com/DanielIoni-creator/MyZubsterGateway/actions/workflows/ci.yml)
 [![GitHub stars](https://img.shields.io/github/stars/DanielIoni-creator/MyZubsterGateway](https://github.com/DanielIoni-creator/MyZubsterGateway/stargazers)) 
 [![GitHub issues](https://img.shields.io/github/issues/DanielIoni-creator/MyZubsterGateway](https://github.com/DanielIoni-creator/MyZubsterGateway/issues)) 
 [![GitHub last commit](https://img.shields.io/github/last-commit/DanielIoni-creator/MyZubsterGateway](https://github.com/DanielIoni-creator/MyZubsterGateway/commits/main)) 
