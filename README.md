@@ -1,14 +1,14 @@
-[![License](https://img.shields.io/github/license/DanielIoni-creator/MyZubsterGateway)](LICENSE)
-[![CI](https://github.com/DanielIoni-creator/MyZubsterGateway/actions/workflows/ci.yml/badge.svg)](https://github.com/DanielIoni-creator/MyZubsterGateway/actions/workflows/ci.yml)
-[![License](https://img.shields.io/github/license/DanielIoni-creator/MyZubsterGateway](LICENSE)) 
-[![CI](https://github.com/DanielIoni-creator/MyZubsterGateway/actions/workflows/ci.yml/badge.svg)](https://github.com/DanielIoni-creator/MyZubsterGateway/actions/workflows/ci.yml)
-[![GitHub stars](https://img.shields.io/github/stars/DanielIoni-creator/MyZubsterGateway](https://github.com/DanielIoni-creator/MyZubsterGateway/stargazers)) 
-[![GitHub issues](https://img.shields.io/github/issues/DanielIoni-creator/MyZubsterGateway](https://github.com/DanielIoni-creator/MyZubsterGateway/issues)) 
-[![GitHub last commit](https://img.shields.io/github/last-commit/DanielIoni-creator/MyZubsterGateway](https://github.com/DanielIoni-creator/MyZubsterGateway/commits/main)) 
+[![License](https://img.shields.io/github/license/MyZubster-Ecosystem/MyZubsterGateway)](LICENSE)
+[![CI](https://github.com/MyZubster-Ecosystem/MyZubsterGateway/actions/workflows/ci.yml/badge.svg)](https://github.com/MyZubster-Ecosystem/MyZubsterGateway/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/MyZubster-Ecosystem/MyZubsterGateway](LICENSE)) 
+[![CI](https://github.com/MyZubster-Ecosystem/MyZubsterGateway/actions/workflows/ci.yml/badge.svg)](https://github.com/MyZubster-Ecosystem/MyZubsterGateway/actions/workflows/ci.yml)
+[![GitHub stars](https://img.shields.io/github/stars/MyZubster-Ecosystem/MyZubsterGateway](https://github.com/MyZubster-Ecosystem/MyZubsterGateway/stargazers)) 
+[![GitHub issues](https://img.shields.io/github/issues/MyZubster-Ecosystem/MyZubsterGateway](https://github.com/MyZubster-Ecosystem/MyZubsterGateway/issues)) 
+[![GitHub last commit](https://img.shields.io/github/last-commit/MyZubster-Ecosystem/MyZubsterGateway](https://github.com/MyZubster-Ecosystem/MyZubsterGateway/commits/main)) 
 [![Node.js](https://img.shields.io/badge/Node.js-18.x-green)](https://nodejs.org/)
-[![GitHub stars](https://img.shields.io/github/stars/DanielIoni-creator/MyZubsterGateway)](https://github.com/DanielIoni-creator/MyZubsterGateway/stargazers)
-[![GitHub issues](https://img.shields.io/github/issues/DanielIoni-creator/MyZubsterGateway)](https://github.com/DanielIoni-creator/MyZubsterGateway/issues)
-[![GitHub last commit](https://img.shields.io/github/last-commit/DanielIoni-creator/MyZubsterGateway)](https://github.com/DanielIoni-creator/MyZubsterGateway/commits/main)
+[![GitHub stars](https://img.shields.io/github/stars/MyZubster-Ecosystem/MyZubsterGateway)](https://github.com/MyZubster-Ecosystem/MyZubsterGateway/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/MyZubster-Ecosystem/MyZubsterGateway)](https://github.com/MyZubster-Ecosystem/MyZubsterGateway/issues)
+[![GitHub last commit](https://img.shields.io/github/last-commit/MyZubster-Ecosystem/MyZubsterGateway)](https://github.com/MyZubster-Ecosystem/MyZubsterGateway/commits/main)
 [![Node.js](https://img.shields.io/badge/Node.js-18.x-green)](https://nodejs.org/)
 
 
@@ -111,7 +111,7 @@ If you believe in this project, you can support us with a donation in Monero (XM
 
 ```bash
 # 1. Clone the repository
-git clone git@github.com:DanielIoni-creator/MyZubsterGateway.git
+git clone git@github.com:MyZubster-Ecosystem/MyZubsterGateway.git
 cd MyZubsterGateway
 
 # 2. Install dependencies
@@ -292,9 +292,9 @@ How to Claim
 📄 License
 
 MIT – Free for everyone to use and modify.
-💚 Built with ❤️ for animals and plants by DanielIoni-creator
+💚 Built with ❤️ for animals and plants by MyZubster-Ecosystem
 
-🌐 GitHub: @DanielIoni-creator
+🌐 GitHub: @MyZubster-Ecosystem
 🌟 Let's Build a Decentralized Ecosystem Together!
 
 Every contribution counts. Join us in building a transparent, privacy-first platform for the world.
@@ -302,10 +302,10 @@ Every contribution counts. Join us in building a transparent, privacy-first plat
 <<<<<<< HEAD
 ## 📊 Badges
 
-![GitHub last commit](https://img.shields.io/github/last-commit/DanielIoni-creator/MyZubsterGateway)
-![GitHub issues](https://img.shields.io/github/issues/DanielIoni-creator/MyZubsterGateway)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/DanielIoni-creator/MyZubsterGateway)
-![GitHub](https://img.shields.io/github/license/DanielIoni-creator/MyZubsterGateway)
+![GitHub last commit](https://img.shields.io/github/last-commit/MyZubster-Ecosystem/MyZubsterGateway)
+![GitHub issues](https://img.shields.io/github/issues/MyZubster-Ecosystem/MyZubsterGateway)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/MyZubster-Ecosystem/MyZubsterGateway)
+![GitHub](https://img.shields.io/github/license/MyZubster-Ecosystem/MyZubsterGateway)
 =======
 **Monero (XMR) Only Payment Gateway**
 
@@ -399,12 +399,12 @@ MIT - Free for everyone to use.
 
 ---
 
-**Built with ❤️ for the planet by DanielIoni-creator**
+**Built with ❤️ for the planet by MyZubster-Ecosystem**
 >>>>>>> pr52-pgp
 =======
-# DanielIoni-creator
+# MyZubster-Ecosystem
 >>>>>>> main
 
 ## 🤝 Contributi
 
-Contributi sono benvenuti! Dai un'occhiata alle [issue aperte]([Issues](https://github.com/DanielIoni-creator/MyZubsterGateway/issues)) e alla [roadmap]([Roadmap](https://github.com/users/DanielIoni-creator/projects/1)).
+Contributi sono benvenuti! Dai un'occhiata alle [issue aperte]([Issues](https://github.com/MyZubster-Ecosystem/MyZubsterGateway/issues)) e alla [roadmap]([Roadmap](https://github.com/users/MyZubster-Ecosystem/projects/1)).
