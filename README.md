@@ -84,7 +84,7 @@ If you believe in this project, you can support us with a donation in Monero (XM
 
 ```bash
 # 1. Clone the repository
-git clone git@github.com:DanielIoni-creator/MyZubsterGateway.git
+git clone git@github.com:MyZubster-Ecosystem/MyZubsterGateway.git
 cd MyZubsterGateway
 
 # 2. Install dependencies
@@ -265,11 +265,11 @@ How to Claim
 📄 License
 
 MIT – Free for everyone to use and modify.
-💚 Built with ❤️ for animals and plants by DanielIoni-creator
+💚 Built with ❤️ for animals and plants by MyZubster-Ecosystem
 
-🌐 GitHub: @DanielIoni-creator
+🌐 GitHub: @MyZubster-Ecosystem
 🌟 Let's Build a Decentralized Ecosystem Together!
 
 Every contribution counts. Join us in building a transparent, privacy-first platform for the world.
 
-# DanielIoni-creator
+# MyZubster-Ecosystem
