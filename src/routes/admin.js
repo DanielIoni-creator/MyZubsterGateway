@@ -6,6 +6,12 @@ const Transaction = require('../../models/Transaction');
 const moneroService = require('../../services/moneroService');
 
 const router = express.Router();
+const auth = require('../../middleware/auth');
+const { authorizeAdmin } = require('../../middleware/admin');
+const MoneroTransaction = require('../../models/MoneroTransaction');
+const ActivityLog = require('../../models/ActivityLog');
+
+const isAdmin = [auth, authorizeAdmin];
 
 const TRANSACTION_STATUSES = new Set([
   'pending',
@@ -144,6 +150,7 @@ router.get('/dashboard', (req, res) => {
   res.json({ success: true, data: { stats: {} } });
 });
 
+<<<<<<< HEAD
 router.get(
   '/transactions',
   asyncHandler(async (req, res) => {
@@ -431,5 +438,7 @@ router.use((error, req, res, next) => {
     error: error.message,
   });
 });
+
+module.exports = router;
 
 module.exports = router;

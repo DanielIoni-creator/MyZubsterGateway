@@ -1,6 +1,7 @@
 const OrderBook = require('../models/OrderBook');
 const TokenHolding = require('../models/TokenHolding');
 const User = require('../models/User');
+const ActivityLog = require('../models/ActivityLog');
 
 const createSellOrder = async (sellerId, tokenId, amount, price) => {
   const holding = await TokenHolding.findOne({ user: sellerId, token: tokenId });
@@ -125,6 +126,12 @@ const purchaseWithMonero = async (orderId, buyerId, amount, moneroTxid) => {
 
   order.moneroTxid = `pending_${payment.transactionId}`;
   await order.save();
+
+  await ActivityLog.create({
+    user: buyerId,
+    action: 'payment_initiation',
+    metadata: { orderId, amount, totalPrice, txid: payment.transactionId }
+  });
 
   return {
     success: true,

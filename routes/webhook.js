@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const WebhookService = require('../services/webhookService');
+const ActivityLog = require('../models/ActivityLog');
 
 router.post('/delivery', async (req, res) => {
   try {
@@ -9,6 +10,12 @@ router.post('/delivery', async (req, res) => {
       payload: req.body,
       signatureHeader: req.get('X-Webhook-Signature'),
       source: req.get('X-Webhook-Source') || 'seller',
+    });
+
+    await ActivityLog.create({
+      action: 'webhook_event',
+      ip: req.ip,
+      metadata: { webhookId: log._id, orderId: log.orderId, status: log.status }
     });
 
     res.status(log.status === 'verified' ? 201 : 202).json({
