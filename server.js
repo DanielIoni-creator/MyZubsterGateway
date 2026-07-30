@@ -78,6 +78,11 @@ const activityRoutes = require('./routes/activity');
 app.use('/api/activity', activityRoutes);
 app.use('/api/admin/activity', activityRoutes.adminRouter);
 
+
+// Seed Exchange routes
+const seedExchangeRoutes = require('./routes/seedExchange');
+app.use('/api/seed-exchange', seedExchangeRoutes);
+
 // ===== ERROR HANDLER =====
 app.use((err, req, res, next) => {
   console.error('Error:', err);
