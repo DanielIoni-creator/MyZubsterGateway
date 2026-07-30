@@ -158,6 +158,17 @@ POST	/api/plants/register	Register a plant
 GET	/api/plants	List plants
 GET	/api/plants/:id	Get plant details
 POST	/api/plants/:id/verify	Verify a plant
+Seed & Cutting Exchange
+Method	Endpoint	Description
+POST	/api/seed-exchange	Create a listing (JWT required)
+GET	/api/seed-exchange	List and filter listings by plant, type, or location
+GET	/api/seed-exchange/:id	Get listing details
+PUT	/api/seed-exchange/:id	Update an owned listing (JWT required)
+DELETE	/api/seed-exchange/:id	Delete an owned listing (JWT required)
+Canonical listing fields are `userId` (derived from the JWT), `plantName`, `variety`,
+`type` (`seeds`, `cuttings`, `seedlings`, or `bulbs`), positive-integer `quantity`,
+`availability` (defaults to `immediate`), `exchangeType` (defaults to `free`),
+optional `location`, and `description` (defaults to an empty string).
 🔐 Security
 Authentication
 
