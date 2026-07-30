@@ -1,0 +1,5 @@
+{
+  "greeting": "Ciao",
+  "order_created": "Ordine creato con successo",
+  "order_confirmed": "Ordine confermato"
+}

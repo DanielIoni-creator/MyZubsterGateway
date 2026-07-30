@@ -1,0 +1,5 @@
+{
+  "greeting": "Hello",
+  "order_created": "Order created successfully",
+  "order_confirmed": "Order confirmed"
+}
