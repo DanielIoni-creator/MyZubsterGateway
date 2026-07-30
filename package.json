@@ -9,6 +9,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "lodash": "4.17.15",
     "axios": "^1.18.1",
     "bcryptjs": "^2.4.3",
     "compression": "^1.8.1",
