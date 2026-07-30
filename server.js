@@ -65,9 +65,13 @@ app.use('/api/monero', moneroRoutes);
 const userRoutes = require('./src/routes/users');
 app.use('/api/users', userRoutes);
 
-// Garden sensor routes
+// Garden sensor routes (existing - IoT sensor readings)
 const gardenRoutes = require('./routes/garden');
 app.use('/api/garden', gardenRoutes);
+
+// Garden IoT data routes (Arduino sensor data ingestion)
+const gardenDataRoutes = require('./routes/gardenData');
+app.use('/api/garden', gardenDataRoutes);
 
 // Seed Exchange routes
 const seedExchangeRoutes = require('./routes/seedExchange');
