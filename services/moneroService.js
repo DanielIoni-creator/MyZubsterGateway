@@ -81,14 +81,23 @@ class MoneroService {
       const found = transfers.find(t => t.address === tx.subaddress);
 
       if (found) {
+        const amountPaid = found.amount / 1e12;
         await MoneroTransaction.findByIdAndUpdate(transactionId, {
           status: 'confirmed',
-          txHash: found.txid,
-          amount: found.amount,
-          confirmedAt: new Date()
+          moneroTxid: found.txid,
+          amountPaid,
+          confirmations: found.confirmations || 0,
+          verifiedAt: new Date(),
+          verificationSource: 'monitor',
+          updatedAt: new Date()
         });
         console.log(`💰 Pagamento confermato per transazione ${transactionId}`);
-        return { status: 'confirmed', txHash: found.txid };
+        return {
+          status: 'confirmed',
+          txHash: found.txid,
+          amountPaid,
+          confirmations: found.confirmations || 0
+        };
       }
 
       return { status: 'pending' };
