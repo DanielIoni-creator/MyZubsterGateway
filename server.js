@@ -78,6 +78,10 @@ const activityRoutes = require('./routes/activity');
 app.use('/api/activity', activityRoutes);
 app.use('/api/admin/activity', activityRoutes.adminRouter);
 
+// Webhook outgoing routes
+const webhooksRoutes = require('./routes/webhooks');
+app.use('/api/webhooks', webhooksRoutes);
+
 // ===== ERROR HANDLER =====
 app.use((err, req, res, next) => {
   console.error('Error:', err);
