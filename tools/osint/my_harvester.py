@@ -1,63 +1,97 @@
-#!/usr/bin/env python3
-"""
-My DeepWebHarvester - Scraping OSINT di siti onion
-"""
+--- a/server.js
++++ b/server.js
+@@ -14,6 +14,14 @@
+ const app = express();
 
-import re
-import json
-import time
-import requests
-from bs4 import BeautifulSoup
-from urllib.parse import urljoin
+ // ===== MIDDLEWARE =====
++const jwt = require('express-jwt');
++const mongoose = require('mongoose');
++const seedExchangeModel = require('./models/seedExchange');
++
+ app.use(helmet());
+ app.use(cors());
+ app.use(compression());
+ app.use(morgan('dev'));
+@@ -22,6 +30,124 @@
+ app.use(express.json({ limit: '10mb' }));
+ app.use(express.urlencoded({ extended: true }));
 
-TARGET = "http://awazonsnag7pv4jxhfeiw37nuibg3gibokou2sawcgucapt3d2tyggid.onion"
-PROXY = {'http': 'socks5h://127.0.0.1:9050', 'https': 'socks5h://127.0.0.1:9050'}
-
-def harvest(url, depth=1):
-    visited = set()
-    results = {'pages': [], 'btc': [], 'xmr': [], 'links': []}
-    
-    def crawl(page_url, current_depth):
-        if current_depth > depth or page_url in visited:
-            return
-        visited.add(page_url)
-        print(f"🔍 {page_url}")
-        try:
-            r = requests.get(page_url, proxies=PROXY, timeout=30)
-            if r.status_code != 200:
-                return
-            soup = BeautifulSoup(r.text, 'html.parser')
-            
-            # Estrai indirizzi
-            btc = re.findall(r'\b[13][a-km-zA-HJ-NP-Z1-9]{25,34}\b', r.text)
-            xmr = re.findall(r'\b4[0-9AB][1-9A-HJ-NP-Za-km-z]{93}\b', r.text)
-            results['btc'].extend(btc)
-            results['xmr'].extend(xmr)
-            results['pages'].append(page_url)
-            
-            # Trova link
-            for link in soup.find_all('a', href=True):
-                href = link['href']
-                full = urljoin(page_url, href)
-                if '.onion' in full and full not in visited:
-                    results['links'].append(full)
-                    if current_depth < depth:
-                        crawl(full, current_depth + 1)
-            time.sleep(1)
-        except Exception as e:
-            print(f"❌ Errore: {e}")
-    
-    crawl(url, 0)
-    results['btc'] = list(set(results['btc']))
-    results['xmr'] = list(set(results['xmr']))
-    return results
-
-if __name__ == "__main__":
-    print("🧅 My DeepWebHarvester")
-    data = harvest(TARGET, depth=1)
-    print(f"📊 Pagine: {len(data['pages'])}")
-    print(f"💰 BTC: {len(data['btc'])}")
-    print(f"💰 XMR: {len(data['xmr'])}")
-    print(f"🔗 Link: {len(data['links'])}")
-    with open('/tmp/my_harvest.json', 'w') as f:
-        json.dump(data, f, indent=2)
++// Autenticazione JWT
++app.use(jwt({
++  secret: process.env.SECRET_KEY,
++  algorithms: ['HS256'],
++  requestProperty: 'auth',
++  getToken: (req) => req.cookies.auth,
++}).unless({
++  path: ['/api/seed-exchange'],
++}));
++
++// Connetti a MongoDB
++mongoose.connect('mongodb://localhost:27017/myzubster', { useNewUrlParser: true, useUnifiedTopology: true });
++
++// Endpoint per creare un annuncio
++app.post('/api/seed-exchange', async (req, res) => {
++  try {
++    const { type, quantity, location } = req.body;
++    const newSeedExchange = new seedExchangeModel({ type, quantity, location, user: req.auth.sub });
++    await newSeedExchange.save();
++    res.status(201).json(newSeedExchange);
++  } catch (error) {
++    res.status(400).json({ error: 'Invalid request' });
++  }
++});
++
++// Endpoint per elencare gli annunci
++app.get('/api/seed-exchange', async (req, res) => {
++  try {
++    const { type, location } = req.query;
++    let filter = {};
++    if (type) filter.type = type;
++    if (location) filter.location = location;
++    const seedExchanges = await seedExchangeModel.find(filter).populate('user');
++    res.json(seedExchanges);
++  } catch (error) {
++    res.status(500).json({ error: 'Internal server error' });
++  }
++});
++
++// Endpoint per visualizzare un annuncio
++app.get('/api/seed-exchange/:id', async (req, res) => {
++  try {
++    const seedExchange = await seedExchangeModel.findById(req.params.id).populate('user');
++    if (!seedExchange) return res.status(404).json({ error: 'Not found' });
++    res.json(seedExchange);
++  } catch (error) {
++    res.status(500).json({ error: 'Internal server error' });
++  }
++});
++
++// Endpoint per modificare un annuncio
++app.put('/api/seed-exchange/:id', async (req, res) => {
++  try {
++    const seedExchange = await seedExchangeModel.findById(req.params.id);
++    if (!seedExchange) return res.status(404).json({ error: 'Not found' });
++    if (seedExchange.user.toString() !== req.auth.sub) return res.status(403).json({ error: 'Forbidden' });
++    const updatedSeedExchange = await seedExchangeModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
++    res.json(updatedSeedExchange);
++  } catch (error) {
++    res.status(400).json({ error: 'Invalid request' });
++  }
++});
++
++// Endpoint per eliminare un annuncio
++app.delete('/api/seed-exchange/:id', async (req, res) => {
++  try {
++    const seedExchange = await seedExchangeModel.findById(req.params.id);
++    if (!seedExchange) return res.status(404).json({ error: 'Not found' });
++    if (seedExchange.user.toString() !== req.auth.sub) return res.status(403).json({ error: 'Forbidden' });
++    await seedExchangeModel.findByIdAndRemove(req.params.id);
++    res.status(204).json({ message: 'Deleted successfully' });
++  } catch (error) {
++    res.status(500).json({ error: 'Internal server error' });
++  }
++});
++
+ // Start server
+ const port = process.env.PORT || 3000;
+ app.listen(port, () => {
