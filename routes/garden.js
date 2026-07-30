@@ -1,8 +1,28 @@
 const express = require('express');
 const auth = require('../middleware/auth');
+const { requireSensorApiKey } = require('../middleware/sensorAuth');
 const GardenReading = require('../models/GardenReading');
 
 const router = express.Router();
+
+const RATE_LIMIT_WINDOW = 60000;
+const RATE_LIMIT_MAX = 60;
+const rateLimitStore = new Map();
+
+function gardenRateLimit(req, res, next) {
+  const key = req.user?._id || req.sensor?.id || req.ip;
+  const now = Date.now();
+  const window = rateLimitStore.get(key) || [];
+
+  const recent = window.filter((ts) => now - ts < RATE_LIMIT_WINDOW);
+  if (recent.length >= RATE_LIMIT_MAX) {
+    return res.status(429).json({ success: false, error: 'Rate limit exceeded' });
+  }
+
+  recent.push(now);
+  rateLimitStore.set(key, recent);
+  next();
+}
 
 const METRICS = ['ph', 'ec', 'temperature', 'humidity'];
 
@@ -105,7 +125,7 @@ function buildDateFilter(query) {
   return Object.keys(receivedAt).length ? { receivedAt } : {};
 }
 
-router.post('/data', auth, async (req, res) => {
+router.post('/data', auth, requireSensorApiKey, gardenRateLimit, async (req, res) => {
   try {
     const { gardenId, readings, errors } = validatePayload(req.body || {});
     if (errors.length) {
@@ -127,7 +147,7 @@ router.post('/data', auth, async (req, res) => {
   }
 });
 
-router.get('/:id/stats', auth, async (req, res) => {
+router.get('/:id/stats', auth, gardenRateLimit, async (req, res) => {
   try {
     const gardenId = String(req.params.id || '').trim();
     if (!gardenId) {
