@@ -10,4 +10,6 @@ module.exports = {
   WebhookLog: require('./WebhookLog'),
   ActivityLog: require('./ActivityLog'),
   GardenReading: require('./GardenReading'),
+  WebhookSubscription: require('./WebhookSubscription'),
+  WebhookDelivery: require('./WebhookDelivery'),
 };
