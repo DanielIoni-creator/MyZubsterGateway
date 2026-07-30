@@ -21,8 +21,8 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myzubster
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
-.then(() => console.log('✅ MongoDB connected'))
-.catch(err => console.error('❌ MongoDB error:', err));
+.then(() => console.log('MongoDB connected'))
+.catch(err => console.error('MongoDB error:', err));
 
 // ===== ROUTES =====
 
@@ -60,9 +60,13 @@ app.use('/api/monero', moneroRoutes);
 const userRoutes = require('./src/routes/users');
 app.use('/api/users', userRoutes);
 
+// Webhook verification routes
+const webhookRoutes = require('./routes/webhook');
+app.use('/api/webhook', webhookRoutes);
+
 // ===== ERROR HANDLER =====
 app.use((err, req, res, next) => {
-  console.error('❌ Error:', err);
+  console.error('Error:', err);
   res.status(err.status || 500).json({
     success: false,
     message: err.message || 'Internal server error'
@@ -72,9 +76,9 @@ app.use((err, req, res, next) => {
 // ===== START SERVER =====
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📍 http://localhost:${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Server running on port ${PORT}`);
+  console.log(`http://localhost:${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 module.exports = app;
