@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const ActivityLog = require('../models/ActivityLog');
 
 // ============================================
 // REGISTRAZIONE
@@ -127,6 +128,14 @@ router.post('/login', async (req, res) => {
         user.lastLogin = new Date();
         await user.save();
 
+        // Log the login activity
+        await ActivityLog.create({
+            user: user._id,
+            action: 'login',
+            ip: req.ip,
+            metadata: { userAgent: req.get('User-Agent') }
+        });
+
         res.json({
             success: true,
             message: 'Login effettuato',
@@ -185,6 +194,31 @@ router.get('/verify', async (req, res) => {
             success: false, 
             error: 'Token non valido o scaduto' 
         });
+    }
+});
+
+// ============================================
+// LOGOUT
+// ============================================
+router.post('/logout', async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (token) {
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                await ActivityLog.create({
+                    user: decoded.id,
+                    action: 'logout',
+                    ip: req.ip,
+                    metadata: { userAgent: req.get('User-Agent') }
+                });
+            } catch (err) {
+                // Ignore token errors on logout
+            }
+        }
+        res.json({ success: true, message: 'Logout effettuato' });
+    } catch (error) {
+        res.status(500).json({ success: false, error: 'Errore durante il logout' });
     }
 });
 

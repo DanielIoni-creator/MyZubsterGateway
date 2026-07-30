@@ -3,11 +3,21 @@ const router = express.Router();
 const auth = require('../../middleware/auth');
 const { authorizeAdmin } = require('../../middleware/admin');
 const MoneroTransaction = require('../../models/MoneroTransaction');
+const ActivityLog = require('../../models/ActivityLog');
 
 const isAdmin = [auth, authorizeAdmin];
 
 router.get('/dashboard', (req, res) => {
   res.json({ success: true, data: { stats: {} } });
+});
+
+router.get('/logs', isAdmin, async (req, res) => {
+  try {
+    const logs = await ActivityLog.find().populate('user', 'username email').sort({ timestamp: -1 }).limit(100);
+    res.json({ success: true, logs });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Errore nel recupero dei log' });
+  }
 });
 
 // 1. Add GET /api/admin/transactions with filters (status, date, user, amount).

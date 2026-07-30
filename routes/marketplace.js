@@ -3,6 +3,7 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const OrderBook = require('../models/OrderBook');
 const TokenHolding = require('../models/TokenHolding');
+const ActivityLog = require('../models/ActivityLog');
 
 // GET /api/marketplace/orders/:tokenId - Lista ordini aperti
 router.get('/orders/:tokenId', async (req, res) => {
@@ -43,6 +44,13 @@ router.post('/sell', auth, async (req, res) => {
     // Blocca i token
     holding.lockedAmount = (holding.lockedAmount || 0) + amount;
     await holding.save();
+
+    await ActivityLog.create({
+      user: req.user._id,
+      action: 'order_creation',
+      ip: req.ip,
+      metadata: { orderId: order._id, tokenId, amount, price, type: 'sell' }
+    });
 
     res.status(201).json({ success: true, order });
   } catch (error) {
@@ -87,6 +95,13 @@ router.post('/buy/:orderId', auth, async (req, res) => {
     }
     buyerHolding.amount += amount;
     await buyerHolding.save();
+
+    await ActivityLog.create({
+      user: req.user._id,
+      action: 'order_creation',
+      ip: req.ip,
+      metadata: { orderId: order._id, tokenId: order.token, amount, price: order.price, type: 'buy' }
+    });
 
     res.json({ success: true, order, amount });
   } catch (error) {
