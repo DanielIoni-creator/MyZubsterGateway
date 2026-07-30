@@ -9,3 +9,5 @@ module.exports = {
   Review: require('./Review'),
   WebhookLog: require('./WebhookLog'),
 };
+
+module.exports.GardenReading = require('./GardenReading');

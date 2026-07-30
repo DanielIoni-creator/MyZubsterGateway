@@ -64,6 +64,9 @@ app.use('/api/users', userRoutes);
 const webhookRoutes = require('./routes/webhook');
 app.use('/api/webhook', webhookRoutes);
 
+// Arduino IoT Garden API (#96)
+app.use('/api/garden', require('./routes/garden'));
+
 // ===== ERROR HANDLER =====
 app.use((err, req, res, next) => {
   console.error('Error:', err);
