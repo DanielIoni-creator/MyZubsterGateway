@@ -1,4 +1,6 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 const request = require('supertest');
 
 const {
@@ -8,6 +10,27 @@ const {
   translate,
 } = require('../config/i18n');
 const i18nMiddleware = require('../middleware/i18n');
+
+function flattenCatalog(value, prefix = '', result = {}) {
+  for (const [key, entry] of Object.entries(value)) {
+    const flattenedKey = prefix ? `${prefix}.${key}` : key;
+
+    if (entry && typeof entry === 'object' && !Array.isArray(entry)) {
+      flattenCatalog(entry, flattenedKey, result);
+    } else {
+      result[flattenedKey] = entry;
+    }
+  }
+
+  return result;
+}
+
+function interpolationKeys(message) {
+  return Array.from(
+    String(message).matchAll(/\{\{([\w.-]+)\}\}/g),
+    (match) => match[1]
+  ).sort();
+}
 
 function buildTestApp() {
   const app = express();
@@ -64,6 +87,38 @@ describe('Accept-Language negotiation', () => {
 });
 
 describe('translation catalogs', () => {
+  test('keeps catalog keys and interpolation placeholders in parity', () => {
+    const catalogs = Object.fromEntries(
+      SUPPORTED_LANGUAGES.map((language) => {
+        const catalogPath = path.join(
+          __dirname,
+          '..',
+          'locales',
+          `${language}.json`
+        );
+
+        return [
+          language,
+          flattenCatalog(JSON.parse(fs.readFileSync(catalogPath, 'utf8'))),
+        ];
+      })
+    );
+    const englishKeys = Object.keys(catalogs.en).sort();
+
+    for (const language of SUPPORTED_LANGUAGES) {
+      const catalog = catalogs[language];
+
+      expect(Object.keys(catalog).sort()).toEqual(englishKeys);
+      for (const key of englishKeys) {
+        expect(typeof catalog[key]).toBe('string');
+        expect(catalog[key].trim()).not.toBe('');
+        expect(interpolationKeys(catalog[key])).toEqual(
+          interpolationKeys(catalogs.en[key])
+        );
+      }
+    }
+  });
+
   test('loads every required locale dynamically', () => {
     expect(SUPPORTED_LANGUAGES).toEqual(['en', 'zh', 'ms', 'ta', 'it']);
     expect(DEFAULT_LANGUAGE).toBe('en');
@@ -120,6 +175,22 @@ describe('i18n middleware', () => {
 
     expect(response.body.message).toBe('MyZubster Gateway is running!');
     expect(response.headers['content-language']).toBe('en');
+  });
+
+  test('isolates language selection across concurrent requests', async () => {
+    const [italianResponse, chineseResponse] = await Promise.all([
+      request(app).get('/health').set('Accept-Language', 'it-IT'),
+      request(app).get('/health').set('Accept-Language', 'zh-CN'),
+    ]);
+
+    expect(italianResponse.body.message).toBe(
+      'MyZubster Gateway è operativo!'
+    );
+    expect(italianResponse.headers['content-language']).toBe('it');
+    expect(chineseResponse.body.message).toBe(
+      'MyZubster Gateway 正在运行！'
+    );
+    expect(chineseResponse.headers['content-language']).toBe('zh');
   });
 
   test('localizes only the fallback error and preserves explicit errors', async () => {
