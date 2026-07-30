@@ -76,6 +76,7 @@ app.use('/api/garden', gardenDataRoutes);
 // Seed Exchange routes
 const seedExchangeRoutes = require('./routes/seedExchange');
 app.use('/api/seed-exchange', seedExchangeRoutes);
+n// Seed Exchange Italian routes (bounty #104)nconst seedExchangeItRoutes = require('./routes/seedExchangeIt');napp.use('/api/seed-exchange-it', seedExchangeItRoutes);
 
 // Webhook verification routes
 const webhookRoutes = require('./routes/webhook');
