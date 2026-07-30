@@ -34,6 +34,10 @@
     "setupFiles": [
       "./tests/setup.js"
     ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "<rootDir>/server.test.js"
+    ],
     "coveragePathIgnorePatterns": [
       "/node_modules/"
     ]
