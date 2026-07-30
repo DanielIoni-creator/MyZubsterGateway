@@ -65,6 +65,10 @@ app.use('/api/monero', moneroRoutes);
 const userRoutes = require('./src/routes/users');
 app.use('/api/users', userRoutes);
 
+// Garden sensor routes
+const gardenRoutes = require('./routes/garden');
+app.use('/api/garden', gardenRoutes);
+
 // Webhook verification routes
 const webhookRoutes = require('./routes/webhook');
 app.use('/api/webhook', webhookRoutes);
