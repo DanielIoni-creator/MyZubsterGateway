@@ -9,4 +9,6 @@ module.exports = {
   Review: require('./Review'),
   WebhookLog: require('./WebhookLog'),
   ActivityLog: require('./ActivityLog'),
+  MultisigWallet: require('./MultisigWallet'),
+  AIDecision: require('./AIDecision'),
 };

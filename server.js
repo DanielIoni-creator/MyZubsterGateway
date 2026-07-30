@@ -74,6 +74,14 @@ const activityRoutes = require('./routes/activity');
 app.use('/api/activity', activityRoutes);
 app.use('/api/admin/activity', activityRoutes.adminRouter);
 
+// Multisig routes
+const multisigRoutes = require('./src/routes/multisig');
+app.use('/api/multisig', multisigRoutes);
+
+// AI Multisig routes
+const aiMultisigRoutes = require('./src/routes/ai-multisig');
+app.use('/api/ai-multisig', aiMultisigRoutes);
+
 // ===== ERROR HANDLER =====
 app.use((err, req, res, next) => {
   console.error('Error:', err);
