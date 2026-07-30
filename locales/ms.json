@@ -1,0 +1,8 @@
+{
+  "health": {
+    "message": "Gateway {{service}} sedang berjalan!"
+  },
+  "errors": {
+    "internal": "Ralat pelayan dalaman"
+  }
+}

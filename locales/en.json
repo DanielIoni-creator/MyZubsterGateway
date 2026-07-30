@@ -1,0 +1,8 @@
+{
+  "health": {
+    "message": "{{service}} Gateway is running!"
+  },
+  "errors": {
+    "internal": "Internal server error"
+  }
+}
