@@ -10,4 +10,5 @@ module.exports = {
   WebhookLog: require('./WebhookLog'),
   ActivityLog: require('./ActivityLog'),
   GardenReading: require('./GardenReading'),
+  SeedExchange: require('./SeedExchange'),
 };

@@ -78,16 +78,17 @@ const activityRoutes = require('./routes/activity');
 app.use('/api/activity', activityRoutes);
 app.use('/api/admin/activity', activityRoutes.adminRouter);
 
-<<<<<<< HEAD
 // Webhook outgoing routes
 const webhooksRoutes = require('./routes/webhooks');
 app.use('/api/webhooks', webhooksRoutes);
-=======
 
 // Escrow Gateway routes
 const escrowGatewayRoutes = require('./src/routes/escrowGateway');
 app.use('/api/escrow', escrowGatewayRoutes);
->>>>>>> main
+
+// Seed & Cutting Exchange routes
+const seedExchangeRoutes = require('./routes/seedExchange');
+app.use('/api/seed-exchange', seedExchangeRoutes);
 
 // ===== ERROR HANDLER =====
 app.use((err, req, res, next) => {
