@@ -5,6 +5,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
+const i18nMiddleware = require('./middleware/i18n');
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use(compression());
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(i18nMiddleware);
 
 const activityLogger = require('./middleware/activityLogger');
 app.use(activityLogger());
@@ -33,7 +35,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myzubster
 app.get('/health', (req, res) => {
   res.json({
     status: 'OK',
-    message: 'MyZubster Gateway is running!',
+    message: req.t('health.message', { service: 'MyZubster' }),
     timestamp: new Date().toISOString(),
     version: '1.0.0'
   });
@@ -75,9 +77,15 @@ app.use('/api/admin/activity', activityRoutes.adminRouter);
 // ===== ERROR HANDLER =====
 app.use((err, req, res, next) => {
   console.error('Error:', err);
+  const message =
+    err.message ||
+    (typeof req.t === 'function'
+      ? req.t('errors.internal')
+      : 'Internal server error');
+
   res.status(err.status || 500).json({
     success: false,
-    message: err.message || 'Internal server error'
+    message
   });
 });
 

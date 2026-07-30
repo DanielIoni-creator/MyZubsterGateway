@@ -3,8 +3,12 @@ const authorizeAdmin = (req, res, next) => {
   if (req.user && req.user.role === 'admin') {
     next();
   } else {
+    const message =
+      typeof req.t === 'function'
+        ? req.t('admin.required')
+        : 'Admin privileges required';
     res.status(403).json({
-      error: 'Accesso negato. Permessi amministratore richiesti.'
+      error: message
     });
   }
 };
