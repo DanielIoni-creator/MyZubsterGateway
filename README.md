@@ -285,3 +285,8 @@ Every contribution counts. Join us in building a transparent, privacy-first plat
 ## 🌐 Ecosystem Hub
 
 **MyZubster Ecosystem**: https://github.com/MyZubster-Ecosystem
+
+
+## 💬 Community
+
+- **Telegram**: [@MyZubster_bot](https://t.me/MyZubster_bot) – for updates, support, and discussions.
