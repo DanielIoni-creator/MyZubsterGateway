@@ -82,6 +82,10 @@ app.use('/api/admin/activity', activityRoutes.adminRouter);
 const webhooksRoutes = require('./routes/webhooks');
 app.use('/api/webhooks', webhooksRoutes);
 
+// Seed Exchange routes
+const seedExchangeRoutes = require('./routes/seedExchange');
+app.use('/api/seed-exchange', seedExchangeRoutes);
+
 // ===== ERROR HANDLER =====
 app.use((err, req, res, next) => {
   console.error('Error:', err);
