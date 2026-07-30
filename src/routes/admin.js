@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const auth = require('../../middleware/auth');
 const { authorizeAdmin, logAdminAction } = require('../../middleware/admin');
-const MoneroTransaction = require('../../models/MoneroTransaction');
+const Transaction = require('../../models/Transaction');
 const moneroService = require('../../services/moneroService');
 
 const router = express.Router();
@@ -10,7 +10,7 @@ const router = express.Router();
 const TRANSACTION_STATUSES = new Set([
   'pending',
   'confirmed',
-  'expired',
+  'completed',
   'failed',
   'refund_pending',
   'refunded',
@@ -75,7 +75,7 @@ const buildTransactionFilter = (query) => {
     if (!mongoose.isValidObjectId(userId)) {
       throw new RequestError('user must be a valid MongoDB object id');
     }
-    filter.buyerId = userId;
+    filter.$or = [{ fromUser: userId }, { toUser: userId }];
   }
 
   if (query.amount !== undefined) {
@@ -153,13 +153,14 @@ router.get(
     const skip = (page - 1) * limit;
 
     const [transactions, total] = await Promise.all([
-      MoneroTransaction.find(filter)
+      Transaction.find(filter)
         .sort({ createdAt: -1, _id: -1 })
         .skip(skip)
         .limit(limit)
-        .populate('buyerId', 'username email moneroAddress')
-        .populate('orderId'),
-      MoneroTransaction.countDocuments(filter),
+        .populate('fromUser', 'username email moneroAddress')
+        .populate('toUser', 'username email moneroAddress')
+        .populate('order offer request'),
+      Transaction.countDocuments(filter),
     ]);
 
     res.json({
@@ -182,9 +183,10 @@ router.get(
   asyncHandler(async (req, res) => {
     ensureValidTransactionId(req.params.id);
 
-    const transaction = await MoneroTransaction.findById(req.params.id)
-      .populate('buyerId', 'username email moneroAddress')
-      .populate('orderId');
+    const transaction = await Transaction.findById(req.params.id)
+      .populate('fromUser', 'username email moneroAddress')
+      .populate('toUser', 'username email moneroAddress')
+      .populate('order offer request');
 
     if (!transaction) {
       throw new RequestError('Transaction not found', 404);
@@ -200,12 +202,16 @@ router.post(
   asyncHandler(async (req, res) => {
     ensureValidTransactionId(req.params.id);
 
-    const existing = await MoneroTransaction.findById(req.params.id);
+    const existing = await Transaction.findById(req.params.id);
     if (!existing) {
       throw new RequestError('Transaction not found', 404);
     }
 
-    if (existing.status === 'confirmed' || existing.status === 'refunded') {
+    if (
+      existing.status === 'confirmed' ||
+      existing.status === 'completed' ||
+      existing.status === 'refunded'
+    ) {
       return res.json({
         success: true,
         data: {
@@ -218,7 +224,7 @@ router.post(
       });
     }
 
-    const verification = await moneroService.checkPayment(existing._id);
+    const verification = await moneroService.verifyTransaction(existing);
     if (verification.status === 'error') {
       throw new RequestError(
         `Monero verification failed: ${verification.error || 'unknown wallet RPC error'}`,
@@ -232,7 +238,18 @@ router.post(
       verificationSource: 'admin',
       updatedAt: new Date(),
     };
-    const transaction = await MoneroTransaction.findByIdAndUpdate(
+    if (verification.status === 'confirmed') {
+      auditFields.status = 'confirmed';
+      auditFields.confirmations = verification.confirmations || 0;
+      auditFields.confirmedAt = existing.confirmedAt || new Date();
+      if (verification.txHash) {
+        auditFields.transactionHash = verification.txHash;
+      }
+    } else if (verification.status === 'failed') {
+      auditFields.status = 'failed';
+    }
+
+    const transaction = await Transaction.findByIdAndUpdate(
       existing._id,
       { $set: auditFields },
       { new: true, runValidators: true }
@@ -254,8 +271,8 @@ router.post(
   asyncHandler(async (req, res) => {
     ensureValidTransactionId(req.params.id);
 
-    const transaction = await MoneroTransaction.findById(req.params.id)
-      .populate('buyerId', 'moneroAddress');
+    const transaction = await Transaction.findById(req.params.id)
+      .populate('fromUser', 'moneroAddress');
     if (!transaction) {
       throw new RequestError('Transaction not found', 404);
     }
@@ -269,8 +286,8 @@ router.post(
     if (transaction.status === 'refund_pending') {
       throw new RequestError('A refund is already in progress', 409);
     }
-    if (transaction.status !== 'confirmed') {
-      throw new RequestError('Only confirmed transactions can be refunded', 409);
+    if (transaction.status !== 'confirmed' && transaction.status !== 'completed') {
+      throw new RequestError('Only confirmed or completed transactions can be refunded', 409);
     }
     if (typeof moneroService.sendTransaction !== 'function') {
       throw new RequestError('Refunds are not supported by the configured Monero service', 501);
@@ -278,7 +295,7 @@ router.post(
 
     const body = req.body || {};
     const destinationAddress =
-      body.destinationAddress || transaction.buyerId?.moneroAddress;
+      body.destinationAddress || transaction.fromUser?.moneroAddress;
     if (!destinationAddress) {
       throw new RequestError(
         'destinationAddress is required when the buyer has no Monero address'
@@ -288,7 +305,7 @@ router.post(
       throw new RequestError('destinationAddress must be a valid Monero address');
     }
 
-    const paidAmount = Number(transaction.amountPaid || transaction.amount);
+    const paidAmount = Number(transaction.amount);
     if (!Number.isFinite(paidAmount) || paidAmount <= 0) {
       throw new RequestError('The transaction has no refundable amount', 409);
     }
@@ -305,8 +322,8 @@ router.post(
 
     const requestedAt = new Date();
     const adminId = getAdminId(req);
-    const locked = await MoneroTransaction.findOneAndUpdate(
-      { _id: transaction._id, status: 'confirmed' },
+    const locked = await Transaction.findOneAndUpdate(
+      { _id: transaction._id, status: transaction.status },
       {
         $set: {
           status: 'refund_pending',
@@ -325,15 +342,49 @@ router.post(
       throw new RequestError('Transaction state changed; refund was not started', 409);
     }
 
+    let result;
     try {
-      const result = await moneroService.sendTransaction(destinationAddress, refundAmount);
-      const refundTxid = result.tx_hash || result.txHash;
-      if (!refundTxid) {
-        throw new Error('Monero wallet RPC returned no transaction hash');
-      }
+      result = await moneroService.sendTransaction(destinationAddress, refundAmount);
+    } catch (error) {
+      const failedAt = new Date();
+      await Transaction.findByIdAndUpdate(
+        transaction._id,
+        {
+          $set: {
+            status: transaction.status,
+            refundError: error.message,
+            refundFailedAt: failedAt,
+            updatedAt: failedAt,
+          },
+        },
+        { runValidators: true }
+      );
+      throw new RequestError(`Refund failed: ${error.message}`, 502);
+    }
 
-      const refundedAt = new Date();
-      const refunded = await MoneroTransaction.findByIdAndUpdate(
+    const refundTxid = result?.tx_hash || result?.txHash;
+    if (!refundTxid) {
+      const failedAt = new Date();
+      await Transaction.findByIdAndUpdate(
+        transaction._id,
+        {
+          $set: {
+            refundError: 'Monero wallet RPC returned no transaction hash',
+            refundFailedAt: failedAt,
+            updatedAt: failedAt,
+          },
+        },
+        { runValidators: true }
+      );
+      throw new RequestError(
+        'Refund outcome is unknown and remains locked for reconciliation',
+        502
+      );
+    }
+
+    const refundedAt = new Date();
+    try {
+      const refunded = await Transaction.findByIdAndUpdate(
         transaction._id,
         {
           $set: {
@@ -352,20 +403,21 @@ router.post(
         data: { transaction: refunded },
       });
     } catch (error) {
-      const failedAt = new Date();
-      await MoneroTransaction.findByIdAndUpdate(
+      await Transaction.findByIdAndUpdate(
         transaction._id,
         {
           $set: {
-            status: 'confirmed',
-            refundError: error.message,
-            refundFailedAt: failedAt,
-            updatedAt: failedAt,
+            refundTxid,
+            refundError: `Refund sent; persistence failed: ${error.message}`,
+            refundFailedAt: new Date(),
           },
         },
         { runValidators: true }
+      ).catch(() => {});
+      throw new RequestError(
+        `Refund ${refundTxid} was sent and remains locked for reconciliation`,
+        500
       );
-      throw new RequestError(`Refund failed: ${error.message}`, 502);
     }
   })
 );

@@ -87,8 +87,6 @@ class MoneroService {
           moneroTxid: found.txid,
           amountPaid,
           confirmations: found.confirmations || 0,
-          verifiedAt: new Date(),
-          verificationSource: 'monitor',
           updatedAt: new Date()
         });
         console.log(`💰 Pagamento confermato per transazione ${transactionId}`);
@@ -103,6 +101,67 @@ class MoneroService {
       return { status: 'pending' };
     } catch (error) {
       console.error('❌ Errore verifica pagamento:', error.message);
+      return { status: 'error', error: error.message };
+    }
+  }
+
+  /**
+   * Verifica una transazione marketplace tramite il transaction hash salvato.
+   */
+  async verifyTransaction(transaction) {
+    try {
+      const paymentId = typeof transaction.paymentId === 'string'
+        ? transaction.paymentId
+        : '';
+      const txid = transaction.transactionHash ||
+        (/^[a-f0-9]{64}$/i.test(paymentId) ? paymentId : null);
+
+      if (!txid || !/^[a-f0-9]{64}$/i.test(txid)) {
+        throw new Error('La transazione non contiene un Monero transaction hash valido');
+      }
+
+      const response = await axios.post(MONERO_RPC_URL, {
+        jsonrpc: '2.0',
+        id: '0',
+        method: 'get_transfer_by_txid',
+        params: {
+          txid,
+          account_index: 0
+        }
+      });
+
+      if (response.data.error) {
+        throw new Error(response.data.error.message);
+      }
+
+      const transfer = response.data.result?.transfer;
+      if (!transfer) {
+        return { status: 'pending', txHash: txid, confirmations: 0 };
+      }
+
+      if (transfer.type === 'failed') {
+        return { status: 'failed', txHash: txid, confirmations: 0 };
+      }
+
+      const confirmations = Number(transfer.confirmations || 0);
+      const amount = Number(transfer.amount || 0) / 1e12;
+      const isPending = transfer.type === 'pending' ||
+        transfer.type === 'pool' ||
+        transfer.in_pool === true;
+      const expectedAmount = Number(transaction.amount);
+      const isUnderpaid = Number.isFinite(expectedAmount) &&
+        expectedAmount > 0 &&
+        amount + 1e-12 < expectedAmount;
+
+      return {
+        status: isPending || isUnderpaid ? 'pending' : 'confirmed',
+        txHash: transfer.txid || txid,
+        confirmations,
+        amount,
+        ...(isUnderpaid ? { reason: 'underpaid' } : {})
+      };
+    } catch (error) {
+      console.error('Errore verifica transazione Monero:', error.message);
       return { status: 'error', error: error.message };
     }
   }

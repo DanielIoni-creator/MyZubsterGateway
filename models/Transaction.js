@@ -46,7 +46,7 @@ const TransactionSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'completed', 'failed', 'refunded'],
+    enum: ['pending', 'confirmed', 'completed', 'failed', 'refund_pending', 'refunded'],
     default: 'pending'
   },
   confirmedAt: {
@@ -58,6 +58,47 @@ const TransactionSchema = new mongoose.Schema({
   confirmations: {
     type: Number,
     default: 0
+  },
+  verifiedAt: {
+    type: Date
+  },
+  verifiedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  verificationSource: {
+    type: String,
+    enum: ['monitor', 'admin']
+  },
+  refundRequestedAt: {
+    type: Date
+  },
+  refundRequestedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  refundAddress: {
+    type: String
+  },
+  refundAmount: {
+    type: Number,
+    min: 0
+  },
+  refundTxid: {
+    type: String
+  },
+  refundedAt: {
+    type: Date
+  },
+  refundedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  refundError: {
+    type: String
+  },
+  refundFailedAt: {
+    type: Date
   },
   note: {
     type: String,
@@ -72,5 +113,9 @@ TransactionSchema.index({ order: 1 });
 TransactionSchema.index({ status: 1 });
 TransactionSchema.index({ paymentId: 1 });
 TransactionSchema.index({ transactionHash: 1 });
+TransactionSchema.index({ status: 1, createdAt: -1 });
+TransactionSchema.index({ fromUser: 1, createdAt: -1 });
+TransactionSchema.index({ toUser: 1, createdAt: -1 });
+TransactionSchema.index({ amount: 1 });
 
 module.exports = mongoose.model('Transaction', TransactionSchema);
