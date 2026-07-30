@@ -78,6 +78,11 @@ const activityRoutes = require('./routes/activity');
 app.use('/api/activity', activityRoutes);
 app.use('/api/admin/activity', activityRoutes.adminRouter);
 
+
+// Multisig routes (Monero 2/3 multisig)
+const multisigRoutes = require('./routes/multisig');
+app.use('/api/multisig', multisigRoutes);
+
 // ===== ERROR HANDLER =====
 app.use((err, req, res, next) => {
   console.error('Error:', err);
@@ -102,3 +107,4 @@ app.listen(PORT, () => {
 });
 
 module.exports = app;
+
