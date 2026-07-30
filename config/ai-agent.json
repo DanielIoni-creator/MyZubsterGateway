@@ -1,0 +1,16 @@
+{
+  "aiProvider": "deepseek",
+  "model": "deepseek-chat",
+  "temperature": 0.3,
+  "maxTokens": 2000,
+  "apiKeyEnvVar": "AI_AGENT_API_KEY",
+  "aiEndpoint": "https://api.deepseek.com/v1/chat/completions",
+  "moneroKeyEnvVar": "AI_AGENT_MONERO_KEY",
+  "moneroPublicAddress": "",
+  "webhookEndpoint": "/api/ai/webhook",
+  "decisionLogging": true,
+  "minConfirmations": 10,
+  "confidenceThreshold": 0.7,
+  "agentId": "ai-multisig-agent-001",
+  "version": "1.0.0"
+}
