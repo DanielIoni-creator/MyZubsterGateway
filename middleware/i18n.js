@@ -4,10 +4,11 @@ function i18nMiddleware(req, res, next) {
   const language = detectLanguage(req.get('Accept-Language'));
 
   req.language = language;
-  req.t = (key, params = {}) => translate(language, key, params);
-
-  res.set('Content-Language', language);
-  res.vary('Accept-Language');
+  req.t = (key, params = {}) => {
+    res.set('Content-Language', language);
+    res.vary('Accept-Language');
+    return translate(language, key, params);
+  };
 
   next();
 }

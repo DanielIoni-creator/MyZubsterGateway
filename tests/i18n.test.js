@@ -212,5 +212,6 @@ describe('i18n middleware', () => {
       message: 'Specific failure',
     });
     expect(fallbackResponse.headers['content-language']).toBe('zh');
+    expect(specificResponse.headers['content-language']).toBeUndefined();
   });
 });

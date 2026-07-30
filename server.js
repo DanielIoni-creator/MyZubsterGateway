@@ -77,14 +77,15 @@ app.use('/api/admin/activity', activityRoutes.adminRouter);
 // ===== ERROR HANDLER =====
 app.use((err, req, res, next) => {
   console.error('Error:', err);
-  const fallbackMessage =
-    typeof req.t === 'function'
+  const message =
+    err.message ||
+    (typeof req.t === 'function'
       ? req.t('errors.internal')
-      : 'Internal server error';
+      : 'Internal server error');
 
   res.status(err.status || 500).json({
     success: false,
-    message: err.message || fallbackMessage
+    message
   });
 });
 
