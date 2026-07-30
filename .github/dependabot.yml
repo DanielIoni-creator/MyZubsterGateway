@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # .github/dependabot.yml
 # Documentazione: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 
@@ -98,3 +99,6 @@ updates:
       - "github-actions"
     commit-message:
       prefix: "chore(ci)"
+=======
+[incolla il contenuto qui sopra]
+>>>>>>> 0175bec2 (chore: update Dependabot configuration with groups and assignees)
