@@ -82,6 +82,10 @@ app.use('/api/multisig', multisigRoutes);
 const aiMultisigRoutes = require('./src/routes/ai-multisig');
 app.use('/api/ai-multisig', aiMultisigRoutes);
 
+// Garden IoT routes
+const gardenRoutes = require('./routes/garden');
+app.use('/api/garden', gardenRoutes);
+
 // ===== ERROR HANDLER =====
 app.use((err, req, res, next) => {
   console.error('Error:', err);
