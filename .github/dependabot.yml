@@ -1,7 +1,12 @@
 # .github/dependabot.yml
+# Documentazione: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
 version: 2
 updates:
-  # Aggiornamenti per le dipendenze npm (Node.js)
+
+  # ============================================================
+  # 1. AGGIORNAMENTI PER LE DIPENDENZE NPM (Node.js)
+  # ============================================================
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -9,18 +14,43 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "Europe/Rome"
+    # Limite massimo di PR aperte contemporaneamente
     open-pull-requests-limit: 10
+    # Etichette da applicare alle PR di Dependabot
     labels:
       - "dependencies"
       - "automerge"
+    # Personalizzazione del messaggio di commit
     commit-message:
       prefix: "chore(deps)"
       prefix-development: "chore(deps-dev)"
+      include: "scope"
+    # Raggruppa gli aggiornamenti in un'unica PR per package manager
+    groups:
+      production-dependencies:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      development-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+    # Ignora determinati aggiornamenti (es. major per evitare breaking changes)
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+    # Assegna la PR a un reviewer automatico
+    assignees:
+      - "DanielIoni-creator"
+    # Aggiungi un reviewer (se hai un team)
+    # reviewers:
+    #   - "my-team"
 
-  # Aggiornamenti per le GitHub Actions
+  # ============================================================
+  # 2. AGGIORNAMENTI PER LE GITHUB ACTIONS
+  # ============================================================
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -33,8 +63,16 @@ updates:
       - "github-actions"
     commit-message:
       prefix: "chore(ci)"
+    groups:
+      actions-minor-patch:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
 
-  # Aggiornamenti per Docker (se usi Docker)
+  # ============================================================
+  # 3. AGGIORNAMENTI PER DOCKER (se usi Docker)
+  # ============================================================
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
@@ -42,3 +80,21 @@ updates:
     labels:
       - "dependencies"
       - "docker"
+    commit-message:
+      prefix: "chore(docker)"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # ============================================================
+  # 4. AGGIORNAMENTI PER GITHUB ACTIONS (WORKFLOW)
+  # ============================================================
+  - package-ecosystem: "github-actions"
+    directory: "/.github/workflows"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(ci)"
