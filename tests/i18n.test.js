@@ -9,7 +9,12 @@ const {
   detectLanguage,
   translate,
 } = require('../config/i18n');
+const { authorizeAdmin } = require('../middleware/admin');
+const authMiddleware = require('../middleware/auth');
 const i18nMiddleware = require('../middleware/i18n');
+const authRouter = require('../src/routes/auth');
+const webhookRouter = require('../routes/webhook');
+const WebhookService = require('../services/webhookService');
 
 function flattenCatalog(value, prefix = '', result = {}) {
   for (const [key, entry] of Object.entries(value)) {
@@ -60,6 +65,31 @@ function buildTestApp() {
       message: err.message || req.t('errors.internal'),
     });
   });
+
+  return app;
+}
+
+function buildRouteIntegrationApp() {
+  const app = express();
+
+  app.use(express.json());
+  app.use(i18nMiddleware);
+  app.use('/auth', authRouter);
+  app.get('/protected', authMiddleware, (req, res) => {
+    res.json({ success: true });
+  });
+  app.get(
+    '/admin',
+    (req, res, next) => {
+      req.user = { role: 'member' };
+      next();
+    },
+    authorizeAdmin,
+    (req, res) => {
+      res.json({ success: true });
+    }
+  );
+  app.use('/webhook', webhookRouter);
 
   return app;
 }
@@ -213,5 +243,87 @@ describe('i18n middleware', () => {
     });
     expect(fallbackResponse.headers['content-language']).toBe('zh');
     expect(specificResponse.headers['content-language']).toBeUndefined();
+  });
+});
+
+describe('mounted route and middleware integration', () => {
+  const app = buildRouteIntegrationApp();
+
+  test('localizes auth route messages without changing their shape', async () => {
+    const [loginResponse, registerResponse] = await Promise.all([
+      request(app)
+        .post('/auth/login')
+        .set('Accept-Language', 'zh-CN')
+        .expect(200),
+      request(app)
+        .post('/auth/register')
+        .set('Accept-Language', 'it-IT')
+        .expect(200),
+    ]);
+
+    expect(loginResponse.body).toEqual({
+      success: true,
+      message: '登录端点',
+    });
+    expect(loginResponse.headers['content-language']).toBe('zh');
+    expect(registerResponse.body).toEqual({
+      success: true,
+      message: 'Endpoint di registrazione',
+    });
+    expect(registerResponse.headers['content-language']).toBe('it');
+  });
+
+  test('localizes existing auth and admin middleware errors', async () => {
+    const [authResponse, adminResponse] = await Promise.all([
+      request(app)
+        .get('/protected')
+        .set('Accept-Language', 'ta-IN')
+        .expect(401),
+      request(app)
+        .get('/admin')
+        .set('Accept-Language', 'ms-MY')
+        .expect(403),
+    ]);
+
+    expect(authResponse.body).toEqual({ error: 'அங்கீகாரம் தேவை' });
+    expect(authResponse.headers['content-language']).toBe('ta');
+    expect(adminResponse.body).toEqual({
+      error: 'Keistimewaan pentadbir diperlukan',
+    });
+    expect(adminResponse.headers['content-language']).toBe('ms');
+  });
+
+  test('localizes webhook validation and success messages', async () => {
+    const missingTargetResponse = await request(app)
+      .post('/webhook/test-webhook')
+      .set('Accept-Language', 'zh-CN')
+      .send({})
+      .expect(400);
+
+    expect(missingTargetResponse.body).toEqual({
+      error: '必须提供 targetUrl',
+    });
+    expect(missingTargetResponse.headers['content-language']).toBe('zh');
+
+    const sendWebhook = jest
+      .spyOn(WebhookService, 'sendWebhookAsync')
+      .mockResolvedValue({ delivered: true });
+
+    try {
+      const successResponse = await request(app)
+        .post('/webhook/test-webhook')
+        .set('Accept-Language', 'it-IT')
+        .send({ targetUrl: 'https://example.com/hook', payload: { ok: true } })
+        .expect(200);
+
+      expect(successResponse.body).toEqual({
+        success: true,
+        result: { delivered: true },
+        message: 'Webhook inviato con nuovo tentativo automatico',
+      });
+      expect(successResponse.headers['content-language']).toBe('it');
+    } finally {
+      sendWebhook.mockRestore();
+    }
   });
 });

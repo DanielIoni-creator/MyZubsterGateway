@@ -16,6 +16,10 @@ module.exports = async (req, res, next) => {
     req.token = token;
     next();
   } catch (error) {
-    res.status(401).json({ error: 'Autenticazione richiesta' });
+    const message =
+      typeof req.t === 'function'
+        ? req.t('auth.required')
+        : 'Authentication required';
+    res.status(401).json({ error: message });
   }
 };

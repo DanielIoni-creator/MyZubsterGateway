@@ -54,7 +54,9 @@ router.post('/test-webhook', async (req, res) => {
   const { targetUrl, payload } = req.body;
 
   if (!targetUrl) {
-    return res.status(400).json({ error: 'targetUrl is required' });
+    return res.status(400).json({
+      error: req.t('validation.targetUrlRequired'),
+    });
   }
 
   try {
@@ -66,7 +68,7 @@ router.post('/test-webhook', async (req, res) => {
     res.json({
       success: true,
       result,
-      message: 'Webhook sent with automatic retry',
+      message: req.t('webhooks.sentWithRetry'),
     });
   } catch (error) {
     res.status(500).json({
