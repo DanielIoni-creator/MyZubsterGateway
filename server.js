@@ -16,6 +16,9 @@ app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+const activityLogger = require('./middleware/activityLogger');
+app.use(activityLogger());
+
 // ===== DATABASE =====
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myzubster', {
   useNewUrlParser: true,
@@ -63,6 +66,11 @@ app.use('/api/users', userRoutes);
 // Webhook verification routes
 const webhookRoutes = require('./routes/webhook');
 app.use('/api/webhook', webhookRoutes);
+
+// Activity audit log routes
+const activityRoutes = require('./routes/activity');
+app.use('/api/activity', activityRoutes);
+app.use('/api/admin/activity', activityRoutes.adminRouter);
 
 // ===== ERROR HANDLER =====
 app.use((err, req, res, next) => {
