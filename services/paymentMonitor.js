@@ -50,6 +50,9 @@ const checkPendingTransactions = async () => {
                 amount: tx.amount,
                 status: 'confirmed',
                 txHash: result.txHash,
+                protocol: result.protocol || tx.protocol || 'ringct',
+                confirmations: result.confirmations,
+                requiredConfirmations: result.requiredConfirmations || tx.confirmationTarget,
                 timestamp: new Date().toISOString()
               }
             );

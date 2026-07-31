@@ -1,16 +1,212 @@
 const axios = require('axios');
 const MoneroTransaction = require('../models/MoneroTransaction');
-const crypto = require('crypto');
 
-// Configurazione Monero (mainnet)
-const MONERO_RPC_URL = `http://localhost:${process.env.MONERO_RPC_PORT || 18081}/json_rpc`;
+const ATOMIC_UNITS_PER_XMR = 1e12;
+const DEFAULT_REQUIRED_CONFIRMATIONS = 10;
+const DEFAULT_FCMP_REQUIRED_CONFIRMATIONS = 10;
+
+const normalizeRpcUrl = (url) => {
+  if (!url) {
+    return `http://localhost:${process.env.MONERO_RPC_PORT || 18081}/json_rpc`;
+  }
+  return url.endsWith('/json_rpc') ? url : `${url.replace(/\/$/, '')}/json_rpc`;
+};
+
+const MONERO_RPC_URL = normalizeRpcUrl(
+  process.env.MONERO_WALLET_RPC_URL || process.env.MONERO_RPC_URL
+);
 const MONERO_DAEMON_ADDRESS = process.env.MONERO_DAEMON_ADDRESS || 'node.moneroworld.com:18081';
 const MONERO_NETWORK = process.env.MONERO_NETWORK || 'mainnet';
 
+const parseBoolean = (value, fallback = false) => {
+  if (value === undefined || value === null || value === '') {
+    return fallback;
+  }
+  return ['1', 'true', 'yes', 'on'].includes(String(value).toLowerCase());
+};
+
+const parsePositiveInt = (value, fallback) => {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+};
+
+const toXmr = (atomicAmount) => Number(atomicAmount || 0) / ATOMIC_UNITS_PER_XMR;
+
+const includesFcmpMarker = (value) => (
+  typeof value === 'string' && /fcmp/i.test(value)
+);
+
+const isFcmpPlusPlusTransfer = (transfer = {}) => {
+  const markerValues = [
+    transfer.protocol,
+    transfer.proof_type,
+    transfer.proofType,
+    transfer.tx_type,
+    transfer.txType,
+    transfer.transaction_type,
+    transfer.transactionType,
+    transfer.ringct_type,
+    transfer.ringctType,
+  ];
+
+  return transfer.fcmp === true ||
+    transfer.fcmp_plus_plus === true ||
+    transfer.fcmpPlusPlus === true ||
+    markerValues.some(includesFcmpMarker);
+};
+
+const getConfirmationPolicy = (transfer = {}) => {
+  const isFcmpPlusPlus = isFcmpPlusPlusTransfer(transfer);
+  const requiredConfirmations = isFcmpPlusPlus
+    ? parsePositiveInt(
+      process.env.MONERO_FCMP_REQUIRED_CONFIRMATIONS,
+      DEFAULT_FCMP_REQUIRED_CONFIRMATIONS
+    )
+    : parsePositiveInt(
+      process.env.MONERO_REQUIRED_CONFIRMATIONS,
+      DEFAULT_REQUIRED_CONFIRMATIONS
+    );
+
+  return {
+    protocol: isFcmpPlusPlus ? 'fcmp++' : 'ringct',
+    isFcmpPlusPlus,
+    requiredConfirmations,
+  };
+};
+
+const transferTxid = (transfer = {}, fallbackTxid = null) => (
+  transfer.txid || transfer.tx_hash || transfer.hash || fallbackTxid
+);
+
+const normalizeTransferStatus = (transfer = {}, fallbackTxid = null, expectedAmount = 0) => {
+  const { protocol, isFcmpPlusPlus, requiredConfirmations } = getConfirmationPolicy(transfer);
+  const confirmations = Number(transfer.confirmations || 0);
+  const amount = toXmr(transfer.amount);
+  const txHash = transferTxid(transfer, fallbackTxid);
+  const transferType = String(transfer.type || '').toLowerCase();
+  const isPool = transferType === 'pool' || transferType === 'pending' || transfer.in_pool === true;
+  const failed = transferType === 'failed' ||
+    transfer.failed === true ||
+    transfer.double_spend_seen === true;
+  const expected = Number(expectedAmount);
+  const isUnderpaid = Number.isFinite(expected) && expected > 0 && amount + 1e-12 < expected;
+
+  if (failed) {
+    return {
+      status: 'failed',
+      txHash,
+      confirmations,
+      amount,
+      protocol,
+      isFcmpPlusPlus,
+      requiredConfirmations,
+      reason: transfer.double_spend_seen ? 'double_spend_seen' : 'failed',
+      inPool: Boolean(transfer.in_pool),
+      unlockTime: transfer.unlock_time || 0,
+    };
+  }
+
+  if (isPool) {
+    return {
+      status: 'pending',
+      txHash,
+      confirmations,
+      amount,
+      protocol,
+      isFcmpPlusPlus,
+      requiredConfirmations,
+      reason: 'in_pool',
+      inPool: true,
+      unlockTime: transfer.unlock_time || 0,
+    };
+  }
+
+  if (isUnderpaid) {
+    return {
+      status: 'pending',
+      txHash,
+      confirmations,
+      amount,
+      protocol,
+      isFcmpPlusPlus,
+      requiredConfirmations,
+      reason: 'underpaid',
+      inPool: Boolean(transfer.in_pool),
+      unlockTime: transfer.unlock_time || 0,
+    };
+  }
+
+  if (confirmations < requiredConfirmations) {
+    return {
+      status: 'pending',
+      txHash,
+      confirmations,
+      amount,
+      protocol,
+      isFcmpPlusPlus,
+      requiredConfirmations,
+      reason: 'insufficient_confirmations',
+      inPool: Boolean(transfer.in_pool),
+      unlockTime: transfer.unlock_time || 0,
+    };
+  }
+
+  return {
+    status: 'confirmed',
+    txHash,
+    confirmations,
+    amount,
+    protocol,
+    isFcmpPlusPlus,
+    requiredConfirmations,
+    inPool: Boolean(transfer.in_pool),
+    unlockTime: transfer.unlock_time || 0,
+  };
+};
+
+const collectTransfers = (result = {}) => [
+  ...(result.incoming || []),
+  ...(result.in || []),
+  ...(result.pool || []),
+  ...(result.pending || []),
+  ...(result.failed || []),
+];
+
 class MoneroService {
   constructor() {
-    console.log(`🔐 MoneroService avviato su ${MONERO_NETWORK}`);
-    console.log(`📡 Daemon: ${MONERO_DAEMON_ADDRESS}`);
+    console.log(`MoneroService avviato su ${MONERO_NETWORK}`);
+    console.log(`Daemon: ${MONERO_DAEMON_ADDRESS}`);
+  }
+
+  getConfiguration() {
+    return {
+      network: MONERO_NETWORK,
+      daemonAddress: MONERO_DAEMON_ADDRESS,
+      fcmpPlusPlusEnabled: parseBoolean(process.env.MONERO_FCMP_PLUS_PLUS_ENABLED, false),
+      requiredConfirmations: parsePositiveInt(
+        process.env.MONERO_REQUIRED_CONFIRMATIONS,
+        DEFAULT_REQUIRED_CONFIRMATIONS
+      ),
+      fcmpRequiredConfirmations: parsePositiveInt(
+        process.env.MONERO_FCMP_REQUIRED_CONFIRMATIONS,
+        DEFAULT_FCMP_REQUIRED_CONFIRMATIONS
+      ),
+    };
+  }
+
+  async callRpc(method, params = {}) {
+    const response = await axios.post(MONERO_RPC_URL, {
+      jsonrpc: '2.0',
+      id: '0',
+      method,
+      ...(Object.keys(params).length ? { params } : {}),
+    });
+
+    if (response.data.error) {
+      throw new Error(response.data.error.message);
+    }
+
+    return response.data.result || {};
   }
 
   /**
@@ -18,35 +214,26 @@ class MoneroService {
    */
   async generateSubaddress(orderId) {
     try {
-      const response = await axios.post(MONERO_RPC_URL, {
-        jsonrpc: '2.0',
-        id: '0',
-        method: 'create_address',
-        params: {
-          account_index: 0,
-          label: `Order-${orderId}`
-        }
+      const result = await this.callRpc('create_address', {
+        account_index: 0,
+        label: `Order-${orderId}`,
       });
 
-      if (response.data.error) {
-        throw new Error(response.data.error.message);
-      }
+      const subaddress = result.address;
+      console.log(`Subaddress generato per ordine ${orderId}: ${subaddress}`);
 
-      const subaddress = response.data.result.address;
-      console.log(`✅ Subaddress generato per ordine ${orderId}: ${subaddress}`);
-
-      // Salva nel database
       await MoneroTransaction.create({
         orderId,
         subaddress,
-        amount: 0, // sarà aggiornato quando l'utente imposta l'importo
+        amount: 0,
         status: 'pending',
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 ore
+        confirmationTarget: this.getConfiguration().requiredConfirmations,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       });
 
       return subaddress;
     } catch (error) {
-      console.error('❌ Errore generazione subaddress:', error.message);
+      console.error('Errore generazione subaddress:', error.message);
       throw error;
     }
   }
@@ -61,46 +248,44 @@ class MoneroService {
         throw new Error('Transazione non trovata');
       }
 
-      // Query per verificare il pagamento sul mainnet
-      const response = await axios.post(MONERO_RPC_URL, {
-        jsonrpc: '2.0',
-        id: '0',
-        method: 'get_transfers',
-        params: {
-          subaddress: true,
-          account_index: 0
-        }
+      const result = await this.callRpc('get_transfers', {
+        subaddress: true,
+        account_index: 0,
+        in: true,
+        pool: true,
+        pending: true,
+        failed: true,
       });
 
-      if (response.data.error) {
-        throw new Error(response.data.error.message);
-      }
-
-      // Cerca la transazione per il subaddress specifico
-      const transfers = response.data.result.incoming || [];
-      const found = transfers.find(t => t.address === tx.subaddress);
+      const transfers = collectTransfers(result);
+      const found = transfers.find((transfer) => (
+        transfer.address === tx.subaddress ||
+        transfer.subaddr_index?.minor === tx.subaddressIndex
+      ));
 
       if (found) {
-        const amountPaid = found.amount / 1e12;
+        const normalized = normalizeTransferStatus(found, null, tx.amount);
         await MoneroTransaction.findByIdAndUpdate(transactionId, {
-          status: 'confirmed',
-          moneroTxid: found.txid,
-          amountPaid,
-          confirmations: found.confirmations || 0,
-          updatedAt: new Date()
+          status: normalized.status,
+          moneroTxid: normalized.txHash,
+          amountPaid: normalized.amount,
+          confirmations: normalized.confirmations,
+          confirmationTarget: normalized.requiredConfirmations,
+          protocol: normalized.protocol,
+          isFcmpPlusPlus: normalized.isFcmpPlusPlus,
+          lastWalletStatus: normalized.reason || normalized.status,
+          seenInPool: normalized.inPool,
+          unlockTime: normalized.unlockTime,
+          updatedAt: new Date(),
         });
-        console.log(`💰 Pagamento confermato per transazione ${transactionId}`);
-        return {
-          status: 'confirmed',
-          txHash: found.txid,
-          amountPaid,
-          confirmations: found.confirmations || 0
-        };
+
+        console.log(`Pagamento ${normalized.status} per transazione ${transactionId}`);
+        return normalized;
       }
 
       return { status: 'pending' };
     } catch (error) {
-      console.error('❌ Errore verifica pagamento:', error.message);
+      console.error('Errore verifica pagamento:', error.message);
       return { status: 'error', error: error.message };
     }
   }
@@ -120,46 +305,17 @@ class MoneroService {
         throw new Error('La transazione non contiene un Monero transaction hash valido');
       }
 
-      const response = await axios.post(MONERO_RPC_URL, {
-        jsonrpc: '2.0',
-        id: '0',
-        method: 'get_transfer_by_txid',
-        params: {
-          txid,
-          account_index: 0
-        }
+      const result = await this.callRpc('get_transfer_by_txid', {
+        txid,
+        account_index: 0,
       });
 
-      if (response.data.error) {
-        throw new Error(response.data.error.message);
-      }
-
-      const transfer = response.data.result?.transfer;
+      const transfer = result.transfer;
       if (!transfer) {
         return { status: 'pending', txHash: txid, confirmations: 0 };
       }
 
-      if (transfer.type === 'failed') {
-        return { status: 'failed', txHash: txid, confirmations: 0 };
-      }
-
-      const confirmations = Number(transfer.confirmations || 0);
-      const amount = Number(transfer.amount || 0) / 1e12;
-      const isPending = transfer.type === 'pending' ||
-        transfer.type === 'pool' ||
-        transfer.in_pool === true;
-      const expectedAmount = Number(transaction.amount);
-      const isUnderpaid = Number.isFinite(expectedAmount) &&
-        expectedAmount > 0 &&
-        amount + 1e-12 < expectedAmount;
-
-      return {
-        status: isPending || isUnderpaid ? 'pending' : 'confirmed',
-        txHash: transfer.txid || txid,
-        confirmations,
-        amount,
-        ...(isUnderpaid ? { reason: 'underpaid' } : {})
-      };
+      return normalizeTransferStatus(transfer, txid, transaction.amount);
     } catch (error) {
       console.error('Errore verifica transazione Monero:', error.message);
       return { status: 'error', error: error.message };
@@ -167,29 +323,40 @@ class MoneroService {
   }
 
   /**
+   * Returns wallet RPC readiness hints for FCMP++ rollout.
+   */
+  async getWalletCapabilities() {
+    const [version, height] = await Promise.all([
+      this.callRpc('get_version'),
+      this.callRpc('get_height'),
+    ]);
+
+    return {
+      network: MONERO_NETWORK,
+      version: version.version || version.release || null,
+      height: height.height || 0,
+      fcmpPlusPlusConfigured: this.getConfiguration().fcmpPlusPlusEnabled,
+      supportedTransactionProtocols: this.getConfiguration().fcmpPlusPlusEnabled
+        ? ['ringct', 'fcmp++']
+        : ['ringct'],
+    };
+  }
+
+  /**
    * Crea un wallet RPC per mainnet
    */
   async createWallet(walletName, password) {
     try {
-      const response = await axios.post(MONERO_RPC_URL, {
-        jsonrpc: '2.0',
-        id: '0',
-        method: 'create_wallet',
-        params: {
-          filename: walletName,
-          password: password,
-          language: 'English'
-        }
+      const result = await this.callRpc('create_wallet', {
+        filename: walletName,
+        password: password,
+        language: 'English',
       });
 
-      if (response.data.error) {
-        throw new Error(response.data.error.message);
-      }
-
-      console.log(`✅ Wallet ${walletName} creato su ${MONERO_NETWORK}`);
-      return response.data.result;
+      console.log(`Wallet ${walletName} creato su ${MONERO_NETWORK}`);
+      return result;
     } catch (error) {
-      console.error('❌ Errore creazione wallet:', error.message);
+      console.error('Errore creazione wallet:', error.message);
       throw error;
     }
   }
@@ -199,25 +366,16 @@ class MoneroService {
    */
   async getBalance() {
     try {
-      const response = await axios.post(MONERO_RPC_URL, {
-        jsonrpc: '2.0',
-        id: '0',
-        method: 'get_balance',
-        params: {
-          account_index: 0
-        }
+      const result = await this.callRpc('get_balance', {
+        account_index: 0,
       });
 
-      if (response.data.error) {
-        throw new Error(response.data.error.message);
-      }
-
       return {
-        balance: response.data.result.balance / 1e12, // XMR
-        unlockedBalance: response.data.result.unlocked_balance / 1e12
+        balance: toXmr(result.balance),
+        unlockedBalance: toXmr(result.unlocked_balance),
       };
     } catch (error) {
-      console.error('❌ Errore recupero saldo:', error.message);
+      console.error('Errore recupero saldo:', error.message);
       throw error;
     }
   }
@@ -230,33 +388,24 @@ class MoneroService {
       const params = {
         destinations: [{
           address: destinationAddress,
-          amount: Math.round(amount * 1e12) // converti in atomic units
+          amount: Math.round(amount * ATOMIC_UNITS_PER_XMR),
         }],
         account_index: 0,
         subaddr_indices: [0],
         priority: 1,
-        do_not_relay: false
+        do_not_relay: false,
       };
 
       if (paymentId) {
         params.payment_id = paymentId;
       }
 
-      const response = await axios.post(MONERO_RPC_URL, {
-        jsonrpc: '2.0',
-        id: '0',
-        method: 'transfer',
-        params: params
-      });
+      const result = await this.callRpc('transfer', params);
 
-      if (response.data.error) {
-        throw new Error(response.data.error.message);
-      }
-
-      console.log(`✅ Transazione inviata: ${response.data.result.tx_hash}`);
-      return response.data.result;
+      console.log(`Transazione inviata: ${result.tx_hash}`);
+      return result;
     } catch (error) {
-      console.error('❌ Errore invio transazione:', error.message);
+      console.error('Errore invio transazione:', error.message);
       throw error;
     }
   }
@@ -266,24 +415,14 @@ class MoneroService {
    */
   async checkConnection() {
     try {
-      const response = await axios.post(MONERO_RPC_URL, {
-        jsonrpc: '2.0',
-        id: '0',
-        method: 'get_info'
-      });
-
-      if (response.data.error) {
-        throw new Error(response.data.error.message);
-      }
-
-      const info = response.data.result;
-      console.log(`✅ Connesso a Monero ${MONERO_NETWORK}`);
+      const info = await this.callRpc('get_info');
+      console.log(`Connesso a Monero ${MONERO_NETWORK}`);
       console.log(`   Altura: ${info.height}`);
       console.log(`   Versione: ${info.version}`);
 
       return info;
     } catch (error) {
-      console.error('❌ Errore connessione a Monero:', error.message);
+      console.error('Errore connessione a Monero:', error.message);
       throw error;
     }
   }

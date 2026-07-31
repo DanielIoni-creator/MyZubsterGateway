@@ -7,12 +7,22 @@ const MoneroTransactionSchema = new mongoose.Schema({
   amount: { type: Number, required: true }, // Quantità XMR da pagare
   amountPaid: { type: Number, default: 0 }, // XMR ricevuti
   moneroTxid: { type: String, default: null }, // TXID Monero
+  protocol: {
+    type: String,
+    enum: ['ringct', 'fcmp++', 'unknown'],
+    default: 'unknown'
+  },
+  isFcmpPlusPlus: { type: Boolean, default: false },
   status: { 
     type: String, 
     enum: ['pending', 'confirmed', 'expired', 'failed'],
     default: 'pending' 
   },
   confirmations: { type: Number, default: 0 },
+  confirmationTarget: { type: Number, default: 10 },
+  lastWalletStatus: { type: String, default: null },
+  seenInPool: { type: Boolean, default: false },
+  unlockTime: { type: Number, default: 0 },
   expiresAt: { type: Date, default: () => new Date(Date.now() + 60 * 60 * 1000) }, // 1 ora
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
