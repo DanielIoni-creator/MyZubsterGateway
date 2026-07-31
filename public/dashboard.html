@@ -22,11 +22,35 @@
         .status-ok { background: #d4edda; color: #155724; }
         .status-error { background: #f8d7da; color: #721c24; }
         .status-warning { background: #fff3cd; color: #856404; }
-        .refresh-btn { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px; }
-        .refresh-btn:hover { background: #2980b9; }
+        .btn { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px; margin-right: 10px; }
+        .btn:hover { background: #2980b9; }
+        .btn-success { background: #27ae60; }
+        .btn-success:hover { background: #229954; }
+        .btn-danger { background: #e74c3c; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-sm { padding: 5px 10px; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ecf0f1; }
+        th { background: #f8f9fa; font-weight: 600; }
+        tr:hover { background: #f8f9fa; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        .form-group textarea { min-height: 80px; resize: vertical; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; background: #ecf0f1; border-radius: 5px; cursor: pointer; }
+        .tab.active { background: #3498db; color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
         pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; font-size: 12px; }
         .loading { text-align: center; padding: 40px; color: #7f8c8d; }
-        .monero-status { margin-top: 10px; }
+        .empty-state { text-align: center; padding: 40px; color: #95a5a6; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; }
+        .secret-display { font-family: monospace; background: #f8f9fa; padding: 10px; border-radius: 5px; word-break: break-all; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -36,16 +60,118 @@
             <div class="subtitle">Gateway v1.0.0 - Sistema di pagamenti Monero</div>
         </div>
 
-        <button class="refresh-btn" onclick="loadStats()">🔄 Aggiorna Dati</button>
+        <button class="btn" onclick="loadStats()">🔄 Aggiorna Dati</button>
         <br><br>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('overview')">📊 Overview</div>
+            <div class="tab" onclick="switchTab('webhooks')">🔔 Webhooks</div>
+            <div class="tab" onclick="switchTab('deliveries')">📬 Deliveries</div>
+        </div>
 
         <div id="stats-container">
             <div class="loading">⏳ Caricamento statistiche...</div>
         </div>
 
-        <div class="section">
-            <h2>📊 Dati Raw (JSON)</h2>
-            <pre id="raw-data">Nessun dato caricato</pre>
+        <div id="tab-overview" class="tab-content active">
+            <div class="section">
+                <h2>📊 Statistiche Generali</h2>
+                <div id="overview-stats"></div>
+            </div>
+            <div class="section">
+                <h2>📊 Dati Raw (JSON)</h2>
+                <pre id="raw-data">Nessun dato caricato</pre>
+            </div>
+        </div>
+
+        <div id="tab-webhooks" class="tab-content">
+            <div class="section">
+                <h2>🔔 Gestione Webhook</h2>
+                <button class="btn btn-success" onclick="openModal()">+ Nuovo Webhook</button>
+                <div id="webhook-stats" style="margin-top: 15px;"></div>
+                <div id="webhooks-table-container">
+                    <table id="webhooks-table">
+                        <thead>
+                            <tr>
+                                <th>URL</th>
+                                <th>Eventi</th>
+                                <th>Stato</th>
+                                <th>Fallimenti</th>
+                                <th>Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    <div id="webhooks-empty" class="empty-state" style="display:none;">Nessun webhook registrato</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-deliveries" class="tab-content">
+            <div class="section">
+                <h2>📬 Log Consegne</h2>
+                <div class="form-group">
+                    <label>Filtra per stato</label>
+                    <select id="delivery-status-filter" onchange="loadDeliveries()">
+                        <option value="">Tutti</option>
+                        <option value="pending">Pending</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="failed">Failed</option>
+                        <option value="dead">Dead</option>
+                        <option value="pending_retry">Pending Retry</option>
+                    </select>
+                </div>
+                <table id="deliveries-table">
+                    <thead>
+                        <tr>
+                            <th>Evento</th>
+                            <th>Stato</th>
+                            <th>Tentativi</th>
+                            <th>Creato</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div id="deliveries-empty" class="empty-state" style="display:none;">Nessuna consegna registrata</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="webhook-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Nuovo Webhook</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="webhook-form" onsubmit="saveWebhook(event)">
+                <div class="form-group">
+                    <label>URL *</label>
+                    <input type="url" id="wh-url" required placeholder="https://example.com/webhook">
+                </div>
+                <div class="form-group">
+                    <label>Eventi *</label>
+                    <input type="text" id="wh-events" required placeholder="order.created, order.updated, ...">
+                    <small style="color:#7f8c8d">Separati da virgola</small>
+                </div>
+                <div class="form-group">
+                    <label>Descrizione</label>
+                    <textarea id="wh-description" placeholder="Descrizione opzionale..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Max tentativi</label>
+                    <input type="number" id="wh-max-attempts" value="5" min="1" max="20">
+                </div>
+                <div class="form-group">
+                    <label>Ritardo iniziale (ms)</label>
+                    <input type="number" id="wh-initial-delay" value="5000" min="1000">
+                </div>
+                <div class="form-group">
+                    <label>Ritardo massimo (ms)</label>
+                    <input type="number" id="wh-max-delay" value="60000" min="5000">
+                </div>
+                <button type="submit" class="btn btn-success">Salva</button>
+                <button type="button" class="btn" onclick="closeModal()">Annulla</button>
+            </form>
         </div>
     </div>
 
@@ -53,13 +179,14 @@
         async function loadStats() {
             const container = document.getElementById('stats-container');
             const rawData = document.getElementById('raw-data');
-            
+            const overviewStats = document.getElementById('overview-stats');
+
             container.innerHTML = '<div class="loading">⏳ Caricamento...</div>';
-            
+
             try {
                 const response = await fetch('/api/admin/stats');
                 const data = await response.json();
-                
+
                 if (!data.success) {
                     throw new Error(data.error || 'Errore sconosciuto');
                 }
@@ -74,7 +201,8 @@
 
         function renderStats(stats) {
             const container = document.getElementById('stats-container');
-            
+            const overviewStats = document.getElementById('overview-stats');
+
             const cards = [
                 { label: '👥 Utenti', value: stats.users?.total || 0 },
                 { label: '📦 Ordini Totali', value: stats.orders?.total || 0 },
@@ -97,7 +225,6 @@
             });
             html += '</div>';
 
-            // Status servizi
             html += `<div class="section" style="margin-top:20px;">
                 <h2>🔧 Stato Servizi</h2>
                 <div>
@@ -110,6 +237,177 @@
             </div>`;
 
             container.innerHTML = html;
+            overviewStats.innerHTML = html;
+        }
+
+        async function loadWebhooks() {
+            const tbody = document.querySelector('#webhooks-table tbody');
+            const empty = document.getElementById('webhooks-empty');
+            const statsDiv = document.getElementById('webhook-stats');
+
+            try {
+                const response = await fetch('/api/webhooks');
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error);
+                }
+
+                if (data.data.length === 0) {
+                    tbody.innerHTML = '';
+                    empty.style.display = 'block';
+                    statsDiv.innerHTML = '';
+                    return;
+                }
+
+                empty.style.display = 'none';
+                const total = data.pagination.total;
+                const active = data.data.filter(w => w.active).length;
+                statsDiv.innerHTML = `<p><strong>Totale:</strong> ${total} | <strong>Attivi:</strong> ${active} | <strong>Disattivi:</strong> ${total - active}</p>`;
+
+                tbody.innerHTML = data.data.map(wh => `
+                    <tr>
+                        <td><a href="${wh.url}" target="_blank">${wh.url}</a></td>
+                        <td>${wh.events.join(', ')}</td>
+                        <td><span class="status-badge ${wh.active ? 'status-ok' : 'status-error'}">${wh.active ? 'Attivo' : 'Disattivo'}</span></td>
+                        <td>${wh.failureCount || 0}</td>
+                        <td>
+                            <button class="btn btn-sm" onclick="testWebhook('${wh._id}')">Test</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteWebhook('${wh._id}')">Elimina</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error loading webhooks:', error);
+            }
+        }
+
+        async function loadDeliveries() {
+            const statusFilter = document.getElementById('delivery-status-filter').value;
+            const tbody = document.querySelector('#deliveries-table tbody');
+            const empty = document.getElementById('deliveries-empty');
+
+            try {
+                const url = new URL('/api/webhooks/deliveries', window.location.origin);
+                if (statusFilter) url.searchParams.append('status', statusFilter);
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error);
+                }
+
+                if (data.data.length === 0) {
+                    tbody.innerHTML = '';
+                    empty.style.display = 'block';
+                    return;
+                }
+
+                empty.style.display = 'none';
+                tbody.innerHTML = data.data.map(d => `
+                    <tr>
+                        <td>${d.event}</td>
+                        <td><span class="status-badge ${getStatusClass(d.status)}">${d.status}</span></td>
+                        <td>${d.attempts.length}</td>
+                        <td>${new Date(d.createdAt).toLocaleString()}</td>
+                    </tr>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error loading deliveries:', error);
+            }
+        }
+
+        function getStatusClass(status) {
+            switch (status) {
+                case 'delivered': return 'status-ok';
+                case 'failed':
+                case 'dead': return 'status-error';
+                case 'pending_retry': return 'status-warning';
+                default: return 'status-warning';
+            }
+        }
+
+        function openModal() {
+            document.getElementById('webhook-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('webhook-modal').classList.remove('active');
+            document.getElementById('webhook-form').reset();
+        }
+
+        async function saveWebhook(event) {
+            event.preventDefault();
+            const url = document.getElementById('wh-url').value;
+            const events = document.getElementById('wh-events').value.split(',').map(e => e.trim()).filter(Boolean);
+            const description = document.getElementById('wh-description').value;
+            const retryConfig = {
+                maxAttempts: parseInt(document.getElementById('wh-max-attempts').value) || 5,
+                initialDelayMs: parseInt(document.getElementById('wh-initial-delay').value) || 5000,
+                maxDelayMs: parseInt(document.getElementById('wh-max-delay').value) || 60000,
+            };
+
+            try {
+                const response = await fetch('/api/webhooks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url, events, description, retryConfig }),
+                });
+
+                const data = await response.json();
+                if (!data.success) {
+                    alert('Errore: ' + data.error);
+                    return;
+                }
+
+                alert(`Webhook creato!\nSecret: ${data.data.secret}\nSalvalo ora, non verrà più mostrato.`);
+                closeModal();
+                loadWebhooks();
+            } catch (error) {
+                alert('Errore: ' + error.message);
+            }
+        }
+
+        async function testWebhook(id) {
+            try {
+                const response = await fetch(`/api/webhooks/${id}/test`, { method: 'POST' });
+                const data = await response.json();
+                if (data.success) {
+                    alert(`Test inviato!\nConsegnato: ${data.result.delivered}\nTentativi: ${data.result.attempts}`);
+                } else {
+                    alert('Errore: ' + data.error);
+                }
+            } catch (error) {
+                alert('Errore: ' + error.message);
+            }
+        }
+
+        async function deleteWebhook(id) {
+            if (!confirm('Sei sicuro di voler eliminare questo webhook?')) return;
+            try {
+                const response = await fetch(`/api/webhooks/${id}`, { method: 'DELETE' });
+                const data = await response.json();
+                if (data.success) {
+                    loadWebhooks();
+                } else {
+                    alert('Errore: ' + data.error);
+                }
+            } catch (error) {
+                alert('Errore: ' + error.message);
+            }
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tab).classList.add('active');
+
+            if (tab === 'webhooks') loadWebhooks();
+            if (tab === 'deliveries') loadDeliveries();
         }
 
         function formatUptime(seconds) {
@@ -124,11 +422,7 @@
             return `${secs}s`;
         }
 
-        // Carica i dati all'avvio
         loadStats();
-
-        // Aggiornamento automatico ogni 60 secondi
-        setInterval(loadStats, 60000);
     </script>
 </body>
 </html>
