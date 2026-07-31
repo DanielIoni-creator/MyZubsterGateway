@@ -78,6 +78,11 @@ const activityRoutes = require('./routes/activity');
 app.use('/api/activity', activityRoutes);
 app.use('/api/admin/activity', activityRoutes.adminRouter);
 
+
+// Escrow Gateway routes
+const escrowGatewayRoutes = require('./src/routes/escrowGateway');
+app.use('/api/escrow', escrowGatewayRoutes);
+
 // ===== ERROR HANDLER =====
 app.use((err, req, res, next) => {
   console.error('Error:', err);
