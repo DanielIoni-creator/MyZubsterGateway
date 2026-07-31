@@ -48,7 +48,11 @@ jest.mock('../../../models/Webhook', () => {
     findById: jest.fn((id) => {
       const found = items.find((i) => String(i._id) === String(id));
       if (!found) return Promise.resolve(null);
-      return Promise.resolve({ ...found, toAdminJSON: () => toAdminShape(found) });
+      return Promise.resolve({
+        ...found,
+        toAdminJSON: () => toAdminShape(found),
+        toClientJSON: () => toClientShape(found),
+      });
     }),
     create: jest.fn(async (doc) => {
       const id = `wh_${nextId++}`;
@@ -90,6 +94,7 @@ const express = require('express');
 const request = require('supertest');
 const router = require('../../../routes/webhooks');
 const Webhook = require('../../../models/Webhook');
+const WebhookDelivery = require('../../../models/WebhookDelivery');
 
 function buildApp() {
   const app = express();
@@ -159,6 +164,33 @@ describe('routes/webhooks', () => {
     // Masked secret marker
     expect(res.body.data[0].secret).toBeUndefined();
     expect(res.body.data[0].secretPreview).toMatch(/…/);
+  });
+
+  test('GET /api/webhooks/:id never returns the full signing secret', async () => {
+    const app = buildApp();
+    const created = await request(app).post('/api/webhooks').send({
+      events: ['order.created'],
+      url: 'https://example.test/hook',
+    });
+
+    const res = await request(app)
+      .get(`/api/webhooks/${created.body.data.id}`)
+      .expect(200);
+
+    expect(res.body.data.secret).toBeUndefined();
+    expect(res.body.data.secretPreview).toMatch(/…/);
+  });
+
+  test('GET /api/webhooks/deliveries/list is not shadowed by /:id', async () => {
+    const app = buildApp();
+    const res = await request(app)
+      .get('/api/webhooks/deliveries/list')
+      .expect(200);
+
+    expect(res.body.success).toBe(true);
+    expect(res.body.data).toEqual([]);
+    expect(WebhookDelivery.find).toHaveBeenCalled();
+    expect(Webhook.findById).not.toHaveBeenCalledWith('deliveries');
   });
 
   test('DELETE /api/webhooks/:id returns success or 404', async () => {

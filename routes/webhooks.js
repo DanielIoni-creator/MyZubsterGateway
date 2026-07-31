@@ -12,7 +12,7 @@ const express = require('express');
 const Joi = require('joi');
 const Webhook = require('../models/Webhook');
 const WebhookDelivery = require('../models/WebhookDelivery');
-const WebhookService = require('../services/webhookService');
+const WebhookService = require('../services/outboundWebhookService');
 
 const router = express.Router();
 
@@ -102,11 +102,26 @@ router.post('/', adminOnly, async (req, res, next) => {
   }
 });
 
+// Delivery status inspection must be declared before `/:id`.
+router.get('/deliveries/list', adminOnly, async (req, res, next) => {
+  try {
+    const filter = {};
+    if (req.query.webhook) filter.webhook = req.query.webhook;
+    if (req.query.finalStatus) filter.finalStatus = req.query.finalStatus;
+    const items = await WebhookDelivery.find(filter)
+      .sort({ createdAt: -1 })
+      .limit(parseInt(req.query.limit, 10) || 100);
+    res.json({ success: true, data: items });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.get('/:id', adminOnly, async (req, res, next) => {
   try {
     const wh = await Webhook.findById(req.params.id);
     if (!wh) return res.status(404).json({ success: false, error: 'not found' });
-    res.json({ success: true, data: wh.toAdminJSON() });
+    res.json({ success: true, data: wh.toClientJSON() });
   } catch (err) {
     next(err);
   }
@@ -128,7 +143,7 @@ router.patch('/:id', adminOnly, async (req, res, next) => {
     if (value.active !== undefined) wh.active = value.active;
     if (value.retryConfig) wh.retryConfig = { ...wh.retryConfig.toObject(), ...value.retryConfig };
     await wh.save();
-    res.json({ success: true, data: wh.toAdminJSON() });
+    res.json({ success: true, data: wh.toClientJSON() });
   } catch (err) {
     next(err);
   }
@@ -149,21 +164,6 @@ router.post('/:id/test', adminOnly, async (req, res, next) => {
     const service = new WebhookService();
     const result = await service.testWebhook(req.params.id, req.body || { test: true });
     res.json({ success: true, data: result });
-  } catch (err) {
-    next(err);
-  }
-});
-
-// Delivery status inspection for admins
-router.get('/deliveries/list', adminOnly, async (req, res, next) => {
-  try {
-    const filter = {};
-    if (req.query.webhook) filter.webhook = req.query.webhook;
-    if (req.query.finalStatus) filter.finalStatus = req.query.finalStatus;
-    const items = await WebhookDelivery.find(filter)
-      .sort({ createdAt: -1 })
-      .limit(parseInt(req.query.limit, 10) || 100);
-    res.json({ success: true, data: items });
   } catch (err) {
     next(err);
   }

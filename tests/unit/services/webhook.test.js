@@ -27,7 +27,7 @@ const {
   buildBackoff,
   SIGNATURE_HEADER,
   EVENT_HEADER,
-} = require('../../../services/webhookService');
+} = require('../../../services/outboundWebhookService');
 
 function okTransport() {
   return jest.fn(async (url, payload, options) => ({

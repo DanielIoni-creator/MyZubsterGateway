@@ -9,7 +9,7 @@ const MoneroTransactionSchema = new mongoose.Schema({
   moneroTxid: { type: String, default: null }, // TXID Monero
   status: { 
     type: String, 
-    enum: ['pending', 'confirmed', 'expired', 'failed'], 
+    enum: ['pending', 'confirmed', 'expired', 'failed'],
     default: 'pending' 
   },
   confirmations: { type: Number, default: 0 },

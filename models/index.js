@@ -10,8 +10,10 @@ module.exports = {
   Review: require('./Review'),
   Webhook: require('./Webhook'),
   WebhookDelivery: require('./WebhookDelivery'),
+  WebhookLog: require('./WebhookLog'),
+  ActivityLog: require('./ActivityLog'),
+  GardenReading: require('./GardenReading'),
 };
-// Side-effect: register Order lifecycle listeners that fan out webhook events
-// for order.* state transitions. Trigger only fires after the document is
-// persisted, so listeners see the canonical post-save state.
+
+// Register post-save order lifecycle listeners after all models are loaded.
 orderHook.attach();

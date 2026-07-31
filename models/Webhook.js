@@ -59,13 +59,13 @@ const WebhookSchema = new mongoose.Schema(
 WebhookSchema.index({ active: 1, events: 1 });
 
 // Don't leak the secret in JSON output by default; callers that need it can
-// opt-in with `.toObject({ includeSecret: true })` via `toAdminJSON()`.
+// use `toAdminJSON()` only for the one-time creation response.
 WebhookSchema.methods.toAdminJSON = function toAdminJSON() {
   const obj = this.toObject();
   obj.id = obj._id.toString();
   delete obj._id;
   delete obj.__v;
-  // Secret is included for admin tooling but masked in normal listings.
+  // Secret is included only in the one-time registration response.
   return obj;
 };
 

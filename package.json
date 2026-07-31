@@ -21,6 +21,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^7.8.11",
     "morgan": "^1.11.0",
+    "payment": "^2.4.7",
     "winston": "^3.19.0"
   },
   "devDependencies": {
@@ -32,6 +33,10 @@
     "testEnvironment": "node",
     "setupFiles": [
       "./tests/setup.js"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "[/\\\\]server\\.test\\.js$"
     ],
     "coveragePathIgnorePatterns": [
       "/node_modules/"

@@ -1,3 +1,7 @@
+> **Part of the [MyZubster ecosystem](https://github.com/MyZubster-Ecosystem)**
+
+> **Part of the [MyZubster ecosystem](https://github.com/MyZubster-Ecosystem)**
+
 # 🌐 MyZubster Gateway
 
 **Backend API for MyZubster - Monero Payment Gateway & Animal Registry**
@@ -84,7 +88,7 @@ If you believe in this project, you can support us with a donation in Monero (XM
 
 ```bash
 # 1. Clone the repository
-git clone git@github.com:DanielIoni-creator/MyZubsterGateway.git
+git clone git@github.com:MyZubster-Ecosystem/MyZubsterGateway.git
 cd MyZubsterGateway
 
 # 2. Install dependencies
@@ -265,11 +269,38 @@ How to Claim
 📄 License
 
 MIT – Free for everyone to use and modify.
-💚 Built with ❤️ for animals and plants by DanielIoni-creator
+💚 Built with ❤️ for animals and plants by MyZubster-Ecosystem
 
-🌐 GitHub: @DanielIoni-creator
+🌐 GitHub: @MyZubster-Ecosystem
 🌟 Let's Build a Decentralized Ecosystem Together!
 
 Every contribution counts. Join us in building a transparent, privacy-first platform for the world.
 
-# DanielIoni-creator
+# MyZubster-Ecosystem
+
+## 🌐 Ecosystem Hub
+
+**MyZubster Ecosystem**: https://github.com/MyZubster-Ecosystem
+
+## 🌐 Ecosystem Hub
+
+**MyZubster Ecosystem**: https://github.com/MyZubster-Ecosystem
+
+
+## 💬 Community
+
+- **Telegram**: [@MyZubster_bot](https://t.me/MyZubster_bot) – for updates, support, and discussions.
+
+
+## 🌐 Connect with Us
+
+- **Telegram**: [@MyZubster_bot](https://t.me/MyZubster_bot) – updates, support, and discussions
+- **Twitter / X**: [@DanielIoni](https://twitter.com/DanielIoni) – project announcements and thoughts
+- **TikTok**: [@danielioni](https://tiktok.com/@danielioni) – behind the scenes and project updates
+- **Instagram**: [@danielioni](https://instagram.com/danielioni) – visuals and community stories
+- **dev.to**: [Daniel Ioni](https://dev.to/danielioni) – technical articles and project updates
+
+
+## 💬 Community
+
+- **Telegram Channel**: [@myzubster](https://t.me/myzubster) – follow for updates, news, and discussions about the MyZubster ecosystem.

@@ -12,7 +12,7 @@ function emit(event, order) {
   // Defer require to break any potential circular dep with services/.
   let WebhookService;
   try {
-    WebhookService = require('../services/webhookService');
+    WebhookService = require('../services/outboundWebhookService');
   } catch (err) {
     // Mongoose may not be wired in tests; silently no-op.
     return;
