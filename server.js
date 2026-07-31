@@ -78,6 +78,11 @@ const activityRoutes = require('./routes/activity');
 app.use('/api/activity', activityRoutes);
 app.use('/api/admin/activity', activityRoutes.adminRouter);
 
+
+// Multisig wallet routes
+const multisigRoutes = require('./src/routes/multisig');
+app.use('/api/multisig', multisigRoutes);
+
 // ===== ERROR HANDLER =====
 app.use((err, req, res, next) => {
   console.error('Error:', err);
