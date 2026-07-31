@@ -69,6 +69,10 @@ app.use('/api/users', userRoutes);
 const gardenRoutes = require('./routes/garden');
 app.use('/api/garden', gardenRoutes);
 
+
+// Plants routes
+const plantsRoutes = require('./routes/plants');
+app.use('/api/plants', plantsRoutes);
 // Webhook verification routes
 const webhookRoutes = require('./routes/webhook');
 app.use('/api/webhook', webhookRoutes);
