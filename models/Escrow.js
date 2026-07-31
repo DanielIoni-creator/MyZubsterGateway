@@ -20,6 +20,15 @@ const EscrowSchema = new mongoose.Schema({
   disputedAt: { type: Date },
   resolvedAt: { type: Date },
   aiDecision: { type: Object, default: null },
+  // AI Agent (Third Signer) fields
+  aiAgentDecision: {
+    type: String,
+    enum: ['pending', 'approve', 'reject'],
+    default: 'pending'
+  },
+  aiAgentSignature: { type: String, default: null },
+  aiAgentSignedAt: { type: Date, default: null },
+  aiAgentConfidence: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
   expiresAt: { type: Date, default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }
 });
