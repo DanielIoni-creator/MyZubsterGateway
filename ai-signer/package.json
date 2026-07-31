@@ -1,0 +1,1 @@
+{"name":"@myzubster/ai-signer","version":"1.0.0","description":"AI-powered multisig agent (third signer) for MyZubster Gateway — Bounty #65","main":"index.js","scripts":{"test":"node test.js"},"keywords":["multisig","ai","escrow","monero"],"license":"MIT","engines":{"node":">=16.0.0"}}
