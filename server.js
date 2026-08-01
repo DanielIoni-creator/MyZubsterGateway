@@ -3,10 +3,9 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
-  res.send('MyZubster Gateway is running!');
+  res.send('MyZubster Gateway is running and listening!');
 });
 
-// Avvia il server
 app.listen(port, () => {
-  console.log(`MyZubster Gateway listening on port ${port}`);
+  console.log(`MyZubster Gateway is listening on port ${port}`);
 });
