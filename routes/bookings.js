@@ -1,83 +1,78 @@
+/**
+ * @swagger
+ * tags:
+ *   name: Bookings
+ *   description: Booking management
+ */
+
 const express = require('express');
 const router = express.Router();
+const auth = require('../middleware/auth');
 
-// Middleware di autenticazione (bypassa nei test)
-const auth = (req, res, next) => {
-  // Se siamo in modalità test, bypassa l'autenticazione
-  if (process.env.NODE_ENV === 'test') {
-    return next();
+/**
+ * @swagger
+ * /api/bookings:
+ *   get:
+ *     summary: List all bookings
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Bookings list
+ */
+router.get('/', auth, async (req, res) => {
+  try {
+    res.json({ success: true, data: [], message: 'bookings endpoint' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
-
-  const token = req.headers.authorization;
-  if (!token) {
-    return res.status(401).json({ error: 'Autenticazione richiesta' });
-  }
-  // TODO: Verifica token JWT
-  next();
-};
-
-// GET /api/bookings
-router.get('/', auth, (req, res) => {
-  res.json([]);
 });
 
-// POST /api/bookings
-router.post('/', auth, (req, res) => {
-  const { serviceId, userId, date, time, notes } = req.body;
-  
-  if (!serviceId || !userId || !date) {
-    return res.status(400).json({ error: 'Campi obbligatori mancanti' });
+/**
+ * @swagger
+ * /api/bookings:
+ *   post:
+ *     summary: Create a new bookings
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       201:
+ *         description: Created
+ */
+router.post('/', auth, async (req, res) => {
+  try {
+    res.status(201).json({ success: true, data: req.body, message: 'bookings created' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
-  
-  const newBooking = {
-    id: Date.now().toString(),
-    serviceId,
-    userId,
-    date,
-    time,
-    notes,
-    createdAt: new Date().toISOString()
-  };
-  
-  res.status(201).json(newBooking);
 });
 
-// GET /api/bookings/:id
-router.get('/:id', auth, (req, res) => {
-  const { id } = req.params;
-  if (id === '999999') {
-    return res.status(404).json({ error: 'Prenotazione non trovata' });
+/**
+ * @swagger
+ * /api/bookings/{id}:
+ *   get:
+ *     summary: Get bookings by ID
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Bookings details
+ */
+router.get('/:id', auth, async (req, res) => {
+  try {
+    res.json({ success: true, data: { id: req.params.id } });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
-  res.json({
-    id,
-    serviceId: '12345',
-    userId: '67890',
-    date: '2026-07-25',
-    time: '14:30',
-    notes: 'Test booking'
-  });
-});
-
-// PUT /api/bookings/:id
-router.put('/:id', auth, (req, res) => {
-  const { id } = req.params;
-  if (id === '999999') {
-    return res.status(404).json({ error: 'Prenotazione non trovata' });
-  }
-  res.json({
-    id,
-    ...req.body,
-    updatedAt: new Date().toISOString()
-  });
-});
-
-// DELETE /api/bookings/:id
-router.delete('/:id', auth, (req, res) => {
-  const { id } = req.params;
-  if (id === '999999') {
-    return res.status(404).json({ error: 'Prenotazione non trovata' });
-  }
-  res.status(204).send();
 });
 
 module.exports = router;

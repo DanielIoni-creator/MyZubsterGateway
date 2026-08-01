@@ -1,100 +1,177 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const dotenv = require('dotenv');
-const path = require('path');
-
-// Carica le variabili d'ambiente
-dotenv.config();
+const morgan = require('morgan');
+const compression = require('compression');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// ==================== MIDDLEWARE ====================
-
-// Sicurezza
+// ===== MIDDLEWARE =====
 app.use(helmet());
-
-// CORS
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
-  credentials: true
-}));
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minuti
-  max: 100, // 100 richieste per IP
-  message: 'Too many requests, please try again later.'
-});
-app.use('/api', limiter);
-
-// Parser
+app.use(cors());
+app.use(compression());
+app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// ==================== ROUTES ====================
+// ===== DATABASE =====
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myzubster', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('MongoDB connected'))
+.catch(err => console.error('MongoDB error:', err));
+
+// ===== SWAGGER UI =====
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  explorer: true,
+  customSiteTitle: 'MyZubsterGateway API Docs',
+}));
+
+// ===== ROUTES =====
 
 // Health check
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
+/**
+ * @swagger
+ * /health:
+ *   get:
+ *     summary: Health check endpoint
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: Server is healthy
+ */
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'OK',
+    message: 'MyZubsterGateway is running',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    version: '1.0.0'
   });
 });
 
-// Routes principali
+// Auth routes
 const authRoutes = require('./routes/auth');
-const orderRoutes = require('./routes/orders');
-const tokenRoutes = require('./routes/tokens');
-const moneroRoutes = require('./routes/monero');
-const webhookRoutes = require('./routes/webhooks');
-const gardenRoutes = require('./routes/garden');
-
 app.use('/api/auth', authRoutes);
-app.use('/api/orders', orderRoutes);
+
+// Token routes
+const tokenRoutes = require('./routes/tokens');
 app.use('/api/tokens', tokenRoutes);
-app.use('/api/monero', moneroRoutes);
-app.use('/api/webhooks', webhookRoutes);
+
+// User routes
+const userRoutes = require('./routes/users');
+app.use('/api/users', userRoutes);
+
+// Order routes
+const orderRoutes = require('./routes/orders');
+app.use('/api/orders', orderRoutes);
+
+// Admin routes
+const adminRoutes = require('./routes/admin');
+app.use('/api/admin', adminRoutes);
+
+// Garden sensor routes
+const gardenRoutes = require('./routes/garden');
 app.use('/api/garden', gardenRoutes);
 
-// ==================== ERROR HANDLING ====================
+// Webhook verification routes
+const webhookRoutes = require('./routes/webhook');
+app.use('/api/webhook', webhookRoutes);
 
-// Gestione errori globale
+// Webhook outgoing routes
+const webhooksRoutes = require('./routes/webhooks');
+app.use('/api/webhooks', webhooksRoutes);
+
+// Activity audit log routes
+const activityRoutes = require('./routes/activity');
+app.use('/api/activity', activityRoutes);
+app.use('/api/admin/activity', activityRoutes.adminRouter);
+
+// Marketplace routes
+const marketplaceRoutes = require('./routes/marketplace');
+app.use('/api/marketplace', marketplaceRoutes);
+
+// Offer routes
+const offerRoutes = require('./routes/offers');
+app.use('/api/offers', offerRoutes);
+
+// AI routes
+const aiRoutes = require('./routes/ai');
+app.use('/api/ai', aiRoutes);
+
+// Booking routes
+const bookingRoutes = require('./routes/bookings');
+app.use('/api/bookings', bookingRoutes);
+
+// Escrow routes
+const escrowRoutes = require('./routes/escrow');
+app.use('/api/escrow', escrowRoutes);
+
+// Governance routes
+const governanceRoutes = require('./routes/governance');
+app.use('/api/governance', governanceRoutes);
+
+// Onion routes
+const onionRoutes = require('./routes/onion');
+app.use('/api/onion', onionRoutes);
+
+// OSINT routes
+const osintRoutes = require('./routes/osint');
+app.use('/api/osint', osintRoutes);
+
+// Payment routes
+const paymentRoutes = require('./routes/payments');
+app.use('/api/payments', paymentRoutes);
+
+// Reputation routes
+const reputationRoutes = require('./routes/reputation');
+app.use('/api/reputation', reputationRoutes);
+
+// Request routes
+const requestRoutes = require('./routes/requests');
+app.use('/api/requests', requestRoutes);
+
+// Review routes
+const reviewRoutes = require('./routes/reviews');
+app.use('/api/reviews', reviewRoutes);
+
+// Scanner routes
+const scannerRoutes = require('./routes/scanner');
+app.use('/api/scanner', scannerRoutes);
+
+// Skill routes
+const skillRoutes = require('./routes/skills');
+app.use('/api/skills', skillRoutes);
+
+// Tari blockchain routes
+const tariRoutes = require('./routes/tari');
+app.use('/api/tari', tariRoutes);
+
+// Transaction routes
+const transactionRoutes = require('./routes/transactions');
+app.use('/api/transactions', transactionRoutes);
+
+// ===== ERROR HANDLER =====
 app.use((err, req, res, next) => {
-  console.error('Error:', err.message);
-  console.error('Stack:', err.stack);
+  console.error('Error:', err);
+  const message = err.message || 'Internal server error';
   res.status(err.status || 500).json({
     success: false,
-    message: err.message || 'Internal server error'
+    message
   });
 });
 
-// ==================== DATABASE CONNECTION ====================
+// ===== START SERVER =====
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`http://localhost:${PORT}`);
+  console.log(`API Docs: http://localhost:${PORT}/api/docs`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+});
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/myzubster';
-
-mongoose.connect(MONGODB_URI)
-  .then(() => {
-    console.log('✅ Connected to MongoDB');
-  })
-  .catch((error) => {
-    console.error('❌ MongoDB connection error:', error);
-    process.exit(1);
-  });
-
-// ==================== START SERVER ====================
-
-// Avvia il server solo se non siamo in ambiente di test
-if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`🚀 MyZubster Gateway is running on port ${PORT}`);
-    console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
-  });
-}
-
-// Esporta app per i test
 module.exports = app;

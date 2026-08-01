@@ -1,85 +1,82 @@
+/**
+ * @swagger
+ * tags:
+ *   name: Admin
+ *   description: Admin-only endpoints
+ */
+
 const express = require('express');
 const router = express.Router();
-const mongoose = require('mongoose');
+const auth = require('../middleware/auth');
+const User = require('../models/User');
+const Order = require('../models/Order');
 
-// Middleware di autenticazione admin (da implementare)
-const isAdmin = (req, res, next) => {
-  // Per ora, bypass per test
-  // TODO: Aggiungere verifica JWT con ruolo admin
+// Admin auth middleware
+const adminAuth = async (req, res, next) => {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ success: false, error: 'Admin access required' });
+  }
   next();
 };
 
-// GET /api/admin/stats - Statistiche di sistema
-router.get('/stats', isAdmin, async (req, res) => {
+/**
+ * @swagger
+ * /api/admin/dashboard:
+ *   get:
+ *     summary: Get admin dashboard stats
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Dashboard statistics
+ */
+router.get('/dashboard', auth, adminAuth, async (req, res) => {
   try {
-    // Statistiche database
-    const db = mongoose.connection.db;
-    const collections = await db.listCollections().toArray();
-    
-    // Conta documenti per collezione
-    const collectionStats = {};
-    for (const coll of collections) {
-      const count = await db.collection(coll.name).countDocuments();
-      collectionStats[coll.name] = count;
-    }
-
-    // Statistiche di sistema (da migliorare)
-    const stats = {
-      uptime: process.uptime(),
-      memory: process.memoryUsage(),
-      nodeVersion: process.version,
-      platform: process.platform,
-      timestamp: new Date().toISOString(),
-      database: {
-        collections: collections.length,
-        documents: collectionStats,
-      },
-      payments: {
-        total: await db.collection('payments')?.countDocuments() || 0,
-        pending: await db.collection('payments')?.countDocuments({ status: 'pending' }) || 0,
-        completed: await db.collection('payments')?.countDocuments({ status: 'completed' }) || 0,
-      },
-      orders: {
-        total: await db.collection('orders')?.countDocuments() || 0,
-        open: await db.collection('orders')?.countDocuments({ status: 'open' }) || 0,
-        completed: await db.collection('orders')?.countDocuments({ status: 'completed' }) || 0,
-      },
-      users: {
-        total: await db.collection('users')?.countDocuments() || 0,
-      },
-    };
-
-    res.json({ success: true, data: stats });
-  } catch (error) {
-    console.error('Errore stats:', error);
-    res.status(500).json({ success: false, error: error.message });
+    const userCount = await User.countDocuments();
+    const orderCount = await Order.countDocuments();
+    const pendingOrders = await Order.countDocuments({ status: 'pending' });
+    res.json({ success: true, data: { userCount, orderCount, pendingOrders } });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// GET /api/admin/health - Health check dettagliato
-router.get('/health', isAdmin, async (req, res) => {
-  const health = {
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    services: {
-      mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-      monero: 'checking...', // Da implementare con ping al nodo Monero
-    },
-    version: process.env.npm_package_version || '1.0.0',
-  };
-
-  // Test connessione Monero (se disponibile)
+/**
+ * @swagger
+ * /api/admin/users:
+ *   get:
+ *     summary: Admin list all users
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User list
+ */
+router.get('/users', auth, adminAuth, async (req, res) => {
   try {
-    const moneroService = require('../services/moneroService');
-    if (moneroService && moneroService.getDaemonInfo) {
-      const info = await moneroService.getDaemonInfo();
-      health.services.monero = info ? 'connected' : 'unreachable';
-    }
-  } catch (e) {
-    health.services.monero = 'unavailable';
+    const users = await User.find().select('-password').sort({ createdAt: -1 }).lean();
+    res.json({ success: true, data: users });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
+});
 
-  res.json(health);
+/**
+ * @swagger
+ * /api/admin/settings:
+ *   get:
+ *     summary: Get system settings
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: System settings
+ */
+router.get('/settings', auth, adminAuth, (req, res) => {
+  res.json({ success: true, data: { maintenance: false, version: '1.0.0' } });
 });
 
 module.exports = router;

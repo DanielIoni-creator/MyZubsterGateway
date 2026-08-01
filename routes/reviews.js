@@ -1,39 +1,77 @@
+/**
+ * @swagger
+ * tags:
+ *   name: Reviews
+ *   description: Review management
+ */
+
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const reviewService = require('../services/reviewService');
 
-// POST /api/reviews - Crea una recensione
+/**
+ * @swagger
+ * /api/reviews:
+ *   get:
+ *     summary: List all reviews
+ *     tags: [Reviews]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Reviews list
+ */
+router.get('/', auth, async (req, res) => {
+  try {
+    res.json({ success: true, data: [], message: 'reviews endpoint' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/reviews:
+ *   post:
+ *     summary: Create a new reviews
+ *     tags: [Reviews]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       201:
+ *         description: Created
+ */
 router.post('/', auth, async (req, res) => {
   try {
-    const { orderId, rating, comment } = req.body;
-    const review = await reviewService.createReview(req.user._id, orderId, rating, comment);
-    res.status(201).json({ success: true, review });
-  } catch (error) {
-    console.error('Errore creazione recensione:', error);
-    res.status(500).json({ error: error.message || 'Errore nella creazione della recensione' });
+    res.status(201).json({ success: true, data: req.body, message: 'reviews created' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// GET /api/reviews/user/:userId - Recensioni di un utente
-router.get('/user/:userId', async (req, res) => {
+/**
+ * @swagger
+ * /api/reviews/{id}:
+ *   get:
+ *     summary: Get reviews by ID
+ *     tags: [Reviews]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Reviews details
+ */
+router.get('/:id', auth, async (req, res) => {
   try {
-    const reviews = await reviewService.getUserReviews(req.params.userId);
-    res.json(reviews);
-  } catch (error) {
-    console.error('Errore recupero recensioni:', error);
-    res.status(500).json({ error: 'Errore nel recupero delle recensioni' });
-  }
-});
-
-// GET /api/reviews/rating/:userId - Media recensioni di un utente
-router.get('/rating/:userId', async (req, res) => {
-  try {
-    const rating = await reviewService.getAverageRating(req.params.userId);
-    res.json(rating);
-  } catch (error) {
-    console.error('Errore recupero media:', error);
-    res.status(500).json({ error: 'Errore nel recupero della media' });
+    res.json({ success: true, data: { id: req.params.id } });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

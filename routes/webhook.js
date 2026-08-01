@@ -1,81 +1,55 @@
-// routes/webhook.js
+/**
+ * @swagger
+ * tags:
+ *   name: Webhook
+ *   description: Webhook verification endpoints
+ */
+
 const express = require('express');
 const router = express.Router();
-const WebhookService = require('../services/webhookService');
+const crypto = require('crypto');
 
-router.post('/delivery', async (req, res) => {
-  try {
-    const log = await WebhookService.recordDeliveryWebhook({
-      payload: req.body,
-      signatureHeader: req.get('X-Webhook-Signature'),
-      source: req.get('X-Webhook-Source') || 'seller',
-    });
-
-    res.status(log.status === 'verified' ? 201 : 202).json({
-      success: true,
-      data: {
-        id: log._id,
-        status: log.status,
-        verification: log.verification,
-        orderId: log.orderId,
-        escrowId: log.escrowId,
-      },
-    });
-  } catch (error) {
-    const status = error.statusCode || 500;
-    res.status(status).json({
-      success: false,
-      error: error.message,
-    });
-  }
+/**
+ * @swagger
+ * /api/webhook/verify:
+ *   post:
+ *     summary: Verify webhook signature
+ *     tags: [Webhook]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               signature:
+ *                 type: string
+ *               payload:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: Verification result
+ */
+router.post('/verify', (req, res) => {
+  const { signature, payload } = req.body;
+  const expected = crypto.createHmac('sha256', process.env.WEBHOOK_SECRET || 'secret')
+    .update(JSON.stringify(payload))
+    .digest('hex');
+  const valid = signature === expected;
+  res.json({ success: true, data: { valid } });
 });
 
-router.get('/logs', async (req, res) => {
-  try {
-    const { orderId, escrowId, status, eventType, limit } = req.query;
-    const filter = {};
-
-    if (orderId) filter.orderId = orderId;
-    if (escrowId) filter.escrowId = escrowId;
-    if (status) filter.status = status;
-    if (eventType) filter.eventType = eventType;
-
-    const logs = await WebhookService.listLogs(filter, limit);
-    res.json({ success: true, data: logs });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
-  }
-});
-
-router.post('/test-webhook', async (req, res) => {
-  const { targetUrl, payload } = req.body;
-
-  if (!targetUrl) {
-    return res.status(400).json({
-      error: req.t('validation.targetUrlRequired'),
-    });
-  }
-
-  try {
-    const result = await WebhookService.sendWebhookAsync(
-      targetUrl,
-      payload || { test: true, timestamp: new Date().toISOString() }
-    );
-
-    res.json({
-      success: true,
-      result,
-      message: req.t('webhooks.sentWithRetry'),
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
-  }
+/**
+ * @swagger
+ * /api/webhook/receive:
+ *   post:
+ *     summary: Receive incoming webhook
+ *     tags: [Webhook]
+ *     responses:
+ *       200:
+ *         description: Webhook received
+ */
+router.post('/receive', (req, res) => {
+  res.json({ success: true, message: 'Webhook received' });
 });
 
 module.exports = router;

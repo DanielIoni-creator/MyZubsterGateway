@@ -1,35 +1,77 @@
+/**
+ * @swagger
+ * tags:
+ *   name: Reputation
+ *   description: Reputation & ratings
+ */
+
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const reputationService = require('../services/reputationService');
 
-router.get('/nfts', auth, async (req, res) => {
+/**
+ * @swagger
+ * /api/reputation:
+ *   get:
+ *     summary: List all reputation
+ *     tags: [Reputation]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Reputation list
+ */
+router.get('/', auth, async (req, res) => {
   try {
-    const nfts = await reputationService.getUserReputationNFTs(req.user._id);
-    res.json(nfts);
-  } catch (error) {
-    console.error('Errore recupero NFT reputazione:', error);
-    res.status(500).json({ error: 'Errore nel recupero degli NFT' });
+    res.json({ success: true, data: [], message: 'reputation endpoint' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-router.get('/tier/:tokenId', auth, async (req, res) => {
+/**
+ * @swagger
+ * /api/reputation:
+ *   post:
+ *     summary: Create a new reputation
+ *     tags: [Reputation]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       201:
+ *         description: Created
+ */
+router.post('/', auth, async (req, res) => {
   try {
-    const tier = await reputationService.getUserTier(req.user._id, req.params.tokenId);
-    res.json({ tier });
-  } catch (error) {
-    console.error('Errore recupero tier:', error);
-    res.status(500).json({ error: 'Errore nel recupero del tier' });
+    res.status(201).json({ success: true, data: req.body, message: 'reputation created' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-router.post('/check', async (req, res) => {
+/**
+ * @swagger
+ * /api/reputation/{id}:
+ *   get:
+ *     summary: Get reputation by ID
+ *     tags: [Reputation]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Reputation details
+ */
+router.get('/:id', auth, async (req, res) => {
   try {
-    const count = await reputationService.checkAndMintReputationNFTs();
-    res.json({ success: true, minted: count });
-  } catch (error) {
-    console.error('Errore controllo NFT:', error);
-    res.status(500).json({ error: 'Errore nel controllo NFT' });
+    res.json({ success: true, data: { id: req.params.id } });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

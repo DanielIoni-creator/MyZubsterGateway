@@ -1,3 +1,10 @@
+/**
+ * @swagger
+ * tags:
+ *   name: Marketplace
+ *   description: Token marketplace
+ */
+
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
@@ -5,6 +12,22 @@ const OrderBook = require('../models/OrderBook');
 const TokenHolding = require('../models/TokenHolding');
 
 // GET /api/marketplace/orders/:tokenId - Lista ordini aperti
+/**
+ * @swagger
+ * /api/marketplace/orders/{tokenId}:
+ *   get:
+ *     summary: List open orders for a token
+ *     tags: [Marketplace]
+ *     parameters:
+ *       - in: path
+ *         name: tokenId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Open orders list
+ */
 router.get('/orders/:tokenId', async (req, res) => {
   try {
     const orders = await OrderBook.find({
@@ -19,6 +42,35 @@ router.get('/orders/:tokenId', async (req, res) => {
 });
 
 // POST /api/marketplace/sell - Crea ordine di vendita
+/**
+ * @swagger
+ * /api/marketplace/sell:
+ *   post:
+ *     summary: Create a sell order
+ *     tags: [Marketplace]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - tokenId
+ *               - amount
+ *               - price
+ *             properties:
+ *               tokenId:
+ *                 type: string
+ *               amount:
+ *                 type: number
+ *               price:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Sell order created
+ */
 router.post('/sell', auth, async (req, res) => {
   try {
     const { tokenId, amount, price } = req.body;
@@ -52,6 +104,32 @@ router.post('/sell', auth, async (req, res) => {
 });
 
 // POST /api/marketplace/buy/:orderId - Acquista da un ordine
+/**
+ * @swagger
+ * /api/marketplace/buy/{orderId}:
+ *   post:
+ *     summary: Buy tokens from an order
+ *     tags: [Marketplace]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               amount:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Purchase successful
+ */
 router.post('/buy/:orderId', auth, async (req, res) => {
   try {
     const order = await OrderBook.findById(req.params.orderId);
