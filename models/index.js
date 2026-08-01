@@ -9,5 +9,6 @@ module.exports = {
   Review: require('./Review'),
   GardenData: require('./GardenData'),
   SeedExchange: require('./SeedExchange'),
-  Webhook: require('./Webhook')
+  Webhook: require('./Webhook'),
+  MapEntity: require('./MapEntity')
 };

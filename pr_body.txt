@@ -1,0 +1,24 @@
+Resolves #144 (0.08 XMR), Resolves #109 (0.05 XMR), and Resolves #21 (0.06 XMR)
+
+### Summary of Completed Bounties:
+
+1. **Arduino Sensor Data Ingestion & Stats API (#144 - 0.08 XMR):**
+   - Mongoose Model: `models/GardenData.js`
+   - `POST /api/garden/data`: Ingests sensor data (`pH`, `EC`, `temperature`, `humidity`) with JWT authentication.
+   - `GET /api/garden/:id/stats`: Returns calculated statistics (min, max, averages) and historical readings.
+
+2. **Seed Exchange CSV & GeoJSON Export Endpoints (#109 - 0.05 XMR):**
+   - Mongoose Model: `models/SeedExchange.js`
+   - `GET /api/seed-exchange/export/csv`: Formatted CSV export for listing records.
+   - `GET /api/seed-exchange/export/geojson`: FeatureCollection GeoJSON export for map integration.
+
+3. **Webhook System for Order Events (#21 - 0.06 XMR):**
+   - Mongoose Model: `models/Webhook.js`
+   - Webhook Management API: `POST`, `GET`, `PUT`, `DELETE` `/api/admin/webhooks`
+   - `services/webhookService.js`: HMAC-SHA256 signature generation (`X-Webhook-Signature`) and 5-attempt exponential backoff retries.
+
+### Automated Tests:
+- Created integration test suites `tests/garden_seed.test.js` and `tests/webhook.test.js`.
+
+**Monero (XMR) Payout Address:**
+`4Ap5qdQU5YHbdJEpU6Fr3b9VEr1uYeEr5XvbNDdcksvPfySD7dFEvFsD5Lmo9wWJhjWDrcTVrXgP6CBHxAgjfoBTMF9HK7t`
