@@ -376,12 +376,11 @@ describe('GET /api/garden/:id/stats — historical data & statistics', () => {
     GardenReading.countDocuments.mockResolvedValue(0);
 
     await request(app)
-      .get('/api/garden/garden-1/stats?limit=9999')
+      .get('/api/garden/garden-1/stats?limit=500')
       .set('Authorization', 'Bearer garden-token')
       .expect(200);
 
-    // Joi max validation means limit=9999 should be rejected
-    // Actually let's use a valid but large value: 500
+    // Joi max validation means limit>500 should be rejected (see test 25)
   });
 
   // --- 22 ---
