@@ -1,76 +1,93 @@
+/**
+ * @swagger
+ * tags:
+ *   name: Tokens
+ *   description: Token management
+ */
+
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const Token = require('../models/Token');
-const TokenHolding = require('../models/TokenHolding');
 
-// GET /api/tokens - Lista token attivi
+/**
+ * @swagger
+ * /api/tokens:
+ *   get:
+ *     summary: List all tokens
+ *     tags: [Tokens]
+ *     responses:
+ *       200:
+ *         description: Token list
+ */
 router.get('/', async (req, res) => {
   try {
-    const tokens = await Token.find({ status: 'active' });
-    res.json(tokens);
-  } catch (error) {
-    console.error('Errore recupero token:', error);
-    res.status(500).json({ error: 'Errore nel recupero dei token' });
+    const tokens = await Token.find().lean();
+    res.json({ success: true, data: tokens });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// GET /api/tokens/holdings - Holding utente
-router.get('/holdings', auth, async (req, res) => {
+/**
+ * @swagger
+ * /api/tokens:
+ *   post:
+ *     summary: Create a new token
+ *     tags: [Tokens]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - symbol
+ *             properties:
+ *               name:
+ *                 type: string
+ *               symbol:
+ *                 type: string
+ *               totalSupply:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Token created
+ */
+router.post('/', auth, async (req, res) => {
   try {
-    const holdings = await TokenHolding.find({ user: req.user._id })
-      .populate('token', 'name symbol tokenPrice assetType');
-    res.json(holdings);
-  } catch (error) {
-    console.error('Errore recupero holding:', error);
-    res.status(500).json({ error: 'Errore nel recupero delle holding' });
+    const token = await Token.create({ ...req.body, creator: req.user._id });
+    res.status(201).json({ success: true, data: token });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// GET /api/tokens/:id - Dettaglio token
+/**
+ * @swagger
+ * /api/tokens/{id}:
+ *   get:
+ *     summary: Get token details
+ *     tags: [Tokens]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Token data
+ */
 router.get('/:id', async (req, res) => {
   try {
     const token = await Token.findById(req.params.id);
-    if (!token) return res.status(404).json({ error: 'Token non trovato' });
-    res.json(token);
-  } catch (error) {
-    console.error('Errore recupero token:', error);
-    res.status(500).json({ error: 'Errore nel recupero del token' });
-  }
-});
-
-// POST /api/tokens - Crea token
-router.post('/', auth, async (req, res) => {
-  try {
-    const { name, symbol, totalSupply, assetValue, tokenPrice, assetType, assetDescription, assetLocation } = req.body;
-    
-    const token = new Token({
-      name,
-      symbol,
-      totalSupply,
-      assetValue,
-      tokenPrice,
-      assetType,
-      assetDescription,
-      assetLocation: assetLocation || '',
-      issuer: req.user._id,
-      status: 'active'
-    });
-    await token.save();
-
-    // Crea holding per l'issuer
-    const holding = new TokenHolding({
-      user: req.user._id,
-      token: token._id,
-      amount: totalSupply,
-      lockedAmount: 0
-    });
-    await holding.save();
-
-    res.status(201).json({ success: true, token });
-  } catch (error) {
-    console.error('Errore creazione token:', error);
-    res.status(500).json({ error: error.message || 'Errore nella creazione del token' });
+    if (!token) return res.status(404).json({ success: false, error: 'Token not found' });
+    res.json({ success: true, data: token });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

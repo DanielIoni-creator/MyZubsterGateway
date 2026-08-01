@@ -1,3 +1,10 @@
+/**
+ * @swagger
+ * tags:
+ *   name: Webhooks
+ *   description: Webhook subscription management
+ */
+
 const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
@@ -40,6 +47,46 @@ async function getSubscription(req, res, next) {
   }
 }
 
+/**
+ * @swagger
+ * /api/webhooks:
+ *   post:
+ *     summary: Create a webhook subscription
+ *     tags: [Webhooks]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - url
+ *               - events
+ *             properties:
+ *               url:
+ *                 type: string
+ *                 format: uri
+ *               events:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               description:
+ *                 type: string
+ *               retryConfig:
+ *                 type: object
+ *                 properties:
+ *                   maxAttempts:
+ *                     type: integer
+ *                   initialDelayMs:
+ *                     type: integer
+ *                   maxDelayMs:
+ *                     type: integer
+ *     responses:
+ *       201:
+ *         description: Subscription created
+ */
 router.post('/', validateSubscription, async (req, res) => {
   try {
     const data = req.body;
@@ -71,6 +118,31 @@ router.post('/', validateSubscription, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/webhooks:
+ *   get:
+ *     summary: List webhook subscriptions
+ *     tags: [Webhooks]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: active
+ *         schema:
+ *           type: boolean
+ *     responses:
+ *       200:
+ *         description: Subscription list
+ */
 router.get('/', async (req, res) => {
   try {
     const { page = 1, limit = 20, active } = req.query;
@@ -102,6 +174,26 @@ router.get('/', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/webhooks/{id}:
+ *   get:
+ *     summary: Get subscription details
+ *     tags: [Webhooks]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Subscription data
+ *       404:
+ *         description: Not found
+ */
 router.get('/:id', getSubscription, (req, res) => {
   res.json({
     success: true,
@@ -120,6 +212,24 @@ router.get('/:id', getSubscription, (req, res) => {
   });
 });
 
+/**
+ * @swagger
+ * /api/webhooks/{id}:
+ *   patch:
+ *     summary: Update webhook subscription
+ *     tags: [Webhooks]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Subscription updated
+ */
 router.patch('/:id', validateSubscription, getSubscription, async (req, res) => {
   try {
     const allowed = ['url', 'events', 'active', 'description', 'retryConfig'];
@@ -138,6 +248,24 @@ router.patch('/:id', validateSubscription, getSubscription, async (req, res) => 
   }
 });
 
+/**
+ * @swagger
+ * /api/webhooks/{id}:
+ *   delete:
+ *     summary: Delete webhook subscription
+ *     tags: [Webhooks]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Subscription deleted
+ */
 router.delete('/:id', getSubscription, async (req, res) => {
   try {
     await WebhookSubscription.findByIdAndDelete(req.subscription._id);
@@ -148,6 +276,24 @@ router.delete('/:id', getSubscription, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/webhooks/{id}/test:
+ *   post:
+ *     summary: Send test webhook delivery
+ *     tags: [Webhooks]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Test result
+ */
 router.post('/:id/test', getSubscription, async (req, res) => {
   try {
     const testPayload = {
@@ -173,6 +319,35 @@ router.post('/:id/test', getSubscription, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/webhooks/deliveries:
+ *   get:
+ *     summary: List webhook deliveries
+ *     tags: [Webhooks]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: event
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: subscriptionId
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Delivery list
+ */
 router.get('/deliveries', async (req, res) => {
   try {
     const { page = 1, limit = 20, status, event, subscriptionId } = req.query;
@@ -204,6 +379,18 @@ router.get('/deliveries', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/webhooks/stats/overview:
+ *   get:
+ *     summary: Get webhook statistics overview
+ *     tags: [Webhooks]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Stats overview
+ */
 router.get('/stats/overview', async (req, res) => {
   try {
     const stats = await WebhookOutboundService.getStats();
