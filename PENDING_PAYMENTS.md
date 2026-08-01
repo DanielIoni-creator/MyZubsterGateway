@@ -11,6 +11,7 @@ This file tracks bounties that are awaiting payment.
 | PR/Issue | Contributor | Amount (XMR) | Address | Date | Status |
 |----------|-------------|--------------|---------|------|--------|
 | #183 | foxxx009 | 0.06 | [Pending] | 2026-08-01 | ⏳ Awaiting payment |
+| #54 | foxxx009 | 0.06 | [Pending] | 2026-08-01 | ⏳ Awaiting payment |
 
 ---
 
@@ -26,7 +27,7 @@ This file tracks bounties that are awaiting payment.
 ## 💰 Current Bounty Fund
 
 **Balance:** 0.00 XMR  
-**Pending Payments:** 0.06 XMR  
+**Pending Payments:** 0.12 XMR  
 
 ---
 
