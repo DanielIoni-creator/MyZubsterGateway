@@ -1,120 +1,102 @@
-require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
-const morgan = require('morgan');
-const compression = require('compression');
-const i18nMiddleware = require('./middleware/i18n');
+const rateLimit = require('express-rate-limit');
+const dotenv = require('dotenv');
+const path = require('path');
+
+// Carica le variabili d'ambiente
+dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-// ===== MIDDLEWARE =====
+// ==================== MIDDLEWARE ====================
+
+// Sicurezza
 app.use(helmet());
-app.use(cors());
-app.use(compression());
-app.use(morgan('dev'));
+
+// CORS
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || '*',
+  credentials: true
+}));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minuti
+  max: 100, // 100 richieste per IP
+  message: 'Too many requests, please try again later.'
+});
+app.use('/api', limiter);
+
+// Parser
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(i18nMiddleware);
 
-const activityLogger = require('./middleware/activityLogger');
-app.use(activityLogger());
-
-// ===== DATABASE =====
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myzubster', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.error('MongoDB error:', err));
-
-// ===== ROUTES =====
+// ==================== ROUTES ====================
 
 // Health check
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'OK',
-    message: req.t('health.message', { service: 'MyZubster' }),
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    uptime: process.uptime()
   });
 });
 
-// Auth routes
-const authRoutes = require('./src/routes/auth');
-app.use('/api/auth', authRoutes);
-
-// Token routes
-const tokenRoutes = require('./src/routes/tokens');
-app.use('/api/tokens', tokenRoutes);
-
-// Order routes
-const orderRoutes = require('./src/routes/orders');
-app.use('/api/orders', orderRoutes);
-
-// Admin routes
-const adminRoutes = require('./src/routes/admin');
-app.use('/api/admin', adminRoutes);
-
-// Monero routes
-const moneroRoutes = require('./src/routes/monero');
-app.use('/api/monero', moneroRoutes);
-
-// User routes
-const userRoutes = require('./src/routes/users');
-app.use('/api/users', userRoutes);
-
-// Garden sensor routes
+// Routes principali
+const authRoutes = require('./routes/auth');
+const orderRoutes = require('./routes/orders');
+const tokenRoutes = require('./routes/tokens');
+const moneroRoutes = require('./routes/monero');
+const webhookRoutes = require('./routes/webhooks');
 const gardenRoutes = require('./routes/garden');
+const fcmpRoutes = require('./routes/fcmp');
+
+app.use('/api/auth', authRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/tokens', tokenRoutes);
+app.use('/api/monero', moneroRoutes);
+app.use('/api/webhooks', webhookRoutes);
 app.use('/api/garden', gardenRoutes);
 
-// Webhook verification routes
-const webhookRoutes = require('./routes/webhook');
-app.use('/api/webhook', webhookRoutes);
+// ==================== ERROR HANDLING ====================
 
-// Activity audit log routes
-const activityRoutes = require('./routes/activity');
-app.use('/api/activity', activityRoutes);
-app.use('/api/admin/activity', activityRoutes.adminRouter);
-
-// Webhook outgoing routes
-const webhooksRoutes = require('./routes/webhooks');
-app.use('/api/webhooks', webhooksRoutes);
-
-// Seed Exchange routes
-const seedExchangeRoutes = require('./routes/seedExchange');
-app.use('/api/seed-exchange', seedExchangeRoutes);
-
-// AI Multisig Agent routes
-const aiMultisigRoutes = require('./routes/aiMultisig');
-app.use('/api/ai', aiMultisigRoutes);
-
-// FCMP++ routes
-const fcmpRoutes = require('./routes/fcmp');
-app.use('/api/fcmp', fcmpRoutes);
-
-// ===== ERROR HANDLER =====
+// Gestione errori globale
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  const message =
-    err.message ||
-    (typeof req.t === 'function'
-      ? req.t('errors.internal')
-      : 'Internal server error');
-
+app.use('/api/fcmp', fcmpRoutes);
+  console.error('Error:', err.message);
+  console.error('Stack:', err.stack);
   res.status(err.status || 500).json({
     success: false,
-    message
+    message: err.message || 'Internal server error'
   });
 });
 
-// ===== START SERVER =====
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`http://localhost:${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+// ==================== DATABASE CONNECTION ====================
 
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/myzubster';
+
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    console.log('✅ Connected to MongoDB');
+  })
+  .catch((error) => {
+    console.error('❌ MongoDB connection error:', error);
+    process.exit(1);
+  });
+
+// ==================== START SERVER ====================
+
+// Avvia il server solo se non siamo in ambiente di test
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚀 MyZubster Gateway is running on port ${PORT}`);
+    console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
+  });
+}
+
+// Esporta app per i test
 module.exports = app;
