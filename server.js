@@ -53,6 +53,7 @@ const tokenRoutes = require('./routes/tokens');
 const moneroRoutes = require('./routes/monero');
 const webhookRoutes = require('./routes/webhooks');
 const gardenRoutes = require('./routes/garden');
+const aiRoutes = require('./routes/ai');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
@@ -60,6 +61,7 @@ app.use('/api/tokens', tokenRoutes);
 app.use('/api/monero', moneroRoutes);
 app.use('/api/webhooks', webhookRoutes);
 app.use('/api/garden', gardenRoutes);
+app.use('/api/ai', aiRoutes);
 
 // ==================== ERROR HANDLING ====================
 
