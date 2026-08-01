@@ -1,7 +1,6 @@
 const { exec } = require('child_process');
 const fs = require('fs');
 
-// Configurazione
 const ORG = "MyZubster-Ecosystem";
 const REPOS = [
   "MyZubster-Marketplace",
@@ -13,7 +12,6 @@ const REPOS = [
   "myzubster-animals"
 ];
 
-// Funzione per eseguire comandi shell e restituire il risultato
 function runCommand(cmd) {
   return new Promise((resolve) => {
     exec(cmd, (error, stdout, stderr) => {
@@ -27,7 +25,6 @@ function runCommand(cmd) {
   });
 }
 
-// Funzione principale
 async function checkGitHubStatus() {
   let report = `📊 **MyZubster Ecosystem Status Report**\n`;
   report += `📅 ${new Date().toLocaleString()}\n\n`;
@@ -35,24 +32,20 @@ async function checkGitHubStatus() {
   let totalIssues = 0;
   let totalPRs = 0;
   let mergablePRs = 0;
+  let pendingBounties = 0;
+  let pendingAmount = 0;
+  let bountyDetails = [];
 
   for (const repo of REPOS) {
     const repoFull = `${ORG}/${repo}`;
     
-    // 1. Conta le issue aperte
-    const issueCountCmd = `gh issue list -R ${repoFull} --state open --limit 1000 | wc -l`;
-    const issueCount = parseInt(await runCommand(issueCountCmd)) || 0;
+    const issueCount = parseInt(await runCommand(`gh issue list -R ${repoFull} --state open --limit 1000 | wc -l`)) || 0;
     totalIssues += issueCount;
 
-    // 2. Conta le PR aperte
-    const prCountCmd = `gh pr list -R ${repoFull} --state open --limit 1000 | wc -l`;
-    const prCount = parseInt(await runCommand(prCountCmd)) || 0;
+    const prCount = parseInt(await runCommand(`gh pr list -R ${repoFull} --state open --limit 1000 | wc -l`)) || 0;
     totalPRs += prCount;
 
-    // 3. Conta le PR mergiabili (non draft e con status check passato)
-    // Nota: questo comando è più complesso, per ora contiamo tutte le PR non draft
-    const mergableCmd = `gh pr list -R ${repoFull} --state open --limit 1000 --json isDraft | grep -c '"isDraft":false' || echo "0"`;
-    const mergableCount = parseInt(await runCommand(mergableCmd)) || 0;
+    const mergableCount = parseInt(await runCommand(`gh pr list -R ${repoFull} --state open --limit 1000 --json isDraft | grep -c '"isDraft":false' || echo "0"`)) || 0;
     mergablePRs += mergableCount;
 
     if (issueCount > 0 || prCount > 0) {
@@ -62,15 +55,53 @@ async function checkGitHubStatus() {
     }
   }
 
+  try {
+    const contributors = fs.readFileSync('/root/myzubster/CONTRIBUTORS.md', 'utf8');
+    const pendingMatches = contributors.match(/⏳ Pending Payments.*?(?=\n##|$)/s);
+    if (pendingMatches) {
+      const lines = pendingMatches[0].split('\n');
+      for (const line of lines) {
+        if (line.includes('XMR')) {
+          pendingBounties++;
+          const amountMatch = line.match(/(\d+\.\d+)\s+XMR/);
+          if (amountMatch) {
+            pendingAmount += parseFloat(amountMatch[1]);
+            
+            const contributorMatch = line.match(/@([A-Za-z0-9_-]+)/);
+            
+            // Regex definitivo per trovare l'indirizzo Monero (lungo e alfanumerico)
+            const addressMatch = line.match(/[A-Za-z0-9]{95,}/);
+            const address = addressMatch ? addressMatch[0] : 'Not provided';
+
+            bountyDetails.push({
+              contributor: contributorMatch ? contributorMatch[1] : 'Unknown',
+              amount: amountMatch[1],
+              address: address
+            });
+          }
+        }
+      }
+    }
+  } catch (err) {
+    report += `\n⚠️  Could not read CONTRIBUTORS.md\n`;
+  }
+
   report += `\n📈 **Totals:**\n`;
   report += `   - Total Issues: ${totalIssues}\n`;
   report += `   - Total PRs: ${totalPRs}\n`;
   report += `   - PRs Ready to Merge: ${mergablePRs}\n`;
+  report += `   - Pending Bounties: ${pendingBounties} issues\n`;
+  report += `   - Total Pending XMR: ${pendingAmount.toFixed(3)} XMR\n`;
 
-  // Salva il report in un file
+  if (bountyDetails.length > 0) {
+    report += `\n🔗 **Pending Bounty Details:**\n`;
+    for (const b of bountyDetails) {
+      report += `   - @${b.contributor} → ${b.amount} XMR | Address: ${b.address}\n`;
+    }
+  }
+
   fs.writeFileSync('gateway_report.txt', report);
   console.log(report);
 }
 
-// Esegui il controllo
 checkGitHubStatus();
