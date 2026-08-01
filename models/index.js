@@ -6,5 +6,8 @@ module.exports = {
   Offer: require('./Offer'),
   Request: require('./Request'),
   Transaction: require('./Transaction'),
-  Review: require('./Review')
+  Review: require('./Review'),
+  GardenData: require('./GardenData'),
+  SeedExchange: require('./SeedExchange'),
+  Webhook: require('./Webhook')
 };

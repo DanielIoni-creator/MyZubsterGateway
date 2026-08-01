@@ -44,6 +44,9 @@ const orderRoutes = require('./routes/orders');
 const paymentRoutes = require('./routes/payments');
 const transactionRoutes = require('./routes/transactions');
 const reviewRoutes = require('./routes/reviews');
+const adminRoutes = require('./routes/admin');
+const gardenRoutes = require('./routes/garden');
+const seedExchangeRoutes = require('./routes/seedExchange');
 
 // ============================================
 // ROTTE API
@@ -56,6 +59,9 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/garden', gardenRoutes);
+app.use('/api/seed-exchange', seedExchangeRoutes);
 
 // ============================================
 // WEBHOOK PER PAGAMENTI (MOCK)
