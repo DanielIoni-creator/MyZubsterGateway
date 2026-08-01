@@ -1,0 +1,27 @@
+name: Issue Bot
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  handle-claim:
+    runs-on: ubuntu-latest
+    if: contains(github.event.comment.body, 'I'll take this')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install -g @actions/github
+
+      - name: Run Issue Bot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node scripts/issue-bot.js ${{ github.event.repository.name }} ${{ github.event.issue.number }} ${{ github.event.comment.user.login }}

@@ -1,7 +1,7 @@
 {
   "name": "myzubster-gateway",
   "version": "1.0.0",
-  "description": "MyZubster Gateway – API gateway per il marketplace",
+  "description": "MyZubster Gateway - Monero Payment Gateway & Animal Registry",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -27,21 +27,33 @@
     "winston": "^3.19.0"
   },
   "devDependencies": {
-    "jest": "^29.7.0",
+    "jest": "^27.5.1",
+    "jest-environment-node": "^27.5.1",
     "nodemon": "^3.0.1",
-    "supertest": "^7.0.0"
+    "supertest": "^6.3.4"
   },
   "jest": {
     "testEnvironment": "node",
-    "setupFiles": [
-      "./tests/setup.js"
-    ],
+    "setupFiles": ["./tests/setup.js"],
     "testPathIgnorePatterns": [
       "/node_modules/",
       "<rootDir>/server.test.js"
     ],
     "coveragePathIgnorePatterns": [
       "/node_modules/"
-    ]
+    ],
+    "moduleDirectories": [
+      "node_modules",
+      "services",
+      "src",
+      "models",
+      ""
+    ],
+    "moduleNameMapper": {
+      "^../../services/webhookOutboundService$": "<rootDir>/services/webhookOutboundService.js",
+      "^../../services/webhookOutboundService": "<rootDir>/services/webhookOutboundService.js",
+      "^../../models/WebhookSubscription$": "<rootDir>/models/WebhookSubscription.js",
+      "^../../models/WebhookDelivery$": "<rootDir>/models/WebhookDelivery.js"
+    }
   }
 }
