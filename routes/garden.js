@@ -1,218 +1,195 @@
 const express = require('express');
 const router = express.Router();
-const Garden = require('../models/Garden');
+const Joi = require('joi');
+const GardenReading = require('../models/GardenReading');
 const auth = require('../middleware/auth');
-const { body, validationResult } = require('express-validator');
 
 // Middleware di autenticazione per tutte le route
 router.use(auth);
 
-// GET /api/gardens - Lista tutti i gardens (con filtri)
-router.get('/', async (req, res) => {
+// ---------------------------------------------------------------------------
+// POST /api/garden/data — Arduino sensor data ingestion
+// ---------------------------------------------------------------------------
+const readingSchema = Joi.object({
+  gardenId: Joi.string().trim().min(1).max(80).required()
+    .messages({
+      'string.min': 'gardenId must be between 1 and 80 characters',
+      'string.max': 'gardenId must be between 1 and 80 characters',
+      'any.required': 'gardenId is required',
+      'string.empty': 'gardenId is required',
+    }),
+  ph: Joi.number().min(0).max(14).required()
+    .messages({
+      'number.base': 'ph must be a number',
+      'number.min': 'ph must be between 0 and 14',
+      'number.max': 'ph must be between 0 and 14',
+      'any.required': 'ph is required',
+    }),
+  ec: Joi.number().min(0).required()
+    .messages({
+      'number.base': 'ec must be a number',
+      'number.min': 'ec must be non-negative',
+      'any.required': 'ec is required',
+    }),
+  temperature: Joi.number().min(-50).max(100).required()
+    .messages({
+      'number.base': 'temperature must be a number',
+      'number.min': 'temperature must be between -50 and 100',
+      'number.max': 'temperature must be between -50 and 100',
+      'any.required': 'temperature is required',
+    }),
+  humidity: Joi.number().min(0).max(100).required()
+    .messages({
+      'number.base': 'humidity must be a number',
+      'number.min': 'humidity must be between 0 and 100',
+      'number.max': 'humidity must be between 0 and 100',
+      'any.required': 'humidity is required',
+    }),
+});
+
+router.post('/data', async (req, res) => {
+  const { error, value } = readingSchema.validate(req.body, { abortEarly: false });
+
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      errors: error.details.map((d) => d.message),
+    });
+  }
+
   try {
-    const { search, city, neighborhood, page = 1, limit = 10 } = req.query;
-    const query = {};
+    const { gardenId, ph, ec, temperature, humidity } = value;
 
-    if (search) {
-      query.$text = { $search: search };
-    }
-    if (city) {
-      query.city = { $regex: city, $options: 'i' };
-    }
-    if (neighborhood) {
-      query.neighborhood = { $regex: neighborhood, $options: 'i' };
-    }
+    const reading = await GardenReading.create({
+      owner: req.user.id,
+      gardenId,
+      ph,
+      ec,
+      temperature,
+      humidity,
+    });
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    const gardens = await Garden.find(query)
+    res.status(201).json({ success: true, data: reading });
+  } catch (err) {
+    console.error('Errore nell\'inserimento lettura garden:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/garden/:id/stats — historical data & statistics
+// ---------------------------------------------------------------------------
+const statsQuerySchema = Joi.object({
+  page: Joi.number().integer().min(1).default(1),
+  limit: Joi.number().integer().min(1).max(500).default(100),
+  from: Joi.date().iso().messages({
+    'date.base': 'from must be a valid ISO 8601 date',
+    'date.format': 'from must be a valid ISO 8601 date',
+  }),
+  to: Joi.date().iso().messages({
+    'date.base': 'to must be a valid ISO 8601 date',
+    'date.format': 'to must be a valid ISO 8601 date',
+  }),
+});
+
+router.get('/:id/stats', async (req, res) => {
+  const gardenId = req.params.id ? req.params.id.trim() : '';
+
+  if (!gardenId) {
+    return res.status(400).json({ success: false, error: 'garden id is required' });
+  }
+
+  const { error, value } = statsQuerySchema.validate(req.query, {
+    abortEarly: false,
+    convert: true,
+  });
+
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      errors: error.details.map((d) => d.message),
+    });
+  }
+
+  const { page, limit, from, to } = value;
+  const skip = (page - 1) * limit;
+
+  const query = { gardenId };
+
+  if (from || to) {
+    query.receivedAt = {};
+    if (from) {
+      query.receivedAt.$gte = from;
+    }
+    if (to) {
+      query.receivedAt.$lte = to;
+    }
+  }
+
+  try {
+    const readings = await GardenReading.find(query)
+      .sort({ receivedAt: -1 })
       .skip(skip)
-      .limit(parseInt(limit))
-      .sort({ createdAt: -1 });
+      .limit(limit)
+      .lean();
 
-    const total = await Garden.countDocuments(query);
+    const total = await GardenReading.countDocuments(query);
+    const totalPages = Math.ceil(total / limit);
+
+    const stats = {
+      count: total,
+      averages: null,
+      min: null,
+      max: null,
+      latest: readings.length > 0 ? readings[0] : null,
+    };
+
+    if (total > 0) {
+      const allReadings = await GardenReading.find(query).lean();
+      const phValues = allReadings.map((r) => r.ph);
+      const ecValues = allReadings.map((r) => r.ec);
+      const tempValues = allReadings.map((r) => r.temperature);
+      const humValues = allReadings.map((r) => r.humidity);
+
+      const avg = (arr) => arr.reduce((a, b) => a + b, 0) / arr.length;
+
+      stats.averages = {
+        ph: parseFloat(avg(phValues).toFixed(2)),
+        ec: parseFloat(avg(ecValues).toFixed(2)),
+        temperature: parseFloat(avg(tempValues).toFixed(2)),
+        humidity: parseFloat(avg(humValues).toFixed(2)),
+      };
+      stats.min = {
+        ph: Math.min(...phValues),
+        ec: Math.min(...ecValues),
+        temperature: Math.min(...tempValues),
+        humidity: Math.min(...humValues),
+      };
+      stats.max = {
+        ph: Math.max(...phValues),
+        ec: Math.max(...ecValues),
+        temperature: Math.max(...tempValues),
+        humidity: Math.max(...humValues),
+      };
+    }
 
     res.json({
       success: true,
-      data: gardens,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        pages: Math.ceil(total / parseInt(limit))
-      }
+      data: {
+        stats,
+        readings,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasMore: page < totalPages,
+        },
+      },
     });
-  } catch (error) {
-    console.error('Errore nel recupero gardens:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// GET /api/gardens/near - Cerca gardens vicino a coordinate
-router.get('/near', async (req, res) => {
-  try {
-    const { lat, lng, radius = 5000 } = req.query;
-
-    if (!lat || !lng) {
-      return res.status(400).json({
-        success: false,
-        error: 'lat e lng sono richiesti'
-      });
-    }
-
-    const gardens = await Garden.find({
-      location: {
-        $near: {
-          $geometry: {
-            type: 'Point',
-            coordinates: [parseFloat(lng), parseFloat(lat)]
-          },
-          $maxDistance: parseFloat(radius)
-        }
-      }
-    });
-
-    res.json({
-      success: true,
-      data: gardens,
-      count: gardens.length
-    });
-  } catch (error) {
-    console.error('Errore nella ricerca near:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// GET /api/gardens/:id - Dettaglio garden
-router.get('/:id', async (req, res) => {
-  try {
-    const garden = await Garden.findById(req.params.id);
-    if (!garden) {
-      return res.status(404).json({ success: false, error: 'Garden not found' });
-    }
-    res.json({ success: true, data: garden });
-  } catch (error) {
-    console.error('Errore nel recupero garden:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// POST /api/gardens - Crea nuovo garden
-router.post('/',
-  [
-    body('name').notEmpty().withMessage('Nome richiesto'),
-    body('address').optional().isString(),
-    body('city').optional().isString(),
-    body('neighborhood').optional().isString()
-  ],
-  async (req, res) => {
-    // Validazione
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, errors: errors.array() });
-    }
-
-    try {
-      const { name, description, address, city, neighborhood, location } = req.body;
-
-      const garden = new Garden({
-        name,
-        description,
-        address,
-        city,
-        neighborhood,
-        location: location || { type: 'Point', coordinates: [0, 0] },
-        ownerId: req.user.id
-      });
-
-      await garden.save();
-      res.status(201).json({ success: true, data: garden });
-    } catch (error) {
-      console.error('Errore nella creazione garden:', error);
-      res.status(500).json({ success: false, error: error.message });
-    }
-  }
-);
-
-// PUT /api/gardens/:id - Aggiorna garden
-router.put('/:id',
-  [
-    body('name').optional().notEmpty().withMessage('Nome non può essere vuoto'),
-    body('address').optional().isString(),
-    body('city').optional().isString(),
-    body('neighborhood').optional().isString()
-  ],
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, errors: errors.array() });
-    }
-
-    try {
-      const garden = await Garden.findById(req.params.id);
-      if (!garden) {
-        return res.status(404).json({ success: false, error: 'Garden not found' });
-      }
-
-      // Verifica permessi
-      if (garden.ownerId.toString() !== req.user.id) {
-        return res.status(403).json({ success: false, error: 'Non autorizzato' });
-      }
-
-      const { name, description, address, city, neighborhood, location } = req.body;
-
-      garden.name = name || garden.name;
-      garden.description = description || garden.description;
-      garden.address = address || garden.address;
-      garden.city = city || garden.city;
-      garden.neighborhood = neighborhood || garden.neighborhood;
-      if (location) {
-        garden.location = location;
-      }
-
-      await garden.save();
-      res.json({ success: true, data: garden });
-    } catch (error) {
-      console.error('Errore nell\'aggiornamento garden:', error);
-      res.status(500).json({ success: false, error: error.message });
-    }
-  }
-);
-
-// DELETE /api/gardens/:id - Elimina garden
-router.delete('/:id', async (req, res) => {
-  try {
-    const garden = await Garden.findById(req.params.id);
-    if (!garden) {
-      return res.status(404).json({ success: false, error: 'Garden not found' });
-    }
-
-    // Verifica permessi
-    if (garden.ownerId.toString() !== req.user.id) {
-      return res.status(403).json({ success: false, error: 'Non autorizzato' });
-    }
-
-    await Garden.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: 'Garden deleted successfully' });
-  } catch (error) {
-    console.error('Errore nell\'eliminazione garden:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// POST /api/gardens/reverse-geocode - Coordinate to address
-router.post('/reverse-geocode', async (req, res) => {
-  try {
-    const { lat, lng } = req.body;
-    if (!lat || !lng) {
-      return res.status(400).json({ success: false, error: 'lat and lng are required' });
-    }
-
-    const geocoding = require('../services/geocoding');
-    const result = await geocoding.reverseGeocode(lat, lng);
-    res.json({ success: true, data: result });
-  } catch (error) {
-    console.error('Errore nel reverse geocoding:', error);
-    res.status(500).json({ success: false, error: error.message });
+  } catch (err) {
+    console.error('Errore nel recupero stats garden:', err);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
