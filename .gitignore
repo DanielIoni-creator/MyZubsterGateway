@@ -1,25 +1,120 @@
-node_modules/
+# Secrets
 .env
-*.log
-*.lock
-*.pid
-.DS_Store
-dist/
-coverage/
-*.pem
+.env.local
 *.key
+*.pem
 *.crt
-myzubster_wallet*
-monero-wallet-rpc.log
-monerod.log
-nohup.out
-.env
+*.p12
+*.pfx
+*.der
+*.gz
+
+# SSH
+.ssh/
+known_hosts
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build
+dist/
+build/
+*.min.js
+*.min.css
+*.js.map
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Logs
 *.log
-*.lock
-.swp\n*.log\nnode_modules/\ndist/
-.swp\n*.log\nnode_modules/\ndist/
-.swp
-issue-*.md
-typescript/
+logs/
+npm-debug.log*
+yarn-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+
+# Temporary
+tmp/
+temp/
+*.tmp
+.cache/
+*.temp
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Vercel
+.vercel/
+
+# Docker
+docker-compose.override.yml
+*.dockerignore
+
+# Monero
+monero-wallet/
+monero-testnet/
+*.wallet
+*.wallet.keys
+*.wallet.address
+
+# Gateway specific
+gateway_report.txt
+gateway-monitor.log
+*.report
+*.status
+
+# Temporary files
+<< 'EOF'
+*.tmp
+*.log
+
+# OS specific
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Backups
+*.bak
 *.backup
-*.backup
+*.old
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+*.7z
