@@ -1,0 +1,27 @@
+# ── Dependencies ──
+node_modules
+npm-debug.log*
+
+# ── Build output ──
+dist
+build
+
+# ── Git ──
+.git
+.gitignore
+
+# ── Environment ──
+.env
+.env.local
+.env.*.local
+!.env.production
+
+# ── Editor / OS ──
+.vscode
+.idea
+*.swp
+.DS_Store
+Thumbs.db
+
+# ── Logs ──
+*.log
