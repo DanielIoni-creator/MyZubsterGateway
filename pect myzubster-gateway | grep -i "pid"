@@ -1,0 +1,22 @@
+[0;1;32m●[0m docker.service - Docker Application Container Engine
+     Loaded: loaded (]8;;file://myzubster/usr/lib/systemd/system/docker.service/usr/lib/systemd/system/docker.service]8;;; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)
+     Active: [0;1;32mactive (running)[0m since Sun 2026-08-02 18:12:55 CEST; 1min 4s ago
+TriggeredBy: [0;1;32m●[0m docker.socket
+       Docs: ]8;;https://docs.docker.comhttps://docs.docker.com]8;;
+   Main PID: 6629 (dockerd)
+      Tasks: 10
+     Memory: 24.0M (peak: 25.1M)
+        CPU: 706ms
+     CGroup: /system.slice/docker.service
+             └─[0;38;5;245m6629 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock[0m
+
+Aug 02 18:12:54 myzubster dockerd[6629]: time="2026-08-02T18:12:54.295082511+02:00" level=info msg="Restoring containers: start."
+Aug 02 18:12:54 myzubster dockerd[6629]: time="2026-08-02T18:12:54.310495846+02:00" level=info msg="Deleting nftables IPv4 rules" error="running nft: /dev/stdin:1:17-30: Error: Could not process rule: No such file or directory\ndelete table ip docker-bridges\n                ^^^^^^^^^^^^^^\n exit status 1"
+Aug 02 18:12:54 myzubster dockerd[6629]: time="2026-08-02T18:12:54.329461617+02:00" level=info msg="Deleting nftables IPv6 rules" error="running nft: /dev/stdin:1:18-31: Error: Could not process rule: No such file or directory\ndelete table ip6 docker-bridges\n                 ^^^^^^^^^^^^^^\n exit status 1"
+Aug 02 18:12:54 myzubster dockerd[6629]: time="2026-08-02T18:12:54.974248576+02:00" level=info msg="Loading containers: done."
+Aug 02 18:12:54 myzubster dockerd[6629]: time="2026-08-02T18:12:54.999152255+02:00" level=info msg="Docker daemon" commit=3d80467 containerd-snapshotter=false storage-driver=overlay2 version=29.6.2
+Aug 02 18:12:54 myzubster dockerd[6629]: time="2026-08-02T18:12:54.999325348+02:00" level=info msg="Initializing buildkit"
+Aug 02 18:12:55 myzubster dockerd[6629]: time="2026-08-02T18:12:55.171485882+02:00" level=info msg="Completed buildkit initialization"
+Aug 02 18:12:55 myzubster dockerd[6629]: time="2026-08-02T18:12:55.179800406+02:00" level=info msg="Daemon has completed initialization"
+Aug 02 18:12:55 myzubster dockerd[6629]: time="2026-08-02T18:12:55.179912624+02:00" level=info msg="API listen on /run/docker.sock"
+Aug 02 18:12:55 myzubster systemd[1]: Started docker.service - Docker Application Container Engine.

@@ -1,175 +1,81 @@
-/**
- * @swagger
- * tags:
- *   name: Marketplace
- *   description: Token marketplace
- */
-
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
-const OrderBook = require('../models/OrderBook');
-const TokenHolding = require('../models/TokenHolding');
+const Robot = require('../models/Robot');
+const Escrow = require('../models/Escrow');
 
-// GET /api/marketplace/orders/:tokenId - Lista ordini aperti
-/**
- * @swagger
- * /api/marketplace/orders/{tokenId}:
- *   get:
- *     summary: List open orders for a token
- *     tags: [Marketplace]
- *     parameters:
- *       - in: path
- *         name: tokenId
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Open orders list
- */
-router.get('/orders/:tokenId', async (req, res) => {
+// 1. Crea un lavoro
+router.post('/jobs/create', async (req, res) => {
   try {
-    const orders = await OrderBook.find({
-      token: req.params.tokenId,
-      status: 'open'
-    }).populate('seller', 'username email');
-    res.json(orders);
-  } catch (error) {
-    console.error('Errore recupero ordini:', error);
-    res.status(500).json({ error: 'Errore nel recupero degli ordini' });
-  }
-});
+    const { clientAddress, description, amount, location, robotType } = req.body;
 
-// POST /api/marketplace/sell - Crea ordine di vendita
-/**
- * @swagger
- * /api/marketplace/sell:
- *   post:
- *     summary: Create a sell order
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - tokenId
- *               - amount
- *               - price
- *             properties:
- *               tokenId:
- *                 type: string
- *               amount:
- *                 type: number
- *               price:
- *                 type: number
- *     responses:
- *       201:
- *         description: Sell order created
- */
-router.post('/sell', auth, async (req, res) => {
-  try {
-    const { tokenId, amount, price } = req.body;
-
-    // Verifica che il venditore abbia abbastanza token
-    const holding = await TokenHolding.findOne({ user: req.user._id, token: tokenId });
-    if (!holding || holding.amount < amount) {
-      return res.status(400).json({ error: 'Token insufficienti' });
-    }
-
-    const totalPrice = amount * price;
-    const order = new OrderBook({
-      token: tokenId,
-      seller: req.user._id,
-      amount,
-      price,
-      totalPrice,
-      status: 'open',
+    const availableRobot = await Robot.findOne({
+      isActive: true,
+      type: robotType || 'lawn_mower',
+      batteryLevel: { $gte: 20 }
     });
-    await order.save();
 
-    // Blocca i token
-    holding.lockedAmount = (holding.lockedAmount || 0) + amount;
-    await holding.save();
+    if (!availableRobot) {
+      return res.status(404).json({ error: 'No robot available' });
+    }
 
-    res.status(201).json({ success: true, order });
+    const fee = amount * 0.02;
+    const boscoFee = amount * 0.08;
+    const total = amount + fee + boscoFee;
+
+    const escrow = new Escrow({
+      id: `job_${Date.now()}`,
+      robotId: availableRobot.id,
+      clientAddress,
+      amount: total,
+      jobDescription: description,
+      status: 'pending'
+    });
+    await escrow.save();
+
+    res.json({
+      success: true,
+      job: {
+        id: escrow.id,
+        robot: availableRobot.id,
+        robotName: availableRobot.name,
+        amount: total,
+        description,
+        status: 'pending'
+      }
+    });
   } catch (error) {
-    console.error('Errore creazione ordine:', error);
-    res.status(500).json({ error: error.message || 'Errore nella creazione dell\'ordine' });
+    res.status(500).json({ error: error.message });
   }
 });
 
-// POST /api/marketplace/buy/:orderId - Acquista da un ordine
-/**
- * @swagger
- * /api/marketplace/buy/{orderId}:
- *   post:
- *     summary: Buy tokens from an order
- *     tags: [Marketplace]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: orderId
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               amount:
- *                 type: number
- *     responses:
- *       200:
- *         description: Purchase successful
- */
-router.post('/buy/:orderId', auth, async (req, res) => {
+// 2. Lista lavori disponibili
+router.get('/jobs', async (req, res) => {
   try {
-    const order = await OrderBook.findById(req.params.orderId);
-    if (!order) return res.status(404).json({ error: 'Ordine non trovato' });
-    if (order.status !== 'open') return res.status(400).json({ error: 'Ordine non più disponibile' });
-
-    const amount = req.body.amount || 1;
-    if (amount > order.amount) return res.status(400).json({ error: 'Quantità richiesta supera quella disponibile' });
-
-    // Aggiorna l'ordine
-    order.amount -= amount;
-    if (order.amount === 0) {
-      order.status = 'filled';
-    }
-    await order.save();
-
-    // Trasferisci token dal venditore all'acquirente
-    const sellerHolding = await TokenHolding.findOne({ user: order.seller, token: order.token });
-    if (sellerHolding) {
-      sellerHolding.lockedAmount = Math.max(0, sellerHolding.lockedAmount - amount);
-      sellerHolding.amount -= amount;
-      await sellerHolding.save();
-    }
-
-    let buyerHolding = await TokenHolding.findOne({ user: req.user._id, token: order.token });
-    if (!buyerHolding) {
-      buyerHolding = new TokenHolding({
-        user: req.user._id,
-        token: order.token,
-        amount: 0,
-        lockedAmount: 0
-      });
-    }
-    buyerHolding.amount += amount;
-    await buyerHolding.save();
-
-    res.json({ success: true, order, amount });
+    const jobs = await Escrow.find({ status: 'pending' });
+    res.json(jobs);
   } catch (error) {
-    console.error('Errore acquisto:', error);
-    res.status(500).json({ error: error.message || 'Errore nell\'acquisto' });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 3. Ottieni dettaglio lavoro
+router.get('/jobs/:jobId', async (req, res) => {
+  try {
+    const job = await Escrow.findOne({ id: req.params.jobId });
+    if (!job) return res.status(404).json({ error: 'Job not found' });
+    res.json(job);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 4. Lista robot disponibili
+router.get('/robots', async (req, res) => {
+  try {
+    const robots = await Robot.find({ isActive: true, batteryLevel: { $gte: 20 } });
+    res.json(robots);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
