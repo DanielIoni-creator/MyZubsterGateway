@@ -1,24 +1,27 @@
-const TEST_CONTENT = `const express = require('express');
+const express = require('express');
 const request = require('supertest');
 
 // ── Mock data ──────────────────────────────────────────────────────────
 const savedBounties = [];
 
-const makeIssuePayload = (overrides = {}) => ({
-  action: 'opened',
-  issue: {
-    number: 101,
-    title: '[BOUNTY] Fix login bug',
-    body: 'Bounty: 0.05 XMR\\nFix the login bug.',
-    labels: [{ name: 'bounty' }],
-    user: { login: 'contributor1' },
-    ...overrides.issue,
-  },
-  repository: { full_name: 'MyZubster-Ecosystem/MyZubsterGateway' },
-  ...overrides,
-});
+const makeIssuePayload = (overrides = {}) => {
+  const { issue: issueOverrides = {}, ...rest } = overrides;
+  return {
+    action: 'opened',
+    issue: {
+      number: 101,
+      title: '[BOUNTY] Fix login bug',
+      body: 'Bounty: 0.05 XMR\nFix the login bug.',
+      labels: [{ name: 'bounty' }],
+      user: { login: 'contributor1' },
+      ...issueOverrides,
+    },
+    repository: { full_name: 'MyZubster-Ecosystem/MyZubsterGateway' },
+    ...rest,
+  };
+};
 
-const makePaymentResponse = (address = '4AbCdEfG...monero_addr') => ({
+const makePaymentResponse = (address = '4AbCdEfG1234567890moneroaddr') => ({
   data: { address, orderId: 'bounty_MyZubster-Ecosystem_MyZubsterGateway_101' },
 });
 
@@ -98,6 +101,7 @@ describe('Bounty webhook system', () => {
   beforeEach(() => {
     savedBounties.length = 0;
     jest.clearAllMocks();
+    axios.post.mockReset();
     process.env.GITHUB_TOKEN = 'test-token';
     process.env.PORT = '10000';
 
@@ -140,7 +144,7 @@ describe('Bounty webhook system', () => {
       // Payment order created
       expect(axios.post).toHaveBeenCalledWith(
         expect.stringContaining('/api/payments/create-order'),
-        expect.objectContaining({ amount: 0.05 }),
+        expect.objectContaining({ amount: 0.05, orderId: 'bounty_MyZubster-Ecosystem_MyZubsterGateway_101' }),
         expect.any(Object)
       );
       // GitHub comment posted
@@ -222,7 +226,7 @@ describe('Bounty webhook system', () => {
         .mockResolvedValueOnce({ data: {} });
 
       const payload = makeIssuePayload({
-        issue: { body: 'bounty: 1.5 xmr\\nDo something.' },
+        issue: { body: 'bounty: 1.5 xmr\nDo something.' },
       });
 
       await request(app)
@@ -236,14 +240,14 @@ describe('Bounty webhook system', () => {
       );
     });
 
-    it('handles payment API failure gracefully (still returns 200)', async () => {
+    it('returns 500 when payment API fails', async () => {
       axios.post.mockRejectedValueOnce(new Error('Payment service down'));
 
       const res = await request(app)
         .post('/api/bounties/webhook')
         .set('x-github-event', 'issues')
         .send(makeIssuePayload())
-        .expect(200);  // route catches errors
+        .expect(500);
 
       expect(res.text).toBe('Error');
     });
@@ -309,11 +313,8 @@ describe('Bounty webhook system', () => {
         amount: 0.05,
         status: 'pending',
         contributor: 'contributor1',
-        toObject() { return this; },
       };
-      MockBounty.findOne.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(mockBounty),
-      });
+      MockBounty.findOne.mockResolvedValue(mockBounty);
 
       const res = await request(app)
         .get('/api/bounties/status/101')
@@ -324,9 +325,7 @@ describe('Bounty webhook system', () => {
     });
 
     it('returns 404 when bounty not found', async () => {
-      MockBounty.findOne.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(null),
-      });
+      MockBounty.findOne.mockResolvedValue(null);
 
       const res = await request(app)
         .get('/api/bounties/status/999')
@@ -336,9 +335,7 @@ describe('Bounty webhook system', () => {
     });
 
     it('returns 500 on database error', async () => {
-      MockBounty.findOne.mockReturnValue({
-        exec: jest.fn().mockRejectedValue(new Error('DB connection failed')),
-      });
+      MockBounty.findOne.mockRejectedValue(new Error('DB connection failed'));
 
       const res = await request(app)
         .get('/api/bounties/status/101')
@@ -358,12 +355,11 @@ describe('Bounty webhook system', () => {
         status: 'completed',
         txId: 'tx_abc123',
         paidAt: new Date(),
-        toObject() { return this; },
       };
       MockBounty.findOneAndUpdate.mockResolvedValue(updatedBounty);
 
       const res = await request(app)
-        .put('/api/bounties/status/101')
+        .put('/api/bounties/101')
         .send({ status: 'completed', txId: 'tx_abc123' })
         .expect(200);
 
@@ -381,12 +377,11 @@ describe('Bounty webhook system', () => {
         status: 'paid',
         txId: 'tx_abc123',
         paidAt: new Date(),
-        toObject() { return this; },
       };
       MockBounty.findOneAndUpdate.mockResolvedValue(updatedBounty);
 
       await request(app)
-        .put('/api/bounties/status/101')
+        .put('/api/bounties/101')
         .send({ status: 'paid', txId: 'tx_abc123' })
         .expect(200);
 
@@ -403,12 +398,11 @@ describe('Bounty webhook system', () => {
       const updatedBounty = {
         issueNumber: 101,
         status: 'completed',
-        toObject() { return this; },
       };
       MockBounty.findOneAndUpdate.mockResolvedValue(updatedBounty);
 
       await request(app)
-        .put('/api/bounties/status/101')
+        .put('/api/bounties/101')
         .send({ status: 'completed' })
         .expect(200);
 
@@ -419,7 +413,7 @@ describe('Bounty webhook system', () => {
       MockBounty.findOneAndUpdate.mockResolvedValue(null);
 
       const res = await request(app)
-        .put('/api/bounties/status/999')
+        .put('/api/bounties/999')
         .send({ status: 'paid', txId: 'tx_abc123' })
         .expect(404);
 
@@ -430,7 +424,7 @@ describe('Bounty webhook system', () => {
       MockBounty.findOneAndUpdate.mockRejectedValue(new Error('DB timeout'));
 
       const res = await request(app)
-        .put('/api/bounties/status/101')
+        .put('/api/bounties/101')
         .send({ status: 'paid', txId: 'tx_abc123' })
         .expect(500);
 
@@ -438,10 +432,3 @@ describe('Bounty webhook system', () => {
     });
   });
 });
-`;
-
-// Base64 encode
-const content = Buffer.from(TEST_CONTENT).toString('base64');
-
-console.log(`Content length: ${TEST_CONTENT.length} chars`);
-console.log(`Base64 length: ${content.length} chars`);
