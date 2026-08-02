@@ -47,6 +47,8 @@ const reviewRoutes = require('./routes/reviews');
 const adminRoutes = require('./routes/admin');
 const gardenRoutes = require('./routes/garden');
 const seedExchangeRoutes = require('./routes/seedExchange');
+const seedExchangeExportRoutes = require('./routes/seedExchangeExport');
+const moneroWalletRoutes = require('./routes/moneroWalletApi');
 const mapRoutes = require('./routes/map');
 
 // ============================================
@@ -63,6 +65,8 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/garden', gardenRoutes);
 app.use('/api/seed-exchange', seedExchangeRoutes);
+app.use('/api/seed-exchange', seedExchangeExportRoutes);
+app.use('/api/monero', moneroWalletRoutes);
 app.use('/api/map', mapRoutes);
 
 // ============================================
