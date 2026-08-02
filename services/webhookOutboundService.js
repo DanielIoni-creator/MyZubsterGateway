@@ -38,7 +38,8 @@ class WebhookOutboundService {
     if (jitter) {
       delay = delay * (0.8 + 0.4 * Math.random());
     }
-    return Math.floor(delay);
+    // Re-apply the cap after jitter so delay never exceeds maxDelayMs.
+    return Math.floor(Math.min(delay, maxDelayMs));
   }
 
   async dispatchWebhook(subscription, payload) {
