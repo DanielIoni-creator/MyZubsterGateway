@@ -1,10 +1,10 @@
 const express = require('express');
 const request = require('supertest');
 const mongoose = require('mongoose');
-const WebhookOutboundService = require('../../services/webhookOutboundService');
-const WebhookSubscription = require('../../models/WebhookSubscription');
-const WebhookDelivery = require('../../models/WebhookDelivery');
-const webhookRoutes = require('../../routes/webhooks');
+const WebhookOutboundService = require('../../../services/webhookOutboundService');
+const WebhookSubscription = require('../../../models/WebhookSubscription');
+const WebhookDelivery = require('../../../models/WebhookDelivery');
+const webhookRoutes = require('../../../routes/webhooks');
 
 jest.mock('axios');
 const mockedAxios = require('axios');

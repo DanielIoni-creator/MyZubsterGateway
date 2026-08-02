@@ -1,16 +1,24 @@
 const jwt = require('jsonwebtoken');
 
-exports.authenticate = async (req, res, next) => {
+const authenticate = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) {
-      return res.status(401).json({ success: false, message: 'Token mancante' });
+      const message = typeof req.t === 'function' ? req.t('auth.required') : 'Authentication required';
+      return res.status(401).json({ error: message });
     }
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.userId = decoded.userId;
     req.userRole = decoded.role || 'user';
     next();
   } catch (error) {
-    res.status(401).json({ success: false, message: 'Token non valido' });
+    const message = typeof req.t === 'function' ? req.t('auth.required') : 'Authentication required';
+    res.status(401).json({ error: message });
   }
 };
+
+// Support both usage patterns:
+//   const auth = require('../middleware/auth')           -> auth is the middleware fn
+//   const { authenticate } = require('../middleware/auth') -> destructured
+module.exports = authenticate;
+module.exports.authenticate = authenticate;

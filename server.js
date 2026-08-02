@@ -1,49 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-<<<<<<< HEAD
-const mongoose = require('mongoose');
-const app = express();
-const PORT = process.env.PORT || 10000;
-
-app.use(cors());
-app.use(express.json());
-
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://myzubster-mongodb:27017/myzubster';
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('✅ Connected to MongoDB'))
-  .catch(err => console.error('❌ MongoDB connection error:', err));
-
-// ---- Monero Routes ----
-const moneroRoutes = require('./routes/monero');
-app.use('/api/monero', moneroRoutes);
-
-// ---- Payment Routes ----
-const paymentRoutes = require('./routes/payments');
-app.use('/api/payments', paymentRoutes);
-
-// ---- Robot Routes ----
-const robotRoutes = require('./routes/robot');
-const marketplaceRoutes = require('./routes/marketplace');
-app.use('/api/robot', robotRoutes);
-app.use('/api/marketplace', marketplaceRoutes);
-
-// ---- Bounty Routes ----
-const bountyRoutes = require('./routes/bounties');
-app.use('/api/bounties', bountyRoutes);
-
-// ---- Referral Routes ----
-const referralRoutes = require('./routes/referral');
-app.use('/api/referral', referralRoutes);
-
-// ---- Escrow Routes ----
-const escrowRoutes = require('./routes/escrow');
-app.use('/api/escrow', escrowRoutes);
-
-app.get('/health', (req, res) => {
-  res.json({ success: true, status: 'ok', timestamp: new Date().toISOString() });
-});
-
-=======
 const helmet = require('helmet');
 const compression = require('compression');
 const mongoose = require('mongoose');
@@ -61,31 +17,59 @@ app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Connessione a MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-.then(() => console.log('✅ MongoDB connected'))
-.catch(err => console.error('❌ MongoDB connection error:', err));
+// MongoDB
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://myzubster-mongodb:27017/myzubster';
+mongoose.connect(MONGODB_URI)
+  .then(() => console.log('✅ Connected to MongoDB'))
+  .catch(err => console.error('❌ MongoDB connection error:', err));
 
-// ---- Route ----
-// Auth
+// ---- Auth ----
 app.use('/api/auth', require('./routes/authRoutes'));
 
-// Animals
+// ---- Animals ----
 app.use('/api/animals', require('./routes/animalRoutes'));
 
-// Plants
+// ---- Plants ----
 app.use('/api/plants', require('./routes/plantRoutes'));
 
-// Bounties
+// ---- Bounties (new bounty system) ----
 app.use('/api/bounties', require('./routes/bountyRoutes'));
 
-// Rewards
+// ---- Bounties (webhook / status / update — legacy) ----
+app.use('/api/bounties', require('./routes/bounties'));
+
+// ---- Rewards ----
 app.use('/api/rewards', require('./routes/rewardRoutes'));
 
-// Webhooks
+// ---- Webhooks ----
 app.use('/api/webhooks', require('./routes/webhooks'));
+app.use('/api/webhook', require('./routes/webhook'));
+
+// ---- Monero ----
+app.use('/api/monero', require('./routes/monero'));
+
+// ---- Payments ----
+app.use('/api/payments', require('./routes/payments'));
+
+// ---- Robot ----
+app.use('/api/robot', require('./routes/robot'));
+
+// ---- Marketplace ----
+app.use('/api/marketplace', require('./routes/marketplace'));
+
+// ---- Referral ----
+app.use('/api/referral', require('./routes/referral'));
+
+// ---- Escrow ----
+app.use('/api/escrow', require('./routes/escrow'));
+
+// ---- Bookings ----
+app.use('/api/bookings', require('./routes/bookings'));
 
 // ---- Health check ----
+app.get('/health', (req, res) => {
+  res.json({ success: true, status: 'ok', timestamp: new Date().toISOString() });
+});
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -113,29 +97,12 @@ app.get('/api/info', (req, res) => {
 });
 
 // ---- Root endpoint ----
->>>>>>> bdd225a5 (feat: implement bounty, reward, and auth system)
 app.get('/', (req, res) => {
   res.json({
     name: 'MyZubster Gateway',
     version: '1.0.0',
     status: 'running',
     endpoints: {
-<<<<<<< HEAD
-      monero: '/api/monero',
-      payments: '/api/payments',
-      robot: '/api/robot',
-      bounties: '/api/bounties',
-      referral: '/api/referral',
-      escrow: '/api/escrow'
-    }
-  });
-});
-
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📍 http://localhost:${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-=======
       health: '/api/health',
       info: '/api/info',
       auth: {
@@ -157,13 +124,22 @@ app.listen(PORT, '0.0.0.0', () => {
         list: '/api/bounties',
         create: '/api/bounties/create',
         claim: '/api/bounties/:id/claim',
-        stats: '/api/bounties/stats'
+        stats: '/api/bounties/stats',
+        webhook: '/api/bounties/webhook',
+        status: '/api/bounties/status/:issueNumber'
       },
       rewards: {
         list: '/api/rewards',
         stats: '/api/rewards/stats',
         claim: '/api/rewards/claim/:rewardId'
-      }
+      },
+      monero: '/api/monero',
+      payments: '/api/payments',
+      robot: '/api/robot',
+      marketplace: '/api/marketplace',
+      referral: '/api/referral',
+      escrow: '/api/escrow',
+      bookings: '/api/bookings'
     }
   });
 });
@@ -187,31 +163,34 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ---- Start server ----
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 MyZubster Gateway is running on port ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`📋 Info: http://localhost:${PORT}/api/info`);
-  console.log(`🔐 Auth: http://localhost:${PORT}/api/auth/register`);
-  console.log(`🐾 Animals: http://localhost:${PORT}/api/animals`);
-  console.log(`🌿 Plants: http://localhost:${PORT}/api/plants`);
-  console.log(`🏆 Bounties: http://localhost:${PORT}/api/bounties`);
-  console.log(`💰 Rewards: http://localhost:${PORT}/api/rewards`);
-});
-
-// ---- Graceful shutdown ----
-process.on('SIGTERM', () => {
-  console.log('📡 SIGTERM received, closing server...');
-  server.close(() => {
-    console.log('✅ Server closed');
-    process.exit(0);
-  });
->>>>>>> bdd225a5 (feat: implement bounty, reward, and auth system)
-});
-
 // ---- Telegram Bot ----
 const MyZubsterBot = require('./services/telegram-bot');
-if (process.env.TELEGRAM_BOT_TOKEN) {
+if (process.env.TELEGRAM_BOT_TOKEN && require.main === module) {
   const bot = new MyZubsterBot(process.env.TELEGRAM_BOT_TOKEN);
   console.log('✅ Telegram Bot avviato!');
 }
+
+// ---- Start server (only when run directly; export app for tests) ----
+if (require.main === module) {
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 MyZubster Gateway is running on port ${PORT}`);
+    console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+    console.log(`📋 Info: http://localhost:${PORT}/api/info`);
+    console.log(`🔐 Auth: http://localhost:${PORT}/api/auth/register`);
+    console.log(`🐾 Animals: http://localhost:${PORT}/api/animals`);
+    console.log(`🌿 Plants: http://localhost:${PORT}/api/plants`);
+    console.log(`🏆 Bounties: http://localhost:${PORT}/api/bounties`);
+    console.log(`💰 Rewards: http://localhost:${PORT}/api/rewards`);
+  });
+
+  // ---- Graceful shutdown ----
+  process.on('SIGTERM', () => {
+    console.log('📡 SIGTERM received, closing server...');
+    server.close(() => {
+      console.log('✅ Server closed');
+      process.exit(0);
+    });
+  });
+}
+
+module.exports = app;
