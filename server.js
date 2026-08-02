@@ -1,33 +1,33 @@
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
-
-dotenv.config();
-
+const mongoose = require('mongoose');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Routes
-const moneroRoutes = require('./routes/monero');
-const paymentRoutes = require('./routes/payments');
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://myzubster-mongodb:27017/myzubster';
+mongoose.connect(MONGODB_URI)
+  .then(() => console.log('✅ Connected to MongoDB'))
+  .catch(err => console.error('❌ MongoDB connection error:', err));
 
+// ---- Monero Routes ----
+const moneroRoutes = require('./routes/monero');
 app.use('/api/monero', moneroRoutes);
+
+// ---- Payment Routes ----
+const paymentRoutes = require('./routes/payments');
 app.use('/api/payments', paymentRoutes);
 
-// Health check
+// ---- Robot Routes ----
+const robotRoutes = require('./routes/robot');
+app.use('/api/robot', robotRoutes);
+
 app.get('/health', (req, res) => {
-  res.json({
-    success: true,
-    status: 'ok',
-    timestamp: new Date().toISOString()
-  });
+  res.json({ success: true, status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Root endpoint
 app.get('/', (req, res) => {
   res.json({
     name: 'MyZubster Gateway',
@@ -35,7 +35,8 @@ app.get('/', (req, res) => {
     status: 'running',
     endpoints: {
       monero: '/api/monero',
-      payments: '/api/payments'
+      payments: '/api/payments',
+      robot: '/api/robot'
     }
   });
 });
