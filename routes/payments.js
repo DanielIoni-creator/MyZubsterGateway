@@ -1,77 +1,55 @@
-/**
- * @swagger
- * tags:
- *   name: Payments
- *   description: Payment processing
- */
-
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
+const MoneroService = require('../services/monero');
 
-/**
- * @swagger
- * /api/payments:
- *   get:
- *     summary: List all payments
- *     tags: [Payments]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Payments list
- */
-router.get('/', auth, async (req, res) => {
+const moneroService = new MoneroService({});
+moneroService.connect().catch(console.error);
+
+// Crea un nuovo ordine di pagamento
+router.post('/create-order', async (req, res) => {
   try {
-    res.json({ success: true, data: [], message: 'payments endpoint' });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    const { orderId, amount, description } = req.body;
+    
+    if (!orderId || !amount) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'orderId and amount are required' 
+      });
+    }
+
+    const result = await moneroService.createPaymentOrder(orderId, amount, description);
+    res.json(result);
+  } catch (error) {
+    console.error('Error creating payment order:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
 
-/**
- * @swagger
- * /api/payments:
- *   post:
- *     summary: Create a new payments
- *     tags: [Payments]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       201:
- *         description: Created
- */
-router.post('/', auth, async (req, res) => {
+// Verifica lo stato di un pagamento
+router.get('/status/:orderId', async (req, res) => {
   try {
-    res.status(201).json({ success: true, data: req.body, message: 'payments created' });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    const { orderId } = req.params;
+    const result = await moneroService.verifyPayment(orderId);
+    res.json(result);
+  } catch (error) {
+    console.error('Error checking payment status:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
 
-/**
- * @swagger
- * /api/payments/{id}:
- *   get:
- *     summary: Get payments by ID
- *     tags: [Payments]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Payments details
- */
-router.get('/:id', auth, async (req, res) => {
+// Verifica il saldo di un indirizzo
+router.post('/check-balance', async (req, res) => {
   try {
-    res.json({ success: true, data: { id: req.params.id } });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    const { address } = req.body;
+    if (!address) {
+      return res.status(400).json({ success: false, message: 'address is required' });
+    }
+
+    const result = await moneroService.checkBalance(address);
+    res.json(result);
+  } catch (error) {
+    console.error('Error checking balance:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
 

@@ -19,6 +19,8 @@
     "helmet": "^8.3.0",
     "joi": "^18.2.3",
     "jsonwebtoken": "^9.0.3",
+    "monero-javascript": "^0.8.4",
+    "monero-ts": "^0.11.13",
     "mongoose": "^7.8.11",
     "morgan": "^1.11.0",
     "payment": "^2.4.7",
@@ -34,7 +36,9 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "setupFiles": ["./tests/setup.js"],
+    "setupFiles": [
+      "./tests/setup.js"
+    ],
     "testPathIgnorePatterns": [
       "/node_modules/",
       "<rootDir>/server.test.js"
