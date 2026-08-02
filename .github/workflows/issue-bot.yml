@@ -7,23 +7,21 @@ on:
 jobs:
   handle-claim:
     runs-on: ubuntu-latest
-    if: contains(github.event.comment.body, 'I'll take this')
+    if: contains(github.event.comment.body, 'I take this')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Assign issue
+        uses: actions-ecosystem/action-add-assignees@v1
         with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run Issue Bot
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          node scripts/issue-bot.js ${{ github.event.repository.name }} ${{ github.event.issue.number }} ${{ github.event.comment.user.login }}
-        continue-on-error: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          assignees: ${{ github.event.comment.user.login }}
+          
+      - name: Add comment
+        uses: actions-ecosystem/action-create-comment@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            ✅ Issue assigned to @${{ github.event.comment.user.login }}!
+            You can now work on this issue. 🚀
