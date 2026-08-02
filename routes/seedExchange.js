@@ -96,32 +96,7 @@ router.get('/', async (req, res, next) => {
     const sortOrder = req.query.order === 'asc' ? 1 : -1;
     const skip = (page - 1) * limit;
 
-    const filter = {};
-
-    if (req.query.category) {
-      const validCategories = ['seed', 'talee', 'plant', 'other'];
-      if (validCategories.includes(req.query.category)) {
-        filter.category = req.query.category;
-      }
-    }
-
-    if (req.query.isActive !== undefined) {
-      filter.isActive = req.query.isActive === 'true';
-    }
-
-    if (req.query.userId) {
-      filter.userId = req.query.userId;
-    }
-
-    // Text search across species, variety, description
-    if (req.query.search && req.query.search.trim()) {
-      const searchRegex = new RegExp(escapeRegex(req.query.search.trim()), 'i');
-      filter.$or = [
-        { species: searchRegex },
-        { variety: searchRegex },
-        { description: searchRegex }
-      ];
-    }
+    const filter = buildFilterQuery(req);
 
     const [data, total] = await Promise.all([
       SeedExchange.find(filter)
@@ -146,6 +121,81 @@ router.get('/', async (req, res, next) => {
         hasPrev: page > 1
       }
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ─── GET /api/seed-exchange/export/csv ───────────────────────────────────────
+
+router.get('/export/csv', async (req, res, next) => {
+  try {
+    const filter = buildFilterQuery(req);
+    const data = await SeedExchange.find(filter)
+      .sort({ createdAt: -1 })
+      .populate('userId', 'username');
+
+    let csv = 'ID,User,Species,Variety,Category,Quantity,Price,Currency,City,Region,Country,Created At\n';
+    data.forEach(item => {
+      const row = [
+        item._id,
+        item.userId ? item.userId.username : '',
+        `"${(item.species || '').replace(/"/g, '""')}"`,
+        `"${(item.variety || '').replace(/"/g, '""')}"`,
+        item.category,
+        item.quantity,
+        item.price,
+        item.currency,
+        `"${(item.location && item.location.city || '').replace(/"/g, '""')}"`,
+        `"${(item.location && item.location.region || '').replace(/"/g, '""')}"`,
+        `"${(item.location && item.location.country || '').replace(/"/g, '""')}"`,
+        item.createdAt ? item.createdAt.toISOString() : ''
+      ];
+      csv += row.join(',') + '\n';
+    });
+
+    res.header('Content-Type', 'text/csv');
+    res.attachment('seed-exchange-listings.csv');
+    res.send(csv);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ─── GET /api/seed-exchange/export/geojson ───────────────────────────────────
+
+router.get('/export/geojson', async (req, res, next) => {
+  try {
+    const filter = buildFilterQuery(req);
+    const data = await SeedExchange.find(filter)
+      .sort({ createdAt: -1 })
+      .populate('userId', 'username');
+
+    const geojson = {
+      type: 'FeatureCollection',
+      features: data.map(item => ({
+        type: 'Feature',
+        geometry: null,
+        properties: {
+          id: item._id,
+          username: item.userId ? item.userId.username : null,
+          species: item.species,
+          variety: item.variety,
+          category: item.category,
+          quantity: item.quantity,
+          price: item.price,
+          currency: item.currency,
+          description: item.description,
+          city: item.location ? item.location.city : null,
+          region: item.location ? item.location.region : null,
+          country: item.location ? item.location.country : null,
+          createdAt: item.createdAt,
+          isActive: item.isActive
+        }
+      }))
+    };
+
+    res.json(geojson);
   } catch (err) {
     next(err);
   }
@@ -253,6 +303,31 @@ router.delete('/:id', auth, async (req, res, next) => {
 
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function buildFilterQuery(req) {
+  const filter = {};
+  if (req.query.category) {
+    const validCategories = ['seed', 'talee', 'plant', 'other'];
+    if (validCategories.includes(req.query.category)) {
+      filter.category = req.query.category;
+    }
+  }
+  if (req.query.isActive !== undefined) {
+    filter.isActive = req.query.isActive === 'true';
+  }
+  if (req.query.userId) {
+    filter.userId = req.query.userId;
+  }
+  if (req.query.search && req.query.search.trim()) {
+    const searchRegex = new RegExp(escapeRegex(req.query.search.trim()), 'i');
+    filter.$or = [
+      { species: searchRegex },
+      { variety: searchRegex },
+      { description: searchRegex }
+    ];
+  }
+  return filter;
 }
 
 module.exports = router;

@@ -337,6 +337,48 @@ describe('Seed Exchange API', () => {
     });
   });
 
+  // ─── GET /api/seed-exchange/export/csv ─────────────────────────────
+
+  describe('GET /api/seed-exchange/export/csv', () => {
+    it('should return CSV data with correct Content-Type', async () => {
+      const mockListing = createMockListing();
+      setFindResult([mockListing]);
+
+      const res = await request(app)
+        .get('/api/seed-exchange/export/csv')
+        .expect(200);
+
+      expect(res.headers['content-type']).toContain('text/csv');
+      expect(res.text).toContain('ID,User,Species,Variety,Category,Quantity,Price,Currency,City,Region,Country,Created At');
+      expect(res.text).toContain('Tomato');
+      expect(res.text).toContain('Cherry');
+    });
+  });
+
+  // ─── GET /api/seed-exchange/export/geojson ─────────────────────────
+
+  describe('GET /api/seed-exchange/export/geojson', () => {
+    it('should return GeoJSON FeatureCollection', async () => {
+      const mockListing = createMockListing();
+      setFindResult([mockListing]);
+
+      const res = await request(app)
+        .get('/api/seed-exchange/export/geojson')
+        .expect(200);
+
+      expect(res.body.type).toBe('FeatureCollection');
+      expect(Array.isArray(res.body.features)).toBe(true);
+      expect(res.body.features.length).toBe(1);
+      
+      const feature = res.body.features[0];
+      expect(feature.type).toBe('Feature');
+      expect(feature.geometry).toBeNull();
+      expect(feature.properties).toBeDefined();
+      expect(feature.properties.species).toBe('Tomato');
+      expect(feature.properties.city).toBe('Rome');
+    });
+  });
+
   // ─── GET /api/seed-exchange/:id ──────────────────────────────────────
 
   describe('GET /api/seed-exchange/:id', () => {
