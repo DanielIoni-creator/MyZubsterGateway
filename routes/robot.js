@@ -3,7 +3,7 @@ const router = express.Router();
 const Robot = require('../models/Robot');
 const Referral = require('../models/Referral');
 
-// Registra un robot
+// Registrazione robot
 router.post('/register', async (req, res) => {
   try {
     const robot = new Robot(req.body);
@@ -14,7 +14,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Ricarica robot (x402)
+// Ricarica (italiano - x402)
 router.get('/ricarica', async (req, res) => {
   try {
     const { robotId, amount } = req.query;
@@ -37,7 +37,30 @@ router.get('/ricarica', async (req, res) => {
   }
 });
 
-// Ottieni robot
+// Ricarica (standard internazionale x402 - charge)
+router.get('/charge', async (req, res) => {
+  try {
+    const { robotId, amount } = req.query;
+    const robot = await Robot.findOne({ id: robotId });
+    if (!robot) {
+      return res.status(404).json({ error: 'Robot not found' });
+    }
+    const fee = amount * 0.02;
+    const boscoFee = amount * 0.08;
+    res.status(402).json({
+      status: 'payment_required',
+      amount: parseFloat(amount) + fee + boscoFee,
+      fee: fee,
+      boscoFee: boscoFee,
+      address: robot.walletAddress,
+      memo: `Recharge for robot ${robotId}`
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Ottieni info robot
 router.get('/:robotId', async (req, res) => {
   try {
     const robot = await Robot.findOne({ id: req.params.robotId });
@@ -89,6 +112,16 @@ router.post('/clone', async (req, res) => {
     });
     await referral.save();
     res.json({ success: true, robot: newRobot });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Lista robot
+router.get('/', async (req, res) => {
+  try {
+    const robots = await Robot.find({ isActive: true });
+    res.json(robots);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

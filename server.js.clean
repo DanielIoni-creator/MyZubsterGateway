@@ -24,10 +24,6 @@ app.use('/api/payments', paymentRoutes);
 const robotRoutes = require('./routes/robot');
 app.use('/api/robot', robotRoutes);
 
-// ---- Bounty Routes ----
-const bountyRoutes = require('./routes/bounties');
-app.use('/api/bounties', bountyRoutes);
-
 app.get('/health', (req, res) => {
   res.json({ success: true, status: 'ok', timestamp: new Date().toISOString() });
 });
@@ -40,8 +36,7 @@ app.get('/', (req, res) => {
     endpoints: {
       monero: '/api/monero',
       payments: '/api/payments',
-      robot: '/api/robot',
-      bounties: '/api/bounties'
+      robot: '/api/robot'
     }
   });
 });
@@ -51,3 +46,13 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`📍 http://localhost:${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
+
+// ---- Bounty Routes ----
+
+// ---- Bounty Routes ----
+
+// ---- Bounty Routes ----
+
+// ---- Bounty Routes ----
+const bountyRoutes = require('./routes/bounties');
+app.use('/api/bounties', bountyRoutes);
