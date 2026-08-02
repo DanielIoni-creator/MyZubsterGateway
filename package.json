@@ -29,6 +29,8 @@
     "winston": "^3.19.0"
   },
   "devDependencies": {
+    "@actions/core": "^3.0.1",
+    "@actions/github": "^9.1.1",
     "jest": "^27.5.1",
     "jest-environment-node": "^27.5.1",
     "nodemon": "^3.0.1",
