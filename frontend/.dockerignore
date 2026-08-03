@@ -1,0 +1,25 @@
+# Dependencies / build output (never copied into the image build context)
+node_modules
+dist
+dist-ssr
+*.log
+npm-debug.log*
+
+# Version control metadata
+.git
+.github
+
+# Local environment files (avoid leaking secrets / local overrides into the image)
+.env
+.env.local
+.env.*.local
+
+# Editor / OS noise
+.idea
+.vscode
+*.swp
+
+# Not part of the build (kept out of the context to keep it lean)
+myzubster-frontend
+
+# The Dockerfile / docs themselves are intentionally NOT ignored
