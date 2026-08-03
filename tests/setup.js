@@ -17,7 +17,10 @@ jest.mock('mongoose', () => {
     pre: jest.fn().mockReturnThis(),
     post: jest.fn().mockReturnThis(),
     index: jest.fn().mockReturnThis(),
-    virtual: jest.fn().mockReturnThis()
+    virtual: jest.fn().mockReturnThis(),
+    methods: {},
+    statics: {},
+    set: jest.fn().mockReturnThis()
   }));
 
   // Add Types as a static property on Schema (like real mongoose)
