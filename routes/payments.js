@@ -5,7 +5,49 @@ const MoneroService = require('../services/monero');
 const moneroService = new MoneroService({});
 moneroService.connect().catch(console.error);
 
-// Crea un nuovo ordine di pagamento
+/**
+ * @swagger
+ * /api/payments/create-order:
+ *   post:
+ *     summary: Create a new payment order
+ *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - orderId
+ *               - amount
+ *             properties:
+ *               orderId:
+ *                 type: string
+ *               amount:
+ *                 type: number
+ *               description:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Payment order created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 address:
+ *                   type: string
+ *                 amount:
+ *                   type: number
+ *       400:
+ *         description: Invalid request
+ *       500:
+ *         description: Server error
+ */
 router.post('/create-order', async (req, res) => {
   try {
     const { orderId, amount, description } = req.body;
@@ -25,7 +67,36 @@ router.post('/create-order', async (req, res) => {
   }
 });
 
-// Verifica lo stato di un pagamento
+/**
+ * @swagger
+ * /api/payments/status/{orderId}:
+ *   get:
+ *     summary: Check payment status
+ *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Payment status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 status:
+ *                   type: string
+ *                   enum: [pending, completed, failed]
+ *       500:
+ *         description: Server error
+ */
 router.get('/status/:orderId', async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -37,7 +108,42 @@ router.get('/status/:orderId', async (req, res) => {
   }
 });
 
-// Verifica il saldo di un indirizzo
+/**
+ * @swagger
+ * /api/payments/check-balance:
+ *   post:
+ *     summary: Check balance of a Monero address
+ *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - address
+ *             properties:
+ *               address:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Balance information
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 balance:
+ *                   type: number
+ *       400:
+ *         description: Invalid request
+ *       500:
+ *         description: Server error
+ */
 router.post('/check-balance', async (req, res) => {
   try {
     const { address } = req.body;

@@ -1,6 +1,3 @@
-/**
- * Swagger/OpenAPI configuration for MyZubsterGateway
- */
 const swaggerJsdoc = require('swagger-jsdoc');
 
 const options = {
@@ -28,6 +25,58 @@ const options = {
           bearerFormat: 'JWT',
         },
       },
+      schemas: {
+        Bounty: {
+          type: 'object',
+          properties: {
+            _id: { type: 'string' },
+            title: { type: 'string' },
+            description: { type: 'string' },
+            issueNumber: { type: 'integer' },
+            issueUrl: { type: 'string' },
+            repository: { type: 'string' },
+            amount: { type: 'number' },
+            status: { type: 'string', enum: ['open', 'in-progress', 'completed'] },
+            assignedToUsername: { type: 'string' },
+            assignedToWallet: { type: 'string' },
+            paymentTxHash: { type: 'string' },
+            prNumber: { type: 'integer' },
+            prUrl: { type: 'string' },
+            createdBy: { type: 'string' },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+          },
+        },
+        Escrow: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            robotId: { type: 'string' },
+            clientAddress: { type: 'string' },
+            amount: { type: 'number' },
+            status: { type: 'string', enum: ['pending', 'completed', 'disputed', 'released'] },
+            jobDescription: { type: 'string' },
+            gpsData: { type: 'array', items: { type: 'object' } },
+            photos: { type: 'array', items: { type: 'string' } },
+            createdAt: { type: 'string', format: 'date-time' },
+            completedAt: { type: 'string', format: 'date-time' },
+            releasedAt: { type: 'string', format: 'date-time' },
+          },
+        },
+        User: {
+          type: 'object',
+          properties: {
+            _id: { type: 'string' },
+            username: { type: 'string' },
+            email: { type: 'string', format: 'email' },
+            role: { type: 'string', enum: ['user', 'admin', 'moderator'] },
+            moneroWallet: { type: 'string' },
+            isVerified: { type: 'boolean' },
+            createdAt: { type: 'string', format: 'date-time' },
+            lastLogin: { type: 'string', format: 'date-time' },
+          },
+        },
+      },
     },
     security: [
       {
@@ -37,6 +86,7 @@ const options = {
     tags: [
       { name: 'Auth', description: 'Authentication management' },
       { name: 'Users', description: 'User management' },
+      { name: 'Bounties', description: 'Bounty management' },
       { name: 'Tokens', description: 'Token management' },
       { name: 'Orders', description: 'Order management' },
       { name: 'Admin', description: 'Admin-only endpoints' },

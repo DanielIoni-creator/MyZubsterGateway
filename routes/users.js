@@ -23,13 +23,39 @@ const auth = require('../middleware/auth');
  *         name: page
  *         schema:
  *           type: integer
+ *           default: 1
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
+ *           default: 20
  *     responses:
  *       200:
  *         description: List of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/User'
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     total:
+ *                       type: integer
+ *                     pages:
+ *                       type: integer
+ *       401:
+ *         description: Unauthorized
  */
 router.get('/', auth, async (req, res) => {
   try {
@@ -59,6 +85,17 @@ router.get('/', auth, async (req, res) => {
  *     responses:
  *       200:
  *         description: User data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: User not found
  */
@@ -96,9 +133,24 @@ router.get('/:id', auth, async (req, res) => {
  *                 type: string
  *               email:
  *                 type: string
+ *               avatar:
+ *                 type: string
  *     responses:
  *       200:
  *         description: User updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
  */
 router.patch('/:id', auth, async (req, res) => {
   try {

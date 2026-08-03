@@ -4,7 +4,64 @@ const Robot = require('../models/Robot');
 const Transaction = require('../models/Transaction');
 const Escrow = require('../models/Escrow');
 
-// 1. Crea un nuovo escrow
+/**
+ * @swagger
+ * /api/escrow/create:
+ *   post:
+ *     summary: Create a new escrow
+ *     tags: [Escrow]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - robotId
+ *               - clientAddress
+ *               - amount
+ *               - jobDescription
+ *             properties:
+ *               robotId:
+ *                 type: string
+ *               clientAddress:
+ *                 type: string
+ *               amount:
+ *                 type: number
+ *               jobDescription:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Escrow created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 escrow:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     robotId:
+ *                       type: string
+ *                     amount:
+ *                       type: number
+ *                     fee:
+ *                       type: number
+ *                     boscoFee:
+ *                       type: number
+ *                     address:
+ *                       type: string
+ *                     status:
+ *                       type: string
+ *       404:
+ *         description: Robot not found
+ */
 router.post('/create', async (req, res) => {
   try {
     const { robotId, clientAddress, amount, jobDescription } = req.body;
@@ -52,7 +109,28 @@ router.post('/create', async (req, res) => {
   }
 });
 
-// 2. Completa lavoro
+/**
+ * @swagger
+ * /api/escrow/{escrowId}/complete:
+ *   post:
+ *     summary: Complete an escrow job
+ *     tags: [Escrow]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: escrowId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Job completed
+ *       400:
+ *         description: Escrow already finalized
+ *       404:
+ *         description: Escrow not found
+ */
 router.post('/:escrowId/complete', async (req, res) => {
   try {
     const escrow = await Escrow.findOne({ id: req.params.escrowId });
@@ -81,7 +159,26 @@ router.post('/:escrowId/complete', async (req, res) => {
   }
 });
 
-// 3. Disputa
+/**
+ * @swagger
+ * /api/escrow/{escrowId}/dispute:
+ *   post:
+ *     summary: Open a dispute on an escrow
+ *     tags: [Escrow]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: escrowId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Dispute opened
+ *       404:
+ *         description: Escrow not found
+ */
 router.post('/:escrowId/dispute', async (req, res) => {
   try {
     const escrow = await Escrow.findOne({ id: req.params.escrowId });
@@ -107,7 +204,46 @@ router.post('/:escrowId/dispute', async (req, res) => {
   }
 });
 
-// 4. Rilascia fondi (AI arbiter)
+/**
+ * @swagger
+ * /api/escrow/{escrowId}/release:
+ *   post:
+ *     summary: Release escrow funds (AI arbiter)
+ *     tags: [Escrow]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: escrowId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Funds released
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 escrow:
+ *                   $ref: '#/components/schemas/Escrow'
+ *                 distribution:
+ *                   type: object
+ *                   properties:
+ *                     owner:
+ *                       type: number
+ *                     myZubster:
+ *                       type: number
+ *                     bosco:
+ *                       type: number
+ *       400:
+ *         description: Invalid escrow status
+ *       404:
+ *         description: Escrow or Robot not found
+ */
 router.post('/:escrowId/release', async (req, res) => {
   try {
     const escrow = await Escrow.findOne({ id: req.params.escrowId });
@@ -151,7 +287,26 @@ router.post('/:escrowId/release', async (req, res) => {
   }
 });
 
-// 5. Ottieni stato
+/**
+ * @swagger
+ * /api/escrow/{escrowId}:
+ *   get:
+ *     summary: Get escrow by ID
+ *     tags: [Escrow]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: escrowId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Escrow details
+ *       404:
+ *         description: Escrow not found
+ */
 router.get('/:escrowId', async (req, res) => {
   try {
     const escrow = await Escrow.findOne({ id: req.params.escrowId });
