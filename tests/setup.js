@@ -9,6 +9,20 @@ jest.mock('mongoose', () => {
     lean: jest.fn().mockReturnThis()
   };
 
+  const mockTypes = {
+    ObjectId: jest.fn().mockImplementation(id => id || 'mock-id')
+  };
+
+  const SchemaMock = jest.fn().mockImplementation(() => ({
+    pre: jest.fn().mockReturnThis(),
+    post: jest.fn().mockReturnThis(),
+    index: jest.fn().mockReturnThis(),
+    virtual: jest.fn().mockReturnThis()
+  }));
+
+  // Add Types as a static property on Schema (like real mongoose)
+  SchemaMock.Types = mockTypes;
+
   return {
     connect: jest.fn().mockResolvedValue(true),
     connection: {
@@ -16,15 +30,7 @@ jest.mock('mongoose', () => {
       on: jest.fn(),
       once: jest.fn()
     },
-    Schema: jest.fn().mockImplementation(() => ({
-      pre: jest.fn().mockReturnThis(),
-      post: jest.fn().mockReturnThis(),
-      index: jest.fn().mockReturnThis(),
-      virtual: jest.fn().mockReturnThis(),
-      Types: {
-        ObjectId: jest.fn().mockImplementation(id => id || 'mock-id')
-      }
-    })),
+    Schema: SchemaMock,
     model: jest.fn().mockImplementation(() => ({
       find: jest.fn().mockReturnValue(mockQuery),
       findOne: jest.fn().mockReturnValue(mockQuery),
@@ -36,9 +42,7 @@ jest.mock('mongoose', () => {
       updateOne: jest.fn().mockResolvedValue({}),
       updateMany: jest.fn().mockResolvedValue({})
     })),
-    Types: {
-      ObjectId: jest.fn().mockImplementation(id => id || 'mock-id')
-    }
+    Types: mockTypes
   };
 });
 
