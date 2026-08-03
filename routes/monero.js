@@ -98,3 +98,30 @@ router.post('/create-multisig', async (req, res) => {
 });
 
 module.exports = router;
+
+// GET /status - Stato del wallet Monero
+router.get('/status', async (req, res) => {
+  try {
+    // Qui puoi aggiungere logica reale per controllare lo stato del wallet
+    res.json({
+      status: 'connected',
+      timestamp: new Date().toISOString(),
+      network: process.env.MONERO_NETWORK || 'testnet'
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /status - Stato del wallet Monero
+router.get("/status", async (req, res) => {
+  try {
+    res.json({
+      status: "connected",
+      timestamp: new Date().toISOString(),
+      network: process.env.MONERO_NETWORK || "testnet"
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
