@@ -20,7 +20,10 @@ jest.mock('mongoose', () => {
       pre: jest.fn().mockReturnThis(),
       post: jest.fn().mockReturnThis(),
       index: jest.fn().mockReturnThis(),
-      virtual: jest.fn().mockReturnThis()
+      virtual: jest.fn().mockReturnThis(),
+      Types: {
+        ObjectId: jest.fn().mockImplementation(id => id || 'mock-id')
+      }
     })),
     model: jest.fn().mockImplementation(() => ({
       find: jest.fn().mockReturnValue(mockQuery),
