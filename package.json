@@ -5,9 +5,7 @@
   "scripts": {
     "test": "node --test tests/*.test.js",
     "devto-publish": "node scripts/publish-devto.js --publish",
-    "devto-draft": "node scripts/publish-devto.js",
-    "start": "node server.js",
-    "build": "echo 'Build completed'"
+    "devto-draft": "node scripts/publish-devto.js"
   },
   "keywords": [],
   "author": "",
