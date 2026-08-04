@@ -30,11 +30,11 @@ app.post('/escrow/create', (req, res) => {
   }
 });
 
+// Routes
 app.use('/api/rewards', require('./routes/rewards'));
 app.use('/api/bounty', require('./routes/bounty'));
 app.use('/api/stake', require('./routes/stake'));
 app.use('/api/escrow/house', require('./routes/escrowHouse'));
-
 app.use('/api/robot', require('./routes/robot'));
 app.use('/api/robot/escrow', require('./routes/robotEscrow'));
 app.use('/api/robot/logo', require('./routes/robotLogo'));
@@ -52,7 +52,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`🚀 Gateway running on http://localhost:${PORT}`);
 });
