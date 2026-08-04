@@ -1,0 +1,48 @@
+name: 📝 Free Issue (con reward minimo in MYZ)
+description: Segnala un bug, proponi un miglioramento – ricompensa minima 1 MYZ
+labels: ["free", "reward:1-myz"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 📝 Free Issue – Reward Minimo 1 $MYZ
+
+        Ogni issue aperta riceve **almeno 1 MYZ** come ricompensa.
+        - Se vuoi aumentare la ricompensa, usa il template **Bounty Issue**.
+        - **Nessun limite** di issue free al giorno.
+
+  - type: input
+    id: title
+    attributes:
+      label: "📌 Titolo"
+      placeholder: "es. Bug: il gateway non risponde su /health"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "📋 Descrizione"
+      placeholder: "Spiega il problema o il miglioramento..."
+    validations:
+      required: true
+
+  - type: input
+    id: reward
+    attributes:
+      label: "💰 Ricompensa richiesta (MYZ)"
+      description: "Minimo 1 MYZ. Se vuoi più di 1 MYZ, usa il template Bounty Issue."
+      placeholder: "1"
+      value: "1"
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ✅ **Regole**
+        - Ricompensa minima: **1 MYZ**
+        - Nessun limite di issue al giorno
+        - Pagamento dopo il merge della PR (se risolta)
+        - Per ricompense più alte → usa [Bounty Issue](https://github.com/MyZubster-Ecosystem/MyZubsterGateway/issues/new?template=bounty.yml)
