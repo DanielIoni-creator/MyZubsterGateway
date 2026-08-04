@@ -1,21 +1,20 @@
-// robot_code.js – Robot per generazione codice 24/7 (OpenAI GPT-4)
+// robot_code_persistent.js – Versione con persistenza MongoDB
 const axios = require('axios');
 const escrowRobot = require('./escrow_robot');
+const CodeJob = require('./models/CodeJob');
 const { notifyUser, notifyRobot } = require('./notifications');
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const codeJobs = new Map();
 
 async function generateCode(prompt, language = 'javascript') {
   console.log(`💻 Generando codice ${language} per: "${prompt}"...`);
-  
   const response = await axios.post(
     'https://api.openai.com/v1/chat/completions',
     {
       model: 'gpt-4-turbo-preview',
       messages: [
-        { role: 'system', content: `Sei un esperto sviluppatore ${language}. Genera codice pulito, ben commentato e funzionante.` },
+        { role: 'system', content: `Sei un esperto sviluppatore ${language}.` },
         { role: 'user', content: `Genera codice ${language} per: ${prompt}. Aggiungi commenti.` }
       ],
       temperature: 0.7,
@@ -23,78 +22,76 @@ async function generateCode(prompt, language = 'javascript') {
     },
     { headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}` } }
   );
-  
   return response.data.choices[0].message.content;
 }
 
 async function createCodeJob(jobId, clientId, robotId, prompt, language = 'javascript', amount = 100, currency = 'MYZ') {
   const escrow = await escrowRobot.createEscrow({ jobId, clientId, robotId, amount, currency });
-  codeJobs.set(jobId, { prompt, language, status: 'pending', code: null, escrow, createdAt: Date.now() });
-  await notifyUser(clientId, `💻 Job di codice ${jobId} creato. Generando...`);
+  
+  const job = new CodeJob({
+    jobId,
+    clientId,
+    robotId,
+    prompt,
+    language,
+    status: 'pending',
+    escrowId: jobId,
+    createdAt: new Date()
+  });
+  await job.save();
+  
+  await notifyUser(clientId, `💻 Job di codice ${jobId} creato.`);
   return { jobId, escrow };
 }
 
 async function generateAndDeliverCode(jobId) {
-  const job = codeJobs.get(jobId);
+  const job = await CodeJob.findOne({ jobId });
   if (!job) throw new Error(`Job ${jobId} non trovato`);
   if (job.status !== 'pending') throw new Error(`Job ${jobId} già completato`);
   
   const code = await generateCode(job.prompt, job.language);
   job.status = 'delivered';
   job.code = code;
-  job.deliveredAt = Date.now();
+  job.deliveredAt = new Date();
+  await job.save();
   
   await escrowRobot.markDelivered({ jobId });
-  await notifyUser(job.escrow.clientId, `✅ Codice per job ${jobId} pronto.`);
-  await notifyRobot(job.escrow.robotId, `✅ Codice per job ${jobId} generato.`);
+  await notifyUser(job.clientId, `✅ Codice per job ${jobId} pronto.`);
+  await notifyRobot(job.robotId, `✅ Codice per job ${jobId} generato.`);
   
   return { jobId, code };
 }
 
 async function createPullRequest(jobId, repo, branch = 'main', prTitle = 'AI-generated code') {
-  const job = codeJobs.get(jobId);
+  const job = await CodeJob.findOne({ jobId });
   if (!job) throw new Error(`Job ${jobId} non trovato`);
   if (!job.code) throw new Error(`Nessun codice per job ${jobId}`);
+  if (!GITHUB_TOKEN) throw new Error('GITHUB_TOKEN non configurato');
   
-  if (!GITHUB_TOKEN) {
-    throw new Error('GITHUB_TOKEN non configurato');
-  }
-  
-  // Crea PR su GitHub
   const response = await axios.post(
     `https://api.github.com/repos/${repo}/pulls`,
     {
       title: prTitle || `AI: ${job.prompt.substring(0, 50)}`,
       head: `ai-${jobId}-${Date.now()}`,
       base: branch,
-      body: `🤖 PR generata automaticamente per job ${jobId}.\n\n${job.prompt}\n\n---\n*Generato da AI*`
+      body: `🤖 PR generata per job ${jobId}.\n\n${job.prompt}`
     },
     { headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }
   );
   
   job.prUrl = response.data.html_url;
   job.prNumber = response.data.number;
-  
-  await notifyUser(job.escrow.clientId, `🔗 PR creata: ${response.data.html_url}`);
+  await job.save();
   
   return { prUrl: response.data.html_url, prNumber: response.data.number };
 }
 
-function getCodeJob(jobId) {
-  const job = codeJobs.get(jobId);
-  if (!job) return null;
-  return { ...job, escrow: escrowRobot.getEscrow(jobId) };
+async function getCodeJob(jobId) {
+  return await CodeJob.findOne({ jobId });
 }
 
-function listCodeJobs() {
-  return Array.from(codeJobs.entries()).map(([id, data]) => ({
-    jobId: id,
-    status: data.status,
-    prompt: data.prompt,
-    language: data.language,
-    prUrl: data.prUrl || null,
-    createdAt: data.createdAt
-  }));
+async function listCodeJobs() {
+  return await CodeJob.find().sort({ createdAt: -1 });
 }
 
 module.exports = { createCodeJob, generateAndDeliverCode, createPullRequest, getCodeJob, listCodeJobs };
