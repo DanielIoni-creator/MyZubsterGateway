@@ -14,11 +14,15 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@bull-board/api": "^8.5.0",
+    "@bull-board/express": "^8.5.0",
     "adm-zip": "^0.6.0",
     "axios": "^1.19.0",
+    "bull": "^4.16.5",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "ioredis": "^6.0.0",
     "mongoose": "^9.9.1",
     "node-cron": "^4.6.0"
   }

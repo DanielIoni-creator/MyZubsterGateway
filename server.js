@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const { bullBoardRouter } = require('./queues');
 const path = require('path');
 const fs = require('fs');
 const mongoose = require('mongoose');
@@ -43,6 +44,7 @@ console.log('✅ Caricamento routes robot...');
 app.use('/api/robot', require('./routes/robot'));
 app.use('/api/robot/escrow', require('./routes/robotEscrow'));
 app.use('/api/robot/logo', require('./routes/robotLogo'));
+app.use('/admin/queues', bullBoardRouter);
 
 console.log('✅ Caricamento routes robotCode...');
 app.use('/api/robot/code', require('./routes/robotCode'));
