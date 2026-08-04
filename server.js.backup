@@ -1,68 +1,125 @@
 const express = require('express');
-const cors = require('cors');
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const authRoutes = require('./routes/auth');
-const skillRoutes = require('./routes/skills');
-const offerRoutes = require('./routes/offers');
-const requestRoutes = require('./routes/requests');
-const orderRoutes = require('./routes/orders');
-const paymentRoutes = require('./routes/payments');
-const transactionRoutes = require('./routes/transactions');
-const reviewRoutes = require('./routes/reviews');
-const { startMonitoring } = require('./services/paymentMonitor');
-const tokenRoutes = require('./routes/tokens');
-const marketplaceRoutes = require('./routes/marketplace');
-const aiRoutes = require('./routes/ai');
-const escrowRoutes = require('./routes/escrow');
-const tariRoutes = require('./routes/tari');
-const onionRoutes = require('./routes/onion');
-const osintRoutes = require('./routes/osint');
-const scannerRoutes = require('./routes/scanner');
+console.log('✅ Import Express riuscito');
 
-dotenv.config();
+let createOrder, onPaymentReceived;
+let createEscrow, lockFunds, submitProof, release, dispute, getEscrow;
+let mint, balance;
+
+try {
+    const buy = require('./buy_myz');
+    createOrder = buy.createOrder;
+    onPaymentReceived = buy.onPaymentReceived;
+    console.log('✅ Import buy_myz riuscito');
+} catch (e) {
+    console.error('❌ Errore import buy_myz:', e.message);
+    process.exit(1);
+}
+
+try {
+    const escrow = require('./escrow_simulator');
+    createEscrow = escrow.createEscrow;
+    lockFunds = escrow.lockFunds;
+    submitProof = escrow.submitProof;
+    release = escrow.release;
+    dispute = escrow.dispute;
+    getEscrow = escrow.getEscrow;
+    console.log('✅ Import escrow_simulator riuscito');
+} catch (e) {
+    console.error('❌ Errore import escrow_simulator:', e.message);
+    process.exit(1);
+}
+
+try {
+    const token = require('./token_simulator');
+    mint = token.mint;
+    balance = token.balance;
+    console.log('✅ Import token_simulator riuscito');
+} catch (e) {
+    console.error('❌ Errore import token_simulator:', e.message);
+    process.exit(1);
+}
 
 const app = express();
-const PORT = process.env.PORT || 3002;
-
-app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Rotte
-app.use('/api/auth', authRoutes);
-app.use('/api/skills', skillRoutes);
-app.use('/api/offers', offerRoutes);
-app.use('/api/requests', requestRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/payments', paymentRoutes);
-app.use('/api/transactions', transactionRoutes);
-app.use('/api/reviews', reviewRoutes);
-app.use('/api/tokens', tokenRoutes);
-app.use('/api/marketplace', marketplaceRoutes);
-app.use('/api/ai', aiRoutes);
-app.use('/api/escrow', escrowRoutes);
-app.use('/api/tari', tariRoutes);
-app.use('/api/onion', onionRoutes);
-app.use('/api/osint', osintRoutes);
-app.use('/api/scanner', scannerRoutes);
-
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.use((req, res, next) => {
+    console.log(`📨 Ricevuta richiesta: ${req.method} ${req.url}`);
+    next();
 });
 
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log('✅ Connesso a MongoDB');
-    startMonitoring();
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`🚀 Server avviato sulla porta ${PORT}`);
-      console.log(`🌐 URL: http://localhost:${PORT}`);
-      console.log(`🔍 Health check: http://localhost:${PORT}/api/health`);
-    });
-  })
-  .catch(err => {
-    console.error('❌ Errore di connessione a MongoDB:', err);
-    process.exit(1);
-  });
+console.log('✅ Inizio registrazione route...');
+
+app.get('/', (req, res) => {
+    console.log('🔹 Rotta / GET chiamata!');
+    res.send('Gateway funzionante');
+});
+
+app.post('/buy-myz', (req, res) => {
+    console.log('🔹 Rotta /buy-myz POST chiamata!');
+    const { userTariWallet, amountMYZ } = req.body;
+    const order = createOrder(userTariWallet, amountMYZ);
+    onPaymentReceived(order.id, 10);
+    res.json({ orderId: order.id, xmrAddress: order.xmrAddress, amountXMR: order.amountXMR, status: 'pending' });
+});
+
+app.post('/escrow/create', (req, res) => {
+    const { escrowId, buyer, seller, amount } = req.body;
+    try {
+        const id = createEscrow(escrowId, buyer, seller, amount);
+        res.json({ escrowId: id, status: 'created' });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+app.post('/escrow/lock', (req, res) => {
+    const { escrowId, payer, amount } = req.body;
+    try {
+        lockFunds(escrowId, payer, amount);
+        res.json({ escrowId, status: 'locked' });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+app.post('/escrow/proof', (req, res) => {
+    const { escrowId, proofHash } = req.body;
+    try {
+        submitProof(escrowId, proofHash);
+        res.json({ escrowId, status: 'proof_submitted' });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+app.post('/escrow/release', (req, res) => {
+    const { escrowId, caller } = req.body;
+    try {
+        release(escrowId, caller);
+        res.json({ escrowId, status: 'released' });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+app.post('/escrow/dispute', (req, res) => {
+    const { escrowId, caller } = req.body;
+    try {
+        dispute(escrowId, caller);
+        res.json({ escrowId, status: 'disputed' });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+app.get('/balance/:address', (req, res) => {
+    const address = req.params.address;
+    res.json({ address, balance: balance(address) });
+});
+
+console.log('✅ Registrazione route completata senza errori.');
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 Gateway API running on port ${PORT}`);
+});
