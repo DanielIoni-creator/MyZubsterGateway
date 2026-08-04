@@ -7,6 +7,7 @@ const { createOrder, onPaymentReceived } = require('./buy_myz');
 const { createEscrow, lockFunds, submitProof, release, dispute, getEscrow } = require('./escrow_simulator');
 const { mint, balance } = require('./token_simulator');
 const { assignReward } = require('./services/rewardService');
+const { cacheMiddleware, getStats, del } = require('./services/cacheService');
 
 const { rateLimiter } = require('./middleware/rateLimiter');
 
@@ -67,6 +68,17 @@ app.use('/api/ratelimit', require('./routes/ratelimit'));
 app.use('/api/webhooks', require('./routes/webhook'));
 
 app.use('/api/webhooks/github', require('./routes/githubWebhook'));
+
+
+// Cache stats (Bounty B16)
+app.get('/api/cache/stats', async (req, res) => {
+  const stats = await getStats();
+  res.json({ success: true, data: stats });
+});
+app.delete('/api/cache/clear', async (req, res) => {
+  const count = await del('*');
+  res.json({ success: true, cleared: count });
+});
 
 app.get('/health', (req, res) => {
   res.json({
