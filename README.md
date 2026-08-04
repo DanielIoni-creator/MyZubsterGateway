@@ -304,3 +304,4 @@ Every contribution counts. Join us in building a transparent, privacy-first plat
 ## 💬 Community
 
 - **Telegram Channel**: [@myzubster](https://t.me/myzubster) – follow for updates, news, and discussions about the MyZubster ecosystem.
+# Test PR v2 per il reward bot
