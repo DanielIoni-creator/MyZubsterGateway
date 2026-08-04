@@ -1,3 +1,16 @@
-[build]  
-  command = "echo 'No build step required'"  
-  publish = "public"  
+[build]
+  # MyZubsterGateway frontend lives in the `frontend/` subdirectory (Vite + React 19).
+  # Without this, Netlify's auto-detection fails because there is no package.json at the repo root.
+  base = "frontend"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Vite 8 requires Node >= 20.19 / 22.12. Pin it so the deploy preview never uses an EOL Node.
+  NODE_VERSION = "22"
+
+# SPA fallback: let client-side routes (e.g. /admin) resolve to index.html on the preview.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
