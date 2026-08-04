@@ -28,8 +28,9 @@ export const ThemeProvider = ({ children }) => {
 
     if (theme === 'system') {
       const mq = window.matchMedia('(prefers-color-scheme: dark)');
-      mq.addEventListener('change', apply);
-      return () => mq.removeEventListener('change', apply);
+      const handleChange = () => apply();
+      mq.addEventListener('change', handleChange);
+      return () => mq.removeEventListener('change', handleChange);
     }
   }, [theme]);
 
