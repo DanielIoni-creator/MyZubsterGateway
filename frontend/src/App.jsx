@@ -12,6 +12,7 @@ import Requests from './pages/Requests';
 import Profile from './pages/Profile';
 import Tokens from './pages/Tokens';
 import AdminDashboard from './pages/AdminDashboard';
+import ApiDocs from './pages/ApiDocs';
 
 const ProtectedRoute = ({ children }) => {
   const { user } = useAuth();
@@ -36,6 +37,7 @@ function App() {
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/tokens" element={<Tokens />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/api-docs" element={<ApiDocs />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
