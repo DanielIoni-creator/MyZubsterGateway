@@ -1,12 +1,10 @@
-FROM node:20-alpine
-
+FROM node:18-alpine
 WORKDIR /app
-
 COPY package*.json ./
-RUN npm ci --only=production
-
+RUN npm install --production
 COPY . .
-
-EXPOSE 3000
-
+EXPOSE 3001
+ENV NODE_ENV=production
+ENV PORT=3001
+ENV MONGODB_URI=mongodb://mongo:27017/myzubster
 CMD ["node", "server.js"]
