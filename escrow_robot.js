@@ -1,6 +1,6 @@
 // escrow_robot.js – Escrow automatico per Robot 24/7 (MYZ + XMR)
-const { lockMYZ, releaseMYZ, refundMYZ } = require('./myz_wallet');
-const { lockXMR, releaseXMR, refundXMR } = require('./xmr_wallet');
+const { lockMYZ, releaseMYZ, refundMYZ } = require('./gateway/myz_wallet');
+const { lockXMR, releaseXMR, refundXMR } = require('./gateway/xmr_wallet');
 const { notifyUser, notifyRobot } = require('./notifications');
 
 const FEE_PERCENT = 0.02;
@@ -28,6 +28,7 @@ async function markDelivered({ jobId }) {
   escrow.disputeDeadline = Date.now() + DISPUTE_WINDOW_HOURS * 3600 * 1000;
   await notifyUser(escrow.clientId, `Robot ha consegnato job ${jobId}. Hai 48h per contestare.`);
   setTimeout(() => autoRelease(jobId), DISPUTE_WINDOW_HOURS * 3600 * 1000);
+  return escrow;
 }
 
 async function autoRelease(jobId) {
