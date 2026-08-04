@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  gateway:
+    build: .
+    ports:
+      - "10000:10000"
+    environment:
+      - PORT=10000
+      - MONGO_URI=mongodb://mongo:27017/myzubster
+      - TARI_WALLET_URL=http://tari-stub:8080
+      - MONERO_WALLET_URL=http://monero-stub:8081
+    depends_on:
+      - mongo
+      - tari-stub
+      - monero-stub
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  tari-stub:
+    image: mendhak/http-https-echo:31
+    ports:
+      - "8080:8080"
+    environment:
+      - HTTP_PORT=8080
+
+  monero-stub:
+    image: mendhak/http-https-echo:31
+    ports:
+      - "8081:8080"
+    environment:
+      - HTTP_PORT=8080
+
+volumes:
+  mongo_data:
