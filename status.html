@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gateway Status — MyZubster</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      min-height: 100vh;
+      padding: 0;
+    }
+    .navbar {
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .navbar h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #f0f6fc;
+    }
+    .navbar .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #8b949e;
+    }
+    .navbar .status-badge .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #3fb950;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .stat-card .label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #8b949e;
+      margin-bottom: 8px;
+    }
+    .stat-card .value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #f0f6fc;
+    }
+    .stat-card .sub {
+      font-size: 13px;
+      color: #8b949e;
+      margin-top: 4px;
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #f0f6fc;
+      margin-bottom: 12px;
+      margin-top: 24px;
+    }
+    .status-bar {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .status-bar-segment {
+      display: flex;
+      height: 32px;
+    }
+    .status-bar-segment .seg {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #f0f6fc;
+      transition: width 0.3s ease;
+    }
+    .seg.idle { background: #238636; }
+    .seg.working { background: #1f6feb; }
+    .seg.delivering { background: #d29922; }
+    .seg.dispute { background: #da3633; }
+    .status-labels {
+      display: flex;
+      gap: 16px;
+      padding: 10px 16px;
+      flex-wrap: wrap;
+    }
+    .status-labels span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #8b949e;
+    }
+    .status-labels .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot.idle { background: #238636; }
+    .dot.working { background: #1f6feb; }
+    .dot.delivering { background: #d29922; }
+    .dot.dispute { background: #da3633; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th {
+      background: #21262d;
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #8b949e;
+      border-bottom: 1px solid #30363d;
+    }
+    td {
+      padding: 10px 16px;
+      font-size: 13px;
+      border-bottom: 1px solid #21262d;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #1c2128; }
+    .event-label {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .event-label.assigned { background: #1f6feb33; color: #58a6ff; }
+    .event-label.executed { background: #d2992233; color: #d29922; }
+    .event-label.delivered { background: #23863633; color: #3fb950; }
+    .event-label.dispute { background: #da363333; color: #f85149; }
+    .no-data {
+      text-align: center;
+      padding: 32px;
+      color: #484f58;
+      font-size: 14px;
+    }
+    .refresh-info {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 12px;
+      color: #484f58;
+    }
+    .error-state {
+      text-align: center;
+      padding: 40px;
+      color: #f85149;
+    }
+    .error-state .desc {
+      font-size: 14px;
+      margin-top: 8px;
+      color: #8b949e;
+    }
+    @media (max-width: 600px) {
+      .container { padding: 12px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .stat-card .value { font-size: 24px; }
+      .navbar h1 { font-size: 16px; }
+      td, th { padding: 8px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <h1>🔍 Gateway Status</h1>
+    <div class="status-badge">
+      <span class="dot"></span>
+      <span>Live — auto-refresh every 10s</span>
+    </div>
+  </div>
+  <div class="container">
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card">
+        <div class="label">Uptime</div>
+        <div class="value" id="uptime">--</div>
+        <div class="sub">since last restart</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Total Robots</div>
+        <div class="value" id="totalRobots">--</div>
+        <div class="sub">registered in the system</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Active Robots</div>
+        <div class="value" id="activeRobots">--</div>
+        <div class="sub">currently working / delivering</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Current Jobs</div>
+        <div class="value" id="currentJobs">--</div>
+        <div class="sub">jobs in progress</div>
+      </div>
+    </div>
+
+    <div class="section-title">Robot Status Distribution</div>
+    <div class="status-bar" id="statusBar">
+      <div class="status-bar-segment" id="statusSegments">
+        <div class="no-data" style="padding:24px">No robots registered yet</div>
+      </div>
+      <div class="status-labels" id="statusLabels">
+        <span><span class="dot idle"></span> Idle: <strong id="countIdle">0</strong></span>
+        <span><span class="dot working"></span> Working: <strong id="countWorking">0</strong></span>
+        <span><span class="dot delivering"></span> Delivering: <strong id="countDelivering">0</strong></span>
+        <span><span class="dot dispute"></span> Dispute: <strong id="countDispute">0</strong></span>
+      </div>
+    </div>
+
+    <div class="section-title">Recent Events</div>
+    <div class="table-wrapper" style="overflow-x:auto; border-radius:8px;">
+      <table id="eventsTable">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Robot</th>
+            <th>Event</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody id="eventsBody">
+          <tr><td colspan="4" class="no-data">No events yet</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="refresh-info" id="refreshInfo">⏳ Waiting for first data...</div>
+  </div>
+
+  <script>
+    function formatTime(ts) {
+      const d = new Date(ts);
+      return d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+
+    function formatDate(ts) {
+      const d = new Date(ts);
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    function eventLabel(event) {
+      const map = {
+        'job_assigned': 'assigned',
+        'job_executed': 'executed',
+        'job_delivered': 'delivered',
+        'dispute_opened': 'dispute'
+      };
+      const cls = map[event] || '';
+      const label = event.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      return `<span class="event-label ${cls}">${label}</span>`;
+    }
+
+    function eventDetails(evt) {
+      if (evt.jobId) {
+        let details = `Job: ${evt.jobId}`;
+        if (evt.amount) details += ` | ${evt.amount} ${evt.currency}`;
+        if (evt.reason) details += ` | Reason: ${evt.reason}`;
+        return details;
+      }
+      return '—';
+    }
+
+    function updateStatus(data) {
+      // Stats cards
+      document.getElementById('uptime').textContent = data.uptimeHuman;
+      document.getElementById('totalRobots').textContent = data.totalRobots;
+      document.getElementById('activeRobots').textContent = data.activeRobots;
+      document.getElementById('currentJobs').textContent = data.currentJobs;
+
+      // Status counts
+      document.getElementById('countIdle').textContent = data.robotsByStatus.idle;
+      document.getElementById('countWorking').textContent = data.robotsByStatus.working;
+      document.getElementById('countDelivering').textContent = data.robotsByStatus.delivering;
+      document.getElementById('countDispute').textContent = data.robotsByStatus.dispute;
+
+      // Status bar segments
+      const total = data.totalRobots || 1;
+      const segs = document.getElementById('statusSegments');
+      if (data.totalRobots === 0) {
+        segs.innerHTML = '<div class="no-data" style="padding:24px">No robots registered yet</div>';
+      } else {
+        segs.innerHTML = [
+          { cls: 'idle', count: data.robotsByStatus.idle },
+          { cls: 'working', count: data.robotsByStatus.working },
+          { cls: 'delivering', count: data.robotsByStatus.delivering },
+          { cls: 'dispute', count: data.robotsByStatus.dispute }
+        ].filter(s => s.count > 0).map(s =>
+          `<div class="seg ${s.cls}" style="width:${(s.count / total * 100).toFixed(1)}%">${s.count}</div>`
+        ).join('');
+      }
+
+      // Events table
+      const tbody = document.getElementById('eventsBody');
+      if (data.recentEvents.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="no-data">No events yet</td></tr>';
+      } else {
+        tbody.innerHTML = data.recentEvents.map(evt => `
+          <tr>
+            <td>${formatDate(evt.timestamp)} ${formatTime(evt.timestamp)}</td>
+            <td><strong>${evt.robotName || evt.robotId}</strong></td>
+            <td>${eventLabel(evt.event)}</td>
+            <td>${eventDetails(evt)}</td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    function showError(msg) {
+      document.getElementById('statsGrid').innerHTML = `
+        <div class="error-state" style="grid-column:1/-1">
+          <div style="font-size:40px">⚠️</div>
+          <div class="desc">${msg}</div>
+        </div>
+      `;
+    }
+
+    function fetchStatus() {
+      const info = document.getElementById('refreshInfo');
+      info.textContent = '🔄 Fetching...';
+
+      fetch('/api/status')
+        .then(r => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json();
+        })
+        .then(json => {
+          if (json.success) {
+            updateStatus(json.data);
+            info.textContent = `✅ Last updated: ${formatTime(Date.now())} — next refresh in 10s`;
+          } else {
+            throw new Error('API returned error');
+          }
+        })
+        .catch(err => {
+          info.textContent = `❌ Error: ${err.message}`;
+          showError(err.message);
+        });
+    }
+
+    // Initial fetch and then every 10s
+    fetchStatus();
+    setInterval(fetchStatus, 10000);
+  </script>
+</body>
+</html>
