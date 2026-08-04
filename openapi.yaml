@@ -1,0 +1,224 @@
+openapi: "3.0.3"
+info:
+  title: MyZubster Gateway API
+  version: "1.1.0"
+  description: |
+    API completa del gateway MyZubster per gestione bounty, escrow, rewards,
+    robot, stake, e wallet integration.
+  contact:
+    name: MyZubster Team
+    url: https://github.com/MyZubster-Ecosystem/MyZubsterGateway
+
+servers:
+  - url: http://localhost:3001
+    description: Development server
+  - url: https://api.myzubster.io
+    description: Production server
+
+tags:
+  - name: Health
+  - name: Buy
+  - name: Escrow
+  - name: Rewards
+  - name: Robot
+  - name: Robot Escrow
+  - name: Bounty
+  - name: Stake
+  - name: Escrow House
+  - name: Webhooks
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check del gateway
+      responses:
+        "200":
+          description: Gateway attivo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: OK
+                  message:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+                  version:
+                    type: string
+
+  /buy-myz:
+    post:
+      tags: [Buy]
+      summary: Acquista MYZ con XMR
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userTariWallet, amountMYZ]
+              properties:
+                userTariWallet:
+                  type: string
+                amountMYZ:
+                  type: number
+      responses:
+        "200":
+          description: Ordine creato
+
+  /escrow/create:
+    post:
+      tags: [Escrow]
+      summary: Crea un nuovo escrow
+      responses:
+        "200":
+          description: Escrow creato
+
+  /api/rewards:
+    get:
+      tags: [Rewards]
+      summary: Lista rewards per utente
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Lista rewards utente
+
+  /api/robot/status/{robotId}:
+    get:
+      tags: [Robot]
+      summary: Stato di un robot
+      parameters:
+        - name: robotId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Dettaglio stato robot
+
+  /api/robot/escrow/{jobId}:
+    get:
+      tags: [Robot Escrow]
+      summary: Dettaglio escrow job robot
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Dettaglio job escrow
+
+  /api/bounty:
+    get:
+      tags: [Bounty]
+      summary: Lista bounty disponibili
+      responses:
+        "200":
+          description: Lista bounty
+    post:
+      tags: [Bounty]
+      summary: Crea un nuovo bounty
+      responses:
+        "201":
+          description: Bounty creato
+
+  /api/stake:
+    get:
+      tags: [Stake]
+      summary: Lista stake attivi
+      responses:
+        "200":
+          description: Lista stake
+    post:
+      tags: [Stake]
+      summary: Crea un nuovo stake
+      responses:
+        "201":
+          description: Stake creato
+
+  /api/escrow/house:
+    get:
+      tags: [Escrow House]
+      summary: Lista escrow immobiliari
+      responses:
+        "200":
+          description: Lista escrow house
+
+  /api/webhooks/github:
+    post:
+      tags: [Webhooks]
+      summary: GitHub webhook per reward automatici
+      description: Riceve eventi GitHub e assegna bounty ai contributor
+      parameters:
+        - name: X-Hub-Signature-256
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: X-GitHub-Event
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Evento processato
+
+components:
+  schemas:
+    Reward:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        amount:
+          type: number
+        reason:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [pending, paid, failed]
+
+    Bounty:
+      type: object
+      properties:
+        issueId:
+          type: string
+        rewardMYZ:
+          type: number
+        assignedTo:
+          type: string
+        status:
+          type: string
+          enum: [open, assigned, completed]
+
+    Robot:
+      type: object
+      properties:
+        robotId:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+          enum: [idle, working, delivering, dispute]
+        reputation:
+          type: number
