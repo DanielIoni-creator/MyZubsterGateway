@@ -71,3 +71,10 @@ body:
         - **Un bounty alla volta** per contributor
         - **PR entro 48h**, altrimenti l'issue viene riaperta
         - Pagamento via gateway dopo il merge
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        💡 **Nota:** Le issue free hanno un reward minimo di 1 MYZ.  
+        Se vuoi una ricompensa più alta, usa questo template **Bounty Issue** (senza limiti).
