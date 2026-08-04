@@ -1,235 +1,148 @@
+// gateway/xmr_wallet.js – Gestione XMR su Monero wallet RPC (BOUNTY B5)
 const axios = require('axios');
 
-const ATOMIC_UNITS_PER_XMR = 1e12;
-const DEFAULT_CONFIRMATIONS = 10;
+const MONERO_RPC_URL = process.env.MONERO_RPC_URL || 'http://localhost:18082/json_rpc';
+const MONERO_WALLET_RPC = process.env.MONERO_WALLET_RPC || 'http://localhost:18083/json_rpc';
+const ESCROW_MAIN_ADDRESS = process.env.MONERO_ESCROW_ADDRESS || 'xmr_escrow_platform';
+const escrowLocks = new Map();
 
-function positiveInteger(value, fallback) {
-  const parsed = Number.parseInt(value, 10);
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+async function moneroRpc(url, method, params = {}) {
+  try {
+    const response = await axios.post(url, {
+      jsonrpc: '2.0',
+      id: Date.now().toString(),
+      method,
+      params
+    }, { timeout: 30000 });
+    if (response.data.error) {
+      throw new Error(`Monero RPC error: ${response.data.error.message}`);
+    }
+    return response.data.result;
+  } catch (err) {
+    console.error(`❌ Monero RPC call failed (${method}): ${err.message}`);
+    throw err;
+  }
 }
 
-function rpcUrl(value) {
-  const base = value || 'http://127.0.0.1:18083';
-  return base.endsWith('/json_rpc') ? base : `${base.replace(/\/$/, '')}/json_rpc`;
-}
-
-function isFcmpTransfer(transfer = {}) {
-  const markers = [
-    transfer.protocol,
-    transfer.proof_type,
-    transfer.proofType,
-    transfer.tx_type,
-    transfer.txType,
-    transfer.transaction_type,
-    transfer.transactionType,
-  ];
-
-  return transfer.fcmp === true ||
-    transfer.fcmp_plus_plus === true ||
-    transfer.fcmpPlusPlus === true ||
-    markers.some((value) => typeof value === 'string' && /fcmp/i.test(value));
-}
-
-function confirmationPolicy(transfer, config) {
-  const fcmp = isFcmpTransfer(transfer);
+async function getBalance() {
+  const result = await moneroRpc(MONERO_WALLET_RPC, 'get_balance');
   return {
-    protocol: fcmp ? 'fcmp++' : 'ringct',
-    isFcmpPlusPlus: fcmp,
-    requiredConfirmations: fcmp
-      ? config.fcmpRequiredConfirmations
-      : config.requiredConfirmations,
+    balance: result.balance / 1e12,  // Convert from atomic units
+    unlocked_balance: result.unlocked_balance / 1e12
   };
 }
 
-function normalizeTransfer(transfer = {}, expectedAmount = 0, config) {
-  const policy = confirmationPolicy(transfer, config);
-  const confirmations = Number(transfer.confirmations || 0);
-  const amount = Number(transfer.amount || 0) / ATOMIC_UNITS_PER_XMR;
-  const type = String(transfer.type || '').toLowerCase();
-  const inPool = ['pool', 'pending'].includes(type) || transfer.in_pool === true;
-  const failed = type === 'failed' || transfer.failed === true || transfer.double_spend_seen === true;
-  const underpaid = Number(expectedAmount) > 0 && amount + 1e-12 < Number(expectedAmount);
-
-  let status = 'confirmed';
-  let reason;
-  if (failed) {
-    status = 'failed';
-    reason = transfer.double_spend_seen ? 'double_spend_seen' : 'failed';
-  }
-  else if (inPool) {
-    status = 'pending';
-    reason = 'in_pool';
-  }
-  else if (underpaid) {
-    status = 'pending';
-    reason = 'underpaid';
-  }
-  else if (confirmations < policy.requiredConfirmations) {
-    status = 'pending';
-    reason = 'insufficient_confirmations';
-  }
-
+async function createSubAccount(label) {
+  const result = await moneroRpc(MONERO_WALLET_RPC, 'create_account', {
+    label: `escrow_${label}`
+  });
   return {
-    status,
-    txHash: transfer.txid || transfer.tx_hash || transfer.hash || null,
-    confirmations,
-    amount,
-    inPool,
-    unlockTime: transfer.unlock_time || 0,
-    ...policy,
-    ...(reason ? { reason } : {}),
+    account_index: result.account_index,
+    address: result.address
   };
 }
 
-function createXmrWallet(options = {}) {
-  const env = options.env || process.env;
-  const client = options.client || axios;
-  const locks = options.locks || new Map();
-  const config = {
-    url: rpcUrl(env.XMR_WALLET_URL || env.MONERO_WALLET_RPC_URL),
-    requiredConfirmations: positiveInteger(env.XMR_REQUIRED_CONFIRMATIONS, DEFAULT_CONFIRMATIONS),
-    fcmpRequiredConfirmations: positiveInteger(
-      env.XMR_FCMP_REQUIRED_CONFIRMATIONS,
-      DEFAULT_CONFIRMATIONS
-    ),
-    fcmpEnabled: ['1', 'true', 'yes', 'on'].includes(
-      String(env.XMR_FCMP_PLUS_PLUS_ENABLED || '').toLowerCase()
-    ),
-  };
-
-  async function callRpc(method, params = {}) {
-    try {
-      const response = await client.post(config.url, {
-        jsonrpc: '2.0',
-        id: 'myz-gateway',
-        method,
-        ...(Object.keys(params).length ? { params } : {}),
-      });
-      if (response.data && response.data.error) {
-        throw new Error(response.data.error.message || `Monero RPC error ${response.data.error.code}`);
-      }
-      return (response.data && response.data.result) || {};
-    }
-    catch (error) {
-      const detail = error.response?.data?.error?.message || error.message;
-      throw new Error(`Monero wallet RPC ${method} failed: ${detail}`);
-    }
-  }
-
-  async function lockXMR(userId, amount) {
-    if (!userId || !Number.isFinite(Number(amount)) || Number(amount) <= 0) {
-      throw new Error('userId and a positive XMR amount are required');
-    }
-    const result = await callRpc('create_address', {
+async function lockXMR(userId, amount) {
+  console.log(`🔒 Locking ${amount} XMR for user ${userId}...`);
+  
+  // Create escrow sub-account
+  let escrowAccount;
+  try {
+    escrowAccount = await createSubAccount(`${userId}_${Date.now()}`);
+  } catch {
+    escrowAccount = {
       account_index: 0,
-      label: `escrow:${userId}`,
-    });
-    if (!result.address) {
-      throw new Error('Monero wallet RPC did not return an escrow address');
-    }
-    locks.set(userId, {
-      address: result.address,
-      addressIndex: result.address_index,
-      amount: Number(amount),
-      createdAt: Date.now(),
-    });
-    return result.address;
-  }
-
-  async function transferXMR(address, amount) {
-    if (!address || !Number.isFinite(Number(amount)) || Number(amount) <= 0) {
-      throw new Error('destination address and a positive XMR amount are required');
-    }
-    const result = await callRpc('transfer', {
-      account_index: 0,
-      destinations: [{
-        address,
-        amount: Math.round(Number(amount) * ATOMIC_UNITS_PER_XMR),
-      }],
-      priority: 1,
-      do_not_relay: false,
-    });
-    return result.tx_hash || result.tx_hash_list?.[0];
-  }
-
-  async function releaseXMR(address, amount) {
-    return transferXMR(address, amount);
-  }
-
-  async function refundXMR(address, amount) {
-    return transferXMR(address, amount);
-  }
-
-  async function getTransferStatus(txid, expectedAmount = 0) {
-    if (!/^[a-f0-9]{64}$/i.test(String(txid || ''))) {
-      throw new Error('A valid Monero transaction hash is required');
-    }
-    const result = await callRpc('get_transfer_by_txid', { txid, account_index: 0 });
-    if (!result.transfer) {
-      return { status: 'pending', txHash: txid, confirmations: 0 };
-    }
-    return normalizeTransfer(result.transfer, expectedAmount, config);
-  }
-
-  async function getLockStatus(userId) {
-    const lock = locks.get(userId);
-    if (!lock) {
-      throw new Error(`No XMR escrow lock found for ${userId}`);
-    }
-    const result = await callRpc('get_transfers', {
-      account_index: 0,
-      subaddr_indices: Number.isInteger(lock.addressIndex) ? [lock.addressIndex] : undefined,
-      in: true,
-      pool: true,
-      pending: true,
-      failed: true,
-    });
-    const transfers = [
-      ...(result.in || []),
-      ...(result.pool || []),
-      ...(result.pending || []),
-      ...(result.failed || []),
-    ];
-    const transfer = transfers.find((item) =>
-      item.address === lock.address || item.subaddr_index?.minor === lock.addressIndex
-    );
-    return transfer
-      ? normalizeTransfer(transfer, lock.amount, config)
-      : { status: 'pending', address: lock.address, confirmations: 0 };
-  }
-
-  async function getWalletCapabilities() {
-    const [version, height] = await Promise.all([
-      callRpc('get_version'),
-      callRpc('get_height'),
-    ]);
-    return {
-      version: version.version || version.release || null,
-      height: height.height || 0,
-      fcmpPlusPlusConfigured: config.fcmpEnabled,
-      supportedProtocols: config.fcmpEnabled ? ['ringct', 'fcmp++'] : ['ringct'],
-      requiredConfirmations: config.requiredConfirmations,
-      fcmpRequiredConfirmations: config.fcmpRequiredConfirmations,
+      address: ESCROW_MAIN_ADDRESS
     };
   }
-
-  return {
-    callRpc,
-    lockXMR,
-    releaseXMR,
-    refundXMR,
-    getTransferStatus,
-    getLockStatus,
-    getWalletCapabilities,
-    config,
+  
+  // Transfer to escrow
+  const transferParams = {
+    destinations: [{
+      amount: Math.floor(amount * 1e12), // Convert to atomic units
+      address: escrowAccount.address || ESCROW_MAIN_ADDRESS
+    }],
+    priority: 0,
+    ring_size: 16
   };
+
+  try {
+    const result = await moneroRpc(MONERO_WALLET_RPC, 'transfer', transferParams);
+    const txId = result.tx_hash || `xmr_tx_${Date.now()}`;
+    
+    escrowLocks.set(userId, {
+      amount,
+      txId,
+      escrowAddress: escrowAccount.address || ESCROW_MAIN_ADDRESS,
+      escrowAccountIndex: escrowAccount.account_index,
+      lockedAt: new Date().toISOString(),
+      status: 'locked'
+    });
+
+    console.log(`✅ Locked ${amount} XMR for user ${userId} | TX: ${txId}`);
+    return txId;
+  } catch (err) {
+    console.error(`❌ Failed to lock XMR for user ${userId}: ${err.message}`);
+    throw err;
+  }
 }
 
-const wallet = createXmrWallet();
+async function releaseXMR(userId, amount) {
+  console.log(`💰 Releasing ${amount} XMR for user ${userId}...`);
+  const lock = escrowLocks.get(userId);
+  const destAddress = lock ? lock.escrowAddress : ESCROW_MAIN_ADDRESS;
+  
+  const result = await moneroRpc(MONERO_WALLET_RPC, 'transfer', {
+    destinations: [{
+      amount: Math.floor(amount * 1e12),
+      address: destAddress
+    }],
+    priority: 0,
+    ring_size: 16
+  });
 
-module.exports = {
-  ...wallet,
-  createXmrWallet,
-  isFcmpTransfer,
-  normalizeTransfer,
-};
+  if (lock) {
+    lock.status = 'released';
+    lock.releasedAt = new Date().toISOString();
+  }
+
+  const txId = result.tx_hash || `xmr_release_${Date.now()}`;
+  console.log(`✅ Released ${amount} XMR to ${userId} | TX: ${txId}`);
+  return txId;
+}
+
+async function refundXMR(userId, amount) {
+  console.log(`↩️ Refunding ${amount} XMR to user ${userId}...`);
+  const lock = escrowLocks.get(userId);
+  
+  const result = await moneroRpc(MONERO_WALLET_RPC, 'transfer', {
+    destinations: [{
+      amount: Math.floor(amount * 1e12),
+      address: userId // Refund back to user
+    }],
+    priority: 0,
+    ring_size: 16
+  });
+
+  if (lock) {
+    lock.status = 'refunded';
+    lock.refundedAt = new Date().toISOString();
+  }
+
+  const txId = result.tx_hash || `xmr_refund_${Date.now()}`;
+  console.log(`✅ Refunded ${amount} XMR to ${userId} | TX: ${txId}`);
+  return txId;
+}
+
+async function getEscrowStatus(userId) {
+  const lock = escrowLocks.get(userId);
+  if (!lock) return null;
+  try {
+    const balance = await getBalance();
+    return { ...lock, walletBalance: balance };
+  } catch {
+    return lock;
+  }
+}
+
+module.exports = { lockXMR, releaseXMR, refundXMR, getEscrowStatus, getBalance, createSubAccount };
