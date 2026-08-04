@@ -1,0 +1,26 @@
+name: Free Issue Reward
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  add-free-reward:
+    runs-on: ubuntu-latest
+    if: ${{ contains(github.event.issue.labels.*.name, 'free') }}
+    steps:
+      - name: Add reward label
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_NUMBER=${{ github.event.issue.number }}
+          gh api repos/${{ github.repository }}/issues/$ISSUE_NUMBER/labels \
+            -X POST -f labels='["reward:1-myz"]'
+
+      - name: Comment reward info
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_NUMBER=${{ github.event.issue.number }}
+          gh api repos/${{ github.repository }}/issues/$ISSUE_NUMBER/comments \
+            -X POST -f body="✅ Questa issue free ha una ricompensa minima di **1 MYZ**. Se vuoi aumentare la ricompensa, trasforma la issue in bounty (modifica le label e usa il template apposito)."
