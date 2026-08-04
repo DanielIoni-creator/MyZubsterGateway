@@ -1,0 +1,56 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: myzubster-db-prod
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-myzubster}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backend:
+    build: .   # 👈 CAMBIA QUI: usa l'immagine locale invece di quella su Docker Hub
+    container_name: myzubster-backend-prod
+    environment:
+      - NODE_ENV=production
+      - PORT=${PORT:-3000}
+      - DATABASE_URL=${DATABASE_URL}
+      - MONERO_RPC_URL=${MONERO_RPC_URL:-http://host.docker.internal:18083}
+      - MONERO_NETWORK=${MONERO_NETWORK:-mainnet}
+      - MONERO_MIN_CONFIRMATIONS=${MONERO_MIN_CONFIRMATIONS:-10}
+      - MONERO_WALLET_PASSWORD=${MONERO_WALLET_PASSWORD:-}
+      - MONERO_WALLET_ADDRESS=${MONERO_WALLET_ADDRESS:-}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
+      - BCRYPT_SALT=${BCRYPT_SALT:-10}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    ports:
+      - "${PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  postgres_data_prod:
