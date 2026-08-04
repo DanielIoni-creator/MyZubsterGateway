@@ -16,7 +16,12 @@ app.post('/buy-myz', (req, res) => {
   const { userTariWallet, amountMYZ } = req.body;
   const order = createOrder(userTariWallet, amountMYZ);
   onPaymentReceived(order.id, 10);
-  res.json({ orderId: order.id, xmrAddress: order.xmrAddress, amountXMR: order.amountXMR, status: 'pending' });
+  res.json({
+    orderId: order.id,
+    xmrAddress: order.xmrAddress,
+    amountXMR: order.amountXMR,
+    status: 'pending'
+  });
 });
 
 app.post('/escrow/create', (req, res) => {
@@ -29,14 +34,20 @@ app.post('/escrow/create', (req, res) => {
   }
 });
 
-// ROUTE PER BOUNTY, STAKE, ESCROW IMMOBILIARE, REWARDS
+app.use('/api/rewards', require('./routes/rewards'));
+app.use('/api/robot/escrow', require('./routes/robotEscrow'));
 app.use('/api/bounty', require('./routes/bounty'));
 app.use('/api/stake', require('./routes/stake'));
 app.use('/api/escrow/house', require('./routes/escrowHouse'));
-app.use('/api/rewards', require('./routes/rewards'));
+app.use('/api/robot/escrow', require('./routes/robotEscrow'));
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', message: 'MyZubster Gateway is running!', timestamp: new Date().toISOString(), version: '1.0.0' });
+  res.json({
+    status: 'OK',
+    message: 'MyZubster Gateway is running!',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
 });
 
 const PORT = process.env.PORT || 3001;
