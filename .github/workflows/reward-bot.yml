@@ -25,4 +25,4 @@ jobs:
         env:
           GATEWAY_URL: ${{ secrets.GATEWAY_URL }}
           MYZ_REWARD_PER_PR: ${{ secrets.MYZ_REWARD_PER_PR || 10 }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REWARD_BOT_TOKEN: ${{ secrets.REWARD_BOT_TOKEN }}
