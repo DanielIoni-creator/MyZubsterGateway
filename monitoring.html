@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitoring Dashboard — MyZubster</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+      background: #0d1117; color: #c9d1d9; min-height: 100vh;
+    }
+    .navbar {
+      background: #161b22; border-bottom: 1px solid #30363d;
+      padding: 12px 24px; display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    }
+    .navbar h1 { font-size: 20px; font-weight: 600; color: #f0f6fc; }
+    .navbar .status-badge { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #8b949e; }
+    .navbar .status-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #3fb950; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+    .filters-bar { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+    .filters-bar label { font-size: 13px; color: #8b949e; }
+    .filters-bar input, .filters-bar select { background: #21262d; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; padding: 6px 10px; font-size: 13px; }
+    .filters-bar button { background: #238636; color: #fff; border: none; border-radius: 6px; padding: 6px 16px; font-size: 13px; cursor: pointer; }
+    .filters-bar button:hover { background: #2ea043; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; position: relative; overflow: hidden; }
+    .stat-card .label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #8b949e; margin-bottom: 8px; }
+    .stat-card .value { font-size: 28px; font-weight: 700; color: #f0f6fc; }
+    .stat-card .sub { font-size: 12px; color: #484f58; margin-top: 4px; }
+    .stat-card .icon { position: absolute; top: 12px; right: 16px; font-size: 24px; opacity: 0.15; }
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .chart-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; }
+    .chart-card.full-width { grid-column: 1 / -1; }
+    .chart-card h3 { font-size: 14px; font-weight: 600; color: #f0f6fc; margin-bottom: 16px; }
+    .chart-card canvas { max-height: 280px; }
+    .chart-card.full-width canvas { max-height: 220px; }
+    .events-section { background: #161b22; border: 1px solid #30363d; border-radius: 8px; overflow: hidden; }
+    .events-section h3 { font-size: 14px; font-weight: 600; color: #f0f6fc; padding: 16px 20px; border-bottom: 1px solid #30363d; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #21262d; padding: 10px 16px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #8b949e; border-bottom: 1px solid #30363d; }
+    td { padding: 10px 16px; font-size: 13px; border-bottom: 1px solid #21262d; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #1c2128; }
+    .event-label { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+    .event-label.assigned { background: #1f6feb33; color: #58a6ff; }
+    .event-label.executed { background: #d2992233; color: #d29922; }
+    .event-label.delivered { background: #23863633; color: #3fb950; }
+    .event-label.dispute { background: #da363333; color: #f85149; }
+    .no-data { text-align: center; padding: 32px; color: #484f58; font-size: 14px; }
+    .refresh-info { text-align: center; margin-top: 24px; font-size: 12px; color: #484f58; }
+    .error-state { text-align: center; padding: 40px; color: #f85149; }
+    .error-state .desc { font-size: 14px; margin-top: 8px; color: #8b949e; }
+    @media (max-width: 900px) { .charts-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) { .container { padding: 12px; } .stats-grid { grid-template-columns: repeat(2, 1fr); } .stat-card .value { font-size: 22px; } .navbar h1 { font-size: 16px; } td, th { padding: 8px 10px; } }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <h1>📊 Monitoring Dashboard</h1>
+    <div class="status-badge"><span class="dot"></span><span>Live — auto-refresh every 30s</span></div>
+  </div>
+  <div class="container">
+    <div class="filters-bar">
+      <label>Date range:</label>
+      <select id="dateRange"><option value="7">Last 7 days</option><option value="14">Last 14 days</option><option value="30">Last 30 days</option></select>
+      <label>Type:</label>
+      <select id="typeFilter"><option value="all">All</option><option value="job">Jobs</option><option value="earnings">Earnings</option></select>
+      <button onclick="refreshData()">🔄 Refresh</button>
+    </div>
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card"><div class="icon">🤖</div><div class="label">Active Robots</div><div class="value" id="activeRobots">--</div><div class="sub">out of <span id="totalRobots">--</span> total</div></div>
+      <div class="stat-card"><div class="icon">📋</div><div class="label">Today's Jobs</div><div class="value" id="todayJobs">--</div><div class="sub">assigned in last 24h</div></div>
+      <div class="stat-card"><div class="icon">💰</div><div class="label">MYZ Earned</div><div class="value" id="totalMyzEarned">--</div><div class="sub">total by all robots</div></div>
+      <div class="stat-card"><div class="icon">🏦</div><div class="label">Total Fees</div><div class="value" id="totalFees">--</div><div class="sub"><span id="totalFeesMyz">0</span> MYZ · <span id="totalFeesXmr">0</span> XMR</div></div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card"><h3>Robot Status</h3><canvas id="robotStatusChart"></canvas></div>
+      <div class="chart-card"><h3>Jobs by Status</h3><canvas id="jobsByStatusChart"></canvas></div>
+      <div class="chart-card full-width"><h3>Jobs Over Time (Last 7 days)</h3><canvas id="jobsOverTimeChart"></canvas></div>
+      <div class="chart-card full-width"><h3>Earnings &amp; Fees (Last 7 days)</h3><canvas id="earningsChart"></canvas></div>
+    </div>
+    <div class="events-section">
+      <h3>Recent Events</h3>
+      <table><thead><tr><th>Time</th><th>Robot</th><th>Event</th><th>Details</th></tr></thead><tbody id="eventsBody"><tr><td colspan="4" class="no-data">No events yet</td></tr></tbody></table>
+    </div>
+    <div class="refresh-info" id="refreshInfo">⏳ Waiting for first data...</div>
+  </div>
+
+  <script>
+    let charts = {};
+    function fmtTime(ts) { return new Date(ts).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
+    function fmtDate(ts) { return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
+    function fmtCur(v) { return Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+    function evLabel(ev) {
+      const m = { job_assigned: 'assigned', job_executed: 'executed', job_delivered: 'delivered', dispute_opened: 'dispute' };
+      const c = m[ev]||'', l = ev.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase());
+      return '<span class="event-label '+c+'">'+l+'</span>';
+    }
+    function evDetails(evt) {
+      if (evt.jobId) { let d = 'Job: '+evt.jobId; if (evt.amount) d += ' | '+evt.amount+' '+(evt.currency||''); if (evt.reason) d += ' | Reason: '+evt.reason; return d; }
+      return '\u2014';
+    }
+
+    function chart(id, type, labels, datasets, opts) {
+      if (charts[id]) charts[id].destroy();
+      charts[id] = new Chart(document.getElementById(id).getContext('2d'), {
+        type, data: { labels, datasets },
+        options: Object.assign({
+          responsive: true, maintainAspectRatio: true,
+          plugins: { legend: { labels: { color: '#8b949e', font: { size: 11 } } } },
+          scales: type === 'doughnut' ? {} : {
+            x: { ticks: { color: '#8b949e', font: { size: 10 } }, grid: { color: '#21262d' } },
+            y: { ticks: { color: '#8b949e', font: { size: 10 } }, grid: { color: '#21262d' }, beginAtZero: true }
+          }
+        }, opts || {})
+      });
+    }
+
+    function update(d) {
+      document.getElementById('activeRobots').textContent = d.summary.activeRobots;
+      document.getElementById('totalRobots').textContent = d.summary.totalRobots;
+      document.getElementById('todayJobs').textContent = d.summary.todayJobs;
+      document.getElementById('totalMyzEarned').textContent = fmtCur(d.summary.totalMyzEarned)+' MYZ';
+      document.getElementById('totalFees').textContent = fmtCur(d.summary.totalFees);
+      document.getElementById('totalFeesMyz').textContent = fmtCur(d.summary.totalFeesMyz);
+      document.getElementById('totalFeesXmr').textContent = fmtCur(d.summary.totalFeesXmr);
+
+      const rs = d.robotsByStatus;
+      chart('robotStatusChart', 'doughnut', ['Idle','Working','Delivering','Dispute'], [{ data: [rs.idle,rs.working,rs.delivering,rs.dispute], backgroundColor: ['#238636','#1f6feb','#d29922','#da3633'], borderWidth: 0 }], { cutout: '65%', plugins: { legend: { position: 'bottom' } } });
+
+      const js = d.jobsByStatus;
+      chart('jobsByStatusChart', 'doughnut', ['Locked','Delivered','Completed','Contested'], [{ data: [js.locked,js.delivered,js.completed,js.contested], backgroundColor: ['#1f6feb','#d29922','#3fb950','#f85149'], borderWidth: 0 }], { cutout: '65%', plugins: { legend: { position: 'bottom' } } });
+
+      const jl = d.jobsByDay.map(x => x.label), jc = d.jobsByDay.map(x => x.count);
+      chart('jobsOverTimeChart', 'bar', jl, [{ label: 'Jobs Assigned', data: jc, backgroundColor: '#1f6feb88', borderColor: '#1f6feb', borderWidth: 1, borderRadius: 4 }]);
+
+      const el = d.earningsByDay.map(x => x.label);
+      chart('earningsChart', 'line', el, [
+        { label: 'MYZ Earned', data: d.earningsByDay.map(x => x.myz), borderColor: '#3fb950', backgroundColor: '#3fb95022', fill: true, tension: 0.3, pointRadius: 4 },
+        { label: 'Fees', data: d.earningsByDay.map(x => x.fees), borderColor: '#d29922', backgroundColor: '#d2992222', fill: true, tension: 0.3, pointRadius: 4, yAxisID: 'y1' }
+      ], { scales: { y: { position: 'left', grid: { color: '#21262d' }, ticks: { color: '#8b949e' } }, y1: { position: 'right', grid: { display: false }, ticks: { color: '#d29922' } } } });
+
+      const tb = document.getElementById('eventsBody');
+      if (d.recentEvents.length === 0) { tb.innerHTML = '<tr><td colspan="4" class="no-data">No events yet</td></tr>'; }
+      else { tb.innerHTML = d.recentEvents.map(e => '<tr><td>'+fmtDate(e.timestamp)+' '+fmtTime(e.timestamp)+'</td><td><strong>'+(e.robotName||e.robotId)+'</strong></td><td>'+evLabel(e.event)+'</td><td>'+evDetails(e)+'</td></tr>').join(''); }
+    }
+
+    function showError(msg) {
+      document.getElementById('statsGrid').innerHTML = '<div class="error-state" style="grid-column:1/-1"><div style="font-size:40px">\u26a0\ufe0f</div><div class="desc">'+msg+'</div></div>';
+    }
+
+    function refreshData() {
+      const info = document.getElementById('refreshInfo'); info.textContent = '\ud83d\udd04 Fetching...';
+      fetch('/api/monitoring/stats').then(r => { if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); }).then(j => { if (j.success) { update(j.data); info.textContent = '\u2705 Last updated: '+fmtTime(Date.now())+' \u2014 next refresh in 30s'; } else throw new Error('API error'); }).catch(e => { info.textContent = '\u274c Error: '+e.message; showError(e.message); });
+    }
+
+    refreshData();
+    setInterval(refreshData, 30000);
+  </script>
+</body>
+</html>
