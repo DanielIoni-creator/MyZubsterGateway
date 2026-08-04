@@ -52,6 +52,13 @@ app.use('/api/robot/animal', require('./routes/robotAnimal'));
 
 app.use('/api/backup', require('./routes/backup'));
 
+
+// Notification status (Bounty B6)
+app.get('/api/notifications/status', (req, res) => {
+  const { getStatus } = require('./notifications');
+  res.json({ success: true, data: getStatus() });
+});
+
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
@@ -83,6 +90,27 @@ if (fs.existsSync(frontendDist)) {
 const PORT = process.env.PORT || 10000;
 const server = app.listen(PORT, () => {
   console.log(`🚀 Gateway running on http://localhost:${PORT}`);
+});
+
+// WebSocket server (Bounty B6)
+const WebSocket = require('ws');
+const wss = new WebSocket.Server({ noServer: true });
+const { addWsClient } = require('./notifications');
+
+server.on('upgrade', (request, socket, head) => {
+  if (request.url === '/ws') {
+    wss.handleUpgrade(request, socket, head, (ws) => {
+      wss.emit('connection', ws, request);
+    });
+  } else {
+    socket.destroy();
+  }
+});
+
+wss.on('connection', (ws) => {
+  console.log('[WS] Client connected');
+  addWsClient(ws);
+  ws.send(JSON.stringify({ event: 'connected', timestamp: new Date().toISOString() }));
 });
 
 process.on('SIGTERM', () => {
