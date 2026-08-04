@@ -8,19 +8,15 @@ const { createEscrow, lockFunds, submitProof, release, dispute, getEscrow } = re
 const { mint, balance } = require('./token_simulator');
 const { assignReward } = require('./services/rewardService');
 
-const { rateLimiter } = require('./middleware/rateLimiter');
+const { cacheMiddleware, autoInvalidate } = require("./middleware/cache");
 
 const app = express();
 app.use(express.json());
 
-// Global rate limiting (Bounty B15)
-app.use(rateLimiter({ windowMs: parseInt(process.env.RATE_LIMIT_WINDOW) * 1000 || 900000, max: parseInt(process.env.RATE_LIMIT_MAX) || 100 }));
-
-// Per-endpoint rate limiting for sensitive routes
-const sensitiveLimiter = rateLimiter({ windowMs: 60000, max: 30, keyBy: "ip+endpoint" });
-app.use("/api/rewards/trigger", sensitiveLimiter);
-app.use("/api/bounty/create", sensitiveLimiter);
-app.use("/api/escrow/create", sensitiveLimiter);
+// Redis caching (Bounty B16)
+app.use('/api/rewards', cacheMiddleware({ ttl: 30, keyPrefix: 'cache:rewards' }));
+app.use('/api/bounty/list', cacheMiddleware({ ttl: 60, keyPrefix: 'cache:bounty' }));
+app.use('/api/robot/status', cacheMiddleware({ ttl: 15, keyPrefix: 'cache:robot' }));
 
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myzubster')
