@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "buy_myz.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "devto-publish": "node scripts/publish-devto.js --publish",
+    "devto-draft": "node scripts/publish-devto.js"
   },
   "keywords": [],
   "author": "",
