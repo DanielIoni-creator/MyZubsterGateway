@@ -35,6 +35,7 @@ app.post('/escrow/create', (req, res) => {
 });
 
 app.use('/api/rewards', require('./routes/rewards'));
+app.use('/api/robot', require('./routes/robot'));
 app.use('/api/robot/escrow', require('./routes/robotEscrow'));
 app.use('/api/robot', require('./routes/robot'));
 app.use('/api/bounty', require('./routes/bounty'));
