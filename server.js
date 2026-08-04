@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const { createOrder, onPaymentReceived } = require('./buy_myz');
@@ -16,12 +17,7 @@ app.post('/buy-myz', (req, res) => {
   const { userTariWallet, amountMYZ } = req.body;
   const order = createOrder(userTariWallet, amountMYZ);
   onPaymentReceived(order.id, 10);
-  res.json({
-    orderId: order.id,
-    xmrAddress: order.xmrAddress,
-    amountXMR: order.amountXMR,
-    status: 'pending'
-  });
+  res.json({ orderId: order.id, xmrAddress: order.xmrAddress, amountXMR: order.amountXMR, status: 'pending' });
 });
 
 app.post('/escrow/create', (req, res) => {
@@ -35,21 +31,24 @@ app.post('/escrow/create', (req, res) => {
 });
 
 app.use('/api/rewards', require('./routes/rewards'));
-app.use('/api/robot', require('./routes/robot'));
-app.use('/api/robot/escrow', require('./routes/robotEscrow'));
-app.use('/api/robot', require('./routes/robot'));
 app.use('/api/bounty', require('./routes/bounty'));
 app.use('/api/stake', require('./routes/stake'));
 app.use('/api/escrow/house', require('./routes/escrowHouse'));
-app.use('/api/robot/escrow', require('./routes/robotEscrow'));
+
 app.use('/api/robot', require('./routes/robot'));
+app.use('/api/robot/escrow', require('./routes/robotEscrow'));
+app.use('/api/robot/logo', require('./routes/robotLogo'));
+app.use('/api/robot/code', require('./routes/robotCode'));
 
 app.get('/health', (req, res) => {
-  res.json({
-    status: 'OK',
-    message: 'MyZubster Gateway is running!',
+  res.json({ 
+    status: 'healthy', 
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    services: {
+      telegram: !!process.env.TELEGRAM_BOT_TOKEN,
+      github: !!process.env.GITHUB_TOKEN,
+      ai: !!process.env.OPENAI_API_KEY
+    }
   });
 });
 
