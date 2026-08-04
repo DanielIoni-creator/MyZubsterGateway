@@ -38,6 +38,7 @@ app.use('/api/rewards', require('./routes/rewards'));
 app.use('/api/bounty', require('./routes/bounty'));
 app.use('/api/stake', require('./routes/stake'));
 app.use('/api/escrow/house', require('./routes/escrowHouse'));
+app.use('/api/escrow', require('./routes/escrowGateway'));
 
 console.log('✅ Caricamento routes robot...');
 app.use('/api/robot', require('./routes/robot'));
