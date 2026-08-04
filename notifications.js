@@ -1,3 +1,4 @@
+// notifications.js – Stub per notifiche
 async function notifyUser(userId, message) {
   console.log(`📧 Notify user ${userId}: ${message}`);
 }
