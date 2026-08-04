@@ -5,12 +5,16 @@ const { createOrder, onPaymentReceived } = require('./buy_myz');
 const { createEscrow, lockFunds, submitProof, release, dispute, getEscrow } = require('./escrow_simulator');
 const { mint, balance } = require('./token_simulator');
 const { assignReward } = require('./services/rewardService');
+const { scheduleDailyBackup } = require('./services/backupService');
 
 const app = express();
 app.use(express.json());
 
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myzubster')
-  .then(() => console.log('✅ Connected to MongoDB'))
+  .then(() => {
+    console.log('✅ Connected to MongoDB');
+    scheduleDailyBackup();
+  })
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
 app.post('/buy-myz', (req, res) => {
@@ -40,6 +44,9 @@ app.use('/api/robot/escrow', require('./routes/robotEscrow'));
 app.use('/api/robot/logo', require('./routes/robotLogo'));
 app.use('/api/robot/code', require('./routes/robotCode'));
 
+app.use('/api/backup', require('./routes/backup'));
+app.use('/api/backups', require('./routes/backup'));
+
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'healthy', 
@@ -54,5 +61,5 @@ app.get('/health', (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`🚀 Gateway running on http://localhost:${PORT}`);
+  console.log('Gateway running on http://localhost:' + PORT);
 });
