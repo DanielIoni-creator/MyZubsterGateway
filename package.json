@@ -7,9 +7,7 @@
     "test:escrow-robot": "node --test tests/escrowRobot.test.js",
     "test:escrow-robot:coverage": "node --test --experimental-test-coverage --test-coverage-include=escrow_robot.js --test-coverage-lines=90 --test-coverage-branches=90 --test-coverage-functions=90 tests/escrowRobot.test.js",
     "devto-publish": "node scripts/publish-devto.js --publish",
-    "devto-draft": "node scripts/publish-devto.js",
-    "start": "node server.js",
-    "build": "echo 'Build completed'"
+    "devto-draft": "node scripts/publish-devto.js"
   },
   "keywords": [],
   "author": "",
