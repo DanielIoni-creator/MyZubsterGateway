@@ -1,34 +1,18 @@
-// robot_logo.js – Robot per generazione loghi 24/7 (OpenAI DALL-E)
-const axios = require('axios');
+// robot_logo.js – Mock per generazione loghi (senza AI)
 const escrowRobot = require('./escrow_robot');
 const { notifyUser, notifyRobot } = require('./notifications');
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const generatedLogos = new Map();
 
-// Genera un logo usando OpenAI DALL-E
-async function generateLogo(prompt, style = 'modern') {
-  console.log(`🎨 Generando logo con prompt: "${prompt}"...`);
-  
-  const response = await axios.post(
-    'https://api.openai.com/v1/images/generations',
-    {
-      model: 'dall-e-3',
-      prompt: `Create a professional logo: ${prompt}. Style: ${style}. Clean, minimal, modern, no text.`,
-      n: 1,
-      size: '1024x1024',
-      quality: 'standard'
-    },
-    { headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}` } }
-  );
-  
-  return response.data.data[0].url;
+async function generateLogo(prompt, style) {
+  console.log(`🎨 Mock: generando logo per "${prompt}"...`);
+  return `https://via.placeholder.com/1024x1024/4A90D9/FFFFFF?text=LOGO+MOCK`;
 }
 
 async function createLogoJob(jobId, clientId, robotId, prompt, style = 'modern', amount = 100, currency = 'MYZ') {
   const escrow = await escrowRobot.createEscrow({ jobId, clientId, robotId, amount, currency });
   generatedLogos.set(jobId, { prompt, style, status: 'pending', escrow, createdAt: Date.now() });
-  await notifyUser(clientId, `🎨 Job logo ${jobId} creato. Generando...`);
+  await notifyUser(clientId, `🎨 Job logo ${jobId} creato.`);
   return { jobId, escrow };
 }
 
@@ -43,8 +27,8 @@ async function generateAndDeliver(jobId) {
   job.deliveredAt = Date.now();
   
   await escrowRobot.markDelivered({ jobId });
-  await notifyUser(job.escrow.clientId, `✅ Logo per job ${jobId} pronto: ${imageUrl}`);
-  await notifyRobot(job.escrow.robotId, `✅ Logo per job ${jobId} generato.`);
+  await notifyUser(job.escrow.clientId, `✅ Logo mock per job ${jobId} pronto: ${imageUrl}`);
+  await notifyRobot(job.escrow.robotId, `✅ Logo mock per job ${jobId} generato.`);
   
   return { jobId, imageUrl };
 }
