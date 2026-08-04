@@ -40,6 +40,8 @@ app.use('/api/robot/escrow', require('./routes/robotEscrow'));
 app.use('/api/robot/logo', require('./routes/robotLogo'));
 app.use('/api/robot/code', require('./routes/robotCode'));
 
+app.use('/api/backup', require('./routes/backup'));
+
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'healthy', 
