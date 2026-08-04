@@ -1,0 +1,22 @@
+{
+  "health": {
+    "message": "{{service}} Gateway இயங்குகிறது!"
+  },
+  "auth": {
+    "loginEndpoint": "உள்நுழைவு முனையம்",
+    "registerEndpoint": "பதிவு முனையம்",
+    "required": "அங்கீகாரம் தேவை"
+  },
+  "admin": {
+    "required": "நிர்வாகி அனுமதி தேவை"
+  },
+  "validation": {
+    "targetUrlRequired": "targetUrl தேவை"
+  },
+  "webhooks": {
+    "sentWithRetry": "தானியங்கி மறுமுயற்சியுடன் Webhook அனுப்பப்பட்டது"
+  },
+  "errors": {
+    "internal": "உள் சேவையகப் பிழை"
+  }
+}

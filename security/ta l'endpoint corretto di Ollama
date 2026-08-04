@@ -1,0 +1,20 @@
+[0;1;32m●[0m ollama.service - Ollama Service
+     Loaded: loaded (]8;;file://myzubster/etc/systemd/system/ollama.service/etc/systemd/system/ollama.service]8;;; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)
+     Active: [0;1;32mactive (running)[0m since Wed 2026-07-22 22:05:16 CEST; 2 days ago
+   Main PID: 824 (ollama)
+      Tasks: 10 (limit: 9431)
+     Memory: 27.1M (peak: 2.5G swap: 9.6M swap peak: 11.7M)
+        CPU: 50min 702ms
+     CGroup: /system.slice/ollama.service
+             └─[0;38;5;245m824 /usr/local/bin/ollama serve[0m
+
+Jul 25 08:08:15 myzubster ollama[824]: time=2026-07-25T08:08:15.032+02:00 level=INFO source=model_recommendations.go:177 msg="model recommendations cache sleep scheduled" wait=3h27m2.456099426s consecutive_failures=0
+Jul 25 10:04:45 myzubster ollama[824]: [GIN] 2026/07/25 - 10:04:45 | 404 |     1.70061ms |       127.0.0.1 | POST     "/api/generate"
+Jul 25 11:35:17 myzubster ollama[824]: time=2026-07-25T11:35:17.974+02:00 level=WARN source=model_recommendations.go:227 msg="failed to persist model recommendations snapshot" error="mkdir /usr/share/ollama: permission denied"
+Jul 25 11:35:17 myzubster ollama[824]: time=2026-07-25T11:35:17.975+02:00 level=INFO source=model_recommendations.go:177 msg="model recommendations cache sleep scheduled" wait=4h12m21.360934474s consecutive_failures=0
+Jul 25 15:47:39 myzubster ollama[824]: time=2026-07-25T15:47:39.485+02:00 level=WARN source=model_recommendations.go:227 msg="failed to persist model recommendations snapshot" error="mkdir /usr/share/ollama: permission denied"
+Jul 25 15:47:39 myzubster ollama[824]: time=2026-07-25T15:47:39.485+02:00 level=INFO source=model_recommendations.go:177 msg="model recommendations cache sleep scheduled" wait=3h20m19.169080029s consecutive_failures=0
+Jul 25 18:31:45 myzubster ollama[824]: [GIN] 2026/07/25 - 18:31:45 | 404 |     270.422µs |       127.0.0.1 | POST     "/api/generate"
+Jul 25 19:07:58 myzubster ollama[824]: time=2026-07-25T19:07:58.799+02:00 level=WARN source=model_recommendations.go:227 msg="failed to persist model recommendations snapshot" error="mkdir /usr/share/ollama: permission denied"
+Jul 25 19:07:58 myzubster ollama[824]: time=2026-07-25T19:07:58.800+02:00 level=INFO source=model_recommendations.go:177 msg="model recommendations cache sleep scheduled" wait=4h15m34.421971286s consecutive_failures=0
+Jul 25 19:30:05 myzubster ollama[824]: [GIN] 2026/07/25 - 19:30:05 | 404 |     266.185µs |       127.0.0.1 | POST     "/api/generate"
