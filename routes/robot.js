@@ -88,6 +88,16 @@ router.post('/dispute', async (req, res) => {
   }
 });
 
+// GET /api/robot/list
+router.get('/list', (req, res) => {
+  try {
+    const robots = robotBrain.listRobots();
+    res.json({ success: true, data: robots });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/robot/status/:robotId
 router.get('/status/:robotId', (req, res) => {
   try {

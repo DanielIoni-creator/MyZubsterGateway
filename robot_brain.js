@@ -75,4 +75,17 @@ function getRobotStatus(robotId) {
   };
 }
 
-module.exports = { createRobot, assignJobToRobot, executeJob, deliverJob, handleDispute, getRobotStatus };
+function listRobots() {
+  return Array.from(robotState.values()).map(r => ({
+    robotId: r.robotId,
+    name: r.name,
+    status: r.status,
+    currentJob: r.currentJob,
+    reputation: r.reputation,
+    jobsCompleted: r.jobsCompleted,
+    totalEarned: r.totalEarned,
+    history: r.history.slice(-20)
+  }));
+}
+
+module.exports = { createRobot, assignJobToRobot, executeJob, deliverJob, handleDispute, getRobotStatus, listRobots };

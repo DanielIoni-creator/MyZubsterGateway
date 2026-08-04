@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robot Dashboard - MyZubster Gateway</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface-2: #242736;
+    --border: #2e3142;
+    --text: #e1e4ea;
+    --text-muted: #8b8fa3;
+    --accent: #6c8cff;
+    --accent-hover: #7f9bff;
+    --green: #34d399;
+    --yellow: #fbbf24;
+    --red: #f87171;
+    --blue: #60a5fa;
+    --purple: #a78bfa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .header h1 {
+    font-size: 20px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .header h1 span { color: var(--accent); }
+  .header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .btn {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-2);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: var(--border); }
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+  }
+  .stat-card .label {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .stat-card .value {
+    font-size: 24px;
+    font-weight: 700;
+  }
+  .stat-card .value.green { color: var(--green); }
+  .stat-card .value.yellow { color: var(--yellow); }
+  .stat-card .value.blue { color: var(--blue); }
+  .stat-card .value.red { color: var(--red); }
+  .stat-card .value.purple { color: var(--purple); }
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .panel-header .badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: var(--surface-2);
+    color: var(--text-muted);
+  }
+  .table-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th {
+    text-align: left;
+    padding: 10px 16px;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+    white-space: nowrap;
+  }
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(108, 140, 255, 0.04); }
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .status-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+  .status-idle { background: rgba(52, 211, 153, 0.12); color: var(--green); }
+  .status-idle::before { background: var(--green); }
+  .status-working { background: rgba(96, 165, 250, 0.12); color: var(--blue); }
+  .status-working::before { background: var(--blue); }
+  .status-delivering { background: rgba(251, 191, 36, 0.12); color: var(--yellow); }
+  .status-delivering::before { background: var(--yellow); }
+  .status-dispute { background: rgba(248, 113, 113, 0.12); color: var(--red); }
+  .status-dispute::before { background: var(--red); }
+  .status-locked { background: rgba(167, 139, 250, 0.12); color: var(--purple); }
+  .status-locked::before { background: var(--purple); }
+  .status-delivered { background: rgba(96, 165, 250, 0.12); color: var(--blue); }
+  .status-delivered::before { background: var(--blue); }
+  .status-contested { background: rgba(248, 113, 113, 0.12); color: var(--red); }
+  .status-contested::before { background: var(--red); }
+  .status-completed { background: rgba(52, 211, 153, 0.12); color: var(--green); }
+  .status-completed::before { background: var(--green); }
+  .clickable { cursor: pointer; }
+  .clickable:hover td { background: rgba(108, 140, 255, 0.08); }
+  .empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-muted);
+  }
+  .empty-state .icon { font-size: 36px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    padding: 20px;
+  }
+  .detail-item .label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .detail-item .value {
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .history-list {
+    padding: 0;
+    list-style: none;
+  }
+  .history-item {
+    padding: 8px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .history-item:last-child { border-bottom: none; }
+  .history-item .event {
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .history-item .time {
+    margin-left: auto;
+    color: var(--text-muted);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    gap: 0;
+  }
+  .tab {
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  @media (max-width: 768px) {
+    .container { padding: 12px; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .header { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🤖 <span>Robot Dashboard</span></h1>
+  <div class="header-actions">
+    <button class="btn btn-primary btn-sm" onclick="refreshAll()">🔄 Refresh</button>
+    <span id="last-update" style="font-size:11px;color:var(--text-muted)"></span>
+  </div>
+</div>
+
+<div class="container">
+  <!-- Stats -->
+  <div class="stats-row" id="stats">
+    <div class="stat-card"><div class="label">Total Robots</div><div class="value blue" id="stat-total">-</div></div>
+    <div class="stat-card"><div class="label">Idle</div><div class="value green" id="stat-idle">-</div></div>
+    <div class="stat-card"><div class="label">Working</div><div class="value blue" id="stat-working">-</div></div>
+    <div class="stat-card"><div class="label">Delivering</div><div class="value yellow" id="stat-delivering">-</div></div>
+    <div class="stat-card"><div class="label">Dispute</div><div class="value red" id="stat-dispute">-</div></div>
+    <div class="stat-card"><div class="label">Total Earned</div><div class="value purple" id="stat-earned">-</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="panel">
+    <div class="tabs">
+      <button class="tab active" data-tab="robots" onclick="switchTab('robots')">📋 Robots</button>
+      <button class="tab" data-tab="escrows" onclick="switchTab('escrows')">🔒 Escrows</button>
+    </div>
+
+    <!-- Robots Tab -->
+    <div class="tab-content active" id="tab-robots">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Robot</th>
+              <th>Status</th>
+              <th>Reputation</th>
+              <th>Jobs Done</th>
+              <th>Total Earned</th>
+              <th>Current Job</th>
+            </tr>
+          </thead>
+          <tbody id="robot-table-body">
+            <tr><td colspan="6"><div class="empty-state"><div class="icon">📡</div><p>Loading robots...</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Escrows Tab -->
+    <div class="tab-content" id="tab-escrows">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Job ID</th>
+              <th>Robot ID</th>
+              <th>Client ID</th>
+              <th>Amount</th>
+              <th>Fee</th>
+              <th>Net</th>
+              <th>Currency</th>
+              <th>Status</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody id="escrow-table-body">
+            <tr><td colspan="9"><div class="empty-state"><div class="icon">🔒</div><p>Loading escrows...</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Robot Detail -->
+  <div class="panel" id="detail-panel" style="display:none">
+    <div class="panel-header">
+      <span>🤖 <span id="detail-name">Robot</span></span>
+      <button class="btn btn-sm" onclick="closeDetail()">✕ Close</button>
+    </div>
+    <div class="detail-grid" id="detail-grid"></div>
+    <div style="border-top:1px solid var(--border);padding:14px 20px;font-weight:600;font-size:13px;">📜 Job History (last 20)</div>
+    <ul class="history-list" id="history-list">
+      <li class="history-item" style="justify-content:center;color:var(--text-muted)">No history yet</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+const API_BASE = '/api';
+
+async function api(path) {
+  const res = await fetch(API_BASE + path);
+  const json = await res.json();
+  return json.success ? json.data : [];
+}
+
+function formatTime(ts) {
+  if (!ts) return '-';
+  const d = new Date(ts);
+  return d.toLocaleString();
+}
+
+function formatAmount(n) {
+  if (n === undefined || n === null) return '-';
+  return Number(n).toFixed(2);
+}
+
+function statusClass(status) {
+  const map = {
+    idle: 'status-idle', working: 'status-working', delivering: 'status-delivering',
+    dispute: 'status-dispute', LOCKED: 'status-locked', DELIVERED: 'status-delivered',
+    CONTESTED: 'status-contested', COMPLETED: 'status-completed'
+  };
+  return map[status] || 'status-idle';
+}
+
+function statusLabel(status) {
+  const map = {
+    idle: '🟢 Idle', working: '🔵 Working', delivering: '🟡 Delivering',
+    dispute: '🔴 Dispute', LOCKED: '🟣 Locked', DELIVERED: '🔵 Delivered',
+    CONTESTED: '🔴 Contested', COMPLETED: '🟢 Completed'
+  };
+  return map[status] || status;
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelector(`[data-tab="${name}"]`).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+function closeDetail() {
+  document.getElementById('detail-panel').style.display = 'none';
+}
+
+async function showRobotDetail(robotId) {
+  const robots = await api('/robot/list');
+  const robot = robots.find(r => r.robotId === robotId);
+  if (!robot) return;
+
+  document.getElementById('detail-name').textContent = robot.name + ' (' + robot.robotId + ')';
+  document.getElementById('detail-panel').style.display = 'block';
+
+  const grid = document.getElementById('detail-grid');
+  grid.innerHTML = `
+    <div class="detail-item"><div class="label">Status</div><div class="value"><span class="status-badge ${statusClass(robot.status)}">${statusLabel(robot.status)}</span></div></div>
+    <div class="detail-item"><div class="label">Reputation</div><div class="value">${robot.reputation}</div></div>
+    <div class="detail-item"><div class="label">Jobs Completed</div><div class="value">${robot.jobsCompleted}</div></div>
+    <div class="detail-item"><div class="label">Total Earned</div><div class="value" style="color:var(--purple)">${formatAmount(robot.totalEarned)}</div></div>
+    ${robot.currentJob ? `
+      <div class="detail-item"><div class="label">Current Job</div><div class="value">${robot.currentJob.jobId}</div></div>
+      <div class="detail-item"><div class="label">Job Amount</div><div class="value">${formatAmount(robot.currentJob.amount)} ${robot.currentJob.currency}</div></div>
+    ` : ''}
+  `;
+
+  const history = document.getElementById('history-list');
+  if (robot.history && robot.history.length > 0) {
+    history.innerHTML = robot.history.slice().reverse().map(h => `
+      <li class="history-item">
+        <span class="event">${h.event.replace(/_/g, ' ')}</span>
+        ${h.jobId ? `<span style="color:var(--text-muted)">· ${h.jobId}</span>` : ''}
+        ${h.amount ? `<span style="color:var(--text-muted)">· ${formatAmount(h.amount)} ${h.currency || ''}</span>` : ''}
+        ${h.reason ? `<span style="color:var(--text-muted)">· ${h.reason}</span>` : ''}
+        <span class="time">${formatTime(h.timestamp)}</span>
+      </li>
+    `).join('');
+  } else {
+    history.innerHTML = '<li class="history-item" style="justify-content:center;color:var(--text-muted)">No history yet</li>';
+  }
+}
+
+async function refreshRobots() {
+  const robots = await api('/robot/list');
+  const tbody = document.getElementById('robot-table-body');
+
+  if (robots.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="icon">🤖</div><p>No robots registered yet. Create one via the API.</p></div></td></tr>';
+  } else {
+    tbody.innerHTML = robots.map(r => `
+      <tr class="clickable" onclick="showRobotDetail('${r.robotId}')">
+        <td><strong>${r.name}</strong><br><span style="font-size:11px;color:var(--text-muted)">${r.robotId}</span></td>
+        <td><span class="status-badge ${statusClass(r.status)}">${statusLabel(r.status)}</span></td>
+        <td>${r.reputation}</td>
+        <td>${r.jobsCompleted}</td>
+        <td style="color:var(--purple);font-weight:500">${formatAmount(r.totalEarned)}</td>
+        <td style="font-size:12px;color:var(--text-muted)">${r.currentJob ? r.currentJob.jobId : '—'}</td>
+      </tr>
+    `).join('');
+  }
+
+  // Stats
+  const total = robots.length;
+  const idle = robots.filter(r => r.status === 'idle').length;
+  const working = robots.filter(r => r.status === 'working').length;
+  const delivering = robots.filter(r => r.status === 'delivering').length;
+  const dispute = robots.filter(r => r.status === 'dispute').length;
+  const earned = robots.reduce((s, r) => s + (r.totalEarned || 0), 0);
+
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-idle').textContent = idle;
+  document.getElementById('stat-working').textContent = working;
+  document.getElementById('stat-delivering').textContent = delivering;
+  document.getElementById('stat-dispute').textContent = dispute;
+  document.getElementById('stat-earned').textContent = formatAmount(earned);
+}
+
+async function refreshEscrows() {
+  const escrows = await api('/robot/escrow/list');
+  const tbody = document.getElementById('escrow-table-body');
+
+  if (escrows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="icon">🔒</div><p>No escrows yet. Assign a job to create one.</p></div></td></tr>';
+  } else {
+    tbody.innerHTML = escrows.map(e => `
+      <tr>
+        <td><strong>${e.jobId}</strong></td>
+        <td style="color:var(--text-muted)">${e.robotId}</td>
+        <td style="color:var(--text-muted)">${e.clientId}</td>
+        <td style="font-weight:500">${formatAmount(e.amount)}</td>
+        <td style="color:var(--red)">${formatAmount(e.fee)}</td>
+        <td style="color:var(--green)">${formatAmount(e.netAmount)}</td>
+        <td><span style="font-weight:500">${e.currency}</span></td>
+        <td><span class="status-badge ${statusClass(e.status)}">${statusLabel(e.status)}</span></td>
+        <td style="font-size:12px;color:var(--text-muted)">${formatTime(e.createdAt)}</td>
+      </tr>
+    `).join('');
+  }
+}
+
+async function refreshAll() {
+  document.getElementById('last-update').textContent = '⏳ Loading...';
+  await Promise.all([refreshRobots(), refreshEscrows()]);
+  document.getElementById('last-update').textContent = 'Updated: ' + new Date().toLocaleTimeString();
+}
+
+// Auto-refresh every 10 seconds
+refreshAll();
+setInterval(refreshAll, 10000);
+</script>
+</body>
+</html>
