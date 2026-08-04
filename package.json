@@ -13,9 +13,7 @@
     "loadtest:artillery": "bash scripts/run-load-test.sh --tool artillery",
     "loadtest:report": "node scripts/load-report.js reports/load/summary.json",
     "devto-publish": "node scripts/publish-devto.js --publish",
-    "devto-draft": "node scripts/publish-devto.js",
-    "start": "node server.js",
-    "build": "echo 'Build completed'"
+    "devto-draft": "node scripts/publish-devto.js"
   },
   "keywords": [],
   "author": "",
