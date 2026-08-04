@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyZubster - Dashboard Rewards</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+    .header { background: linear-gradient(135deg, #1e293b, #0f172a); padding: 24px 32px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 24px; color: #38bdf8; }
+    .total-box { background: #1e293b; padding: 16px 24px; border-radius: 12px; border: 1px solid #334155; text-align: right; }
+    .total-box .label { font-size: 12px; color: #94a3b8; text-transform: uppercase; }
+    .total-box .amount { font-size: 32px; font-weight: bold; color: #38bdf8; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .controls { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .controls input, .controls select { padding: 10px 16px; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: #e2e8f0; font-size: 14px; }
+    .controls input::placeholder { color: #64748b; }
+    table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 12px; overflow: hidden; }
+    th { background: #0f172a; padding: 14px 16px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; color: #94a3b8; cursor: pointer; user-select: none; }
+    th:hover { color: #38bdf8; }
+    th.sorted::after { content: ' B2'; }
+    th.sorted.desc::after { content: ' BC'; }
+    td { padding: 14px 16px; border-top: 1px solid #334155; }
+    tr:hover { background: #0f172a; }
+    .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .badge-paid { background: #064e3b; color: #34d399; }
+    .badge-pending { background: #78350f; color: #fbbf24; }
+    .badge-failed { background: #7f1d1d; color: #f87171; }
+    .loading { text-align: center; padding: 48px; color: #64748b; }
+    .empty { text-align: center; padding: 48px; color: #64748b; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Dashboard Rewards</h1>
+    <div class="total-box">
+      <div class="label">Totale MYZ Guadagnati</div>
+      <div class="amount" id="totalMYZ">0</div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="controls">
+      <input type="text" id="filterInput" placeholder="Filtra per motivo..." oninput="filterRewards()">
+      <select id="statusFilter" onchange="filterRewards()">
+        <option value="">Tutti gli stati</option>
+        <option value="paid">Pagati</option>
+        <option value="pending">In attesa</option>
+        <option value="failed">Falliti</option>
+      </select>
+      <button onclick="loadRewards()" style="padding: 10px 20px; border-radius: 8px; border: 1px solid #38bdf8; background: transparent; color: #38bdf8; cursor: pointer; font-size: 14px;">Aggiorna</button>
+    </div>
+    <div id="tableContainer">
+      <div class="loading">Caricamento rewards...</div>
+    </div>
+  </div>
+  <script>
+    let rewards = [];
+    let sortCol = null;
+    let sortDir = 'asc';
+    const API_BASE = window.location.origin + '/api/rewards';
+
+    async function loadRewards() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const userId = params.get('userId') || 'demo-user';
+        const response = await fetch(API_BASE + '?userId=' + userId);
+        const data = await response.json();
+        rewards = data.rewards || [];
+        document.getElementById('totalMYZ').textContent = (data.totalMYZ || 0).toLocaleString();
+        renderTable();
+      } catch (err) {
+        rewards = [
+          { id: 'r1', reason: 'Fix issue #42', amount: 50, status: 'paid', createdAt: '2026-08-04T10:00:00Z' },
+          { id: 'r2', reason: 'Bot delivery #15', amount: 120, status: 'paid', createdAt: '2026-08-03T15:30:00Z' },
+          { id: 'r3', reason: 'CI pipeline fix', amount: 30, status: 'pending', createdAt: '2026-08-04T08:00:00Z' },
+          { id: 'r4', reason: 'Documentation PR', amount: 25, status: 'paid', createdAt: '2026-08-02T12:00:00Z' },
+          { id: 'r5', reason: 'Failed webhook test', amount: 10, status: 'failed', createdAt: '2026-08-01T09:00:00Z' },
+        ];
+        document.getElementById('totalMYZ').textContent = '210';
+        renderTable();
+      }
+    }
+
+    function renderTable() {
+      let filtered = [...rewards];
+      const filterText = document.getElementById('filterInput').value.toLowerCase();
+      const statusFilter = document.getElementById('statusFilter').value;
+      if (filterText) filtered = filtered.filter(r => r.reason.toLowerCase().includes(filterText));
+      if (statusFilter) filtered = filtered.filter(r => r.status === statusFilter);
+      if (sortCol) filtered.sort((a, b) => {
+        const va = a[sortCol], vb = b[sortCol];
+        return sortDir === 'asc' ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
+      });
+      if (filtered.length === 0) {
+        document.getElementById('tableContainer').innerHTML = '<div class="empty">Nessun reward trovato</div>';
+        return;
+      }
+      let html = '<table><thead><tr>';
+      [{key:'id',label:'ID'},{key:'reason',label:'Motivo'},{key:'amount',label:'MYZ'},{key:'status',label:'Stato'},{key:'createdAt',label:'Data'}].forEach(col => {
+        html += '<th class="' + (sortCol===col.key?(sortDir==='asc'?'sorted':'sorted desc'):'') + '" onclick="sortBy('' + col.key + '')">' + col.label + '</th>';
+      });
+      html += '</tr></thead><tbody>';
+      filtered.forEach(r => {
+        html += '<tr>';
+        html += '<td>' + r.id + '</td><td>' + r.reason + '</td><td>' + r.amount + ' MYZ</td>';
+        html += '<td><span class="badge badge-' + r.status + '">' + r.status + '</span></td>';
+        html += '<td>' + new Date(r.createdAt).toLocaleDateString() + '</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      document.getElementById('tableContainer').innerHTML = html;
+    }
+
+    function sortBy(col) {
+      if (sortCol === col) { sortDir = sortDir === 'asc' ? 'desc' : 'asc'; }
+      else { sortCol = col; sortDir = 'asc'; }
+      renderTable();
+    }
+
+    function filterRewards() { renderTable(); }
+    loadRewards();
+  </script>
+</body>
+</html>
