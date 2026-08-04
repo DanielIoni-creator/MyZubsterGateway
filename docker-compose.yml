@@ -1,0 +1,83 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: myzubster-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: myzubster
+    healthcheck:
+      test: echo "db.runCommand('ping').ok" | mongosh --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: myzubster-gateway
+    restart: unless-stopped
+    ports:
+      - "${GATEWAY_PORT:-10000}:10000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - MONGODB_URI=mongodb://mongodb:27017/myzubster
+      - XMR_WALLET_URL=http://monero-wallet-stub:18083
+      - XMR_REQUIRED_CONFIRMATIONS=${XMR_REQUIRED_CONFIRMATIONS:-10}
+      - XMR_FCMP_PLUS_PLUS_ENABLED=${XMR_FCMP_PLUS_PLUS_ENABLED:-false}
+      - XMR_FCMP_REQUIRED_CONFIRMATIONS=${XMR_FCMP_REQUIRED_CONFIRMATIONS:-10}
+      - TARI_WALLET_URL=http://tari-wallet-stub:18143
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      tari-wallet-stub:
+        condition: service_started
+      monero-wallet-stub:
+        condition: service_started
+    volumes:
+      - ./:/app
+      - /app/node_modules
+
+  tari-wallet-stub:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile.tari-stub
+    container_name: myzubster-tari-wallet
+    restart: unless-stopped
+    ports:
+      - "${TARI_WALLET_PORT:-18143}:18143"
+    environment:
+      - WALLET_PORT=18143
+      - WALLET_NAME=tari
+
+  monero-wallet-stub:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile.monero-stub
+    container_name: myzubster-monero-wallet
+    restart: unless-stopped
+    ports:
+      - "${XMR_WALLET_PORT:-18083}:18083"
+    environment:
+      - WALLET_PORT=18083
+      - WALLET_NAME=monero
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: myzubster-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    profiles:
+      - frontend
+
+volumes:
+  mongodb_data:

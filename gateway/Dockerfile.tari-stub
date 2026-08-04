@@ -1,0 +1,6 @@
+FROM node:20-alpine
+WORKDIR /app
+COPY tari-wallet-stub.js .
+RUN npm init -y && npm install express
+EXPOSE 18143
+CMD ["node", "tari-wallet-stub.js"]
