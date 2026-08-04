@@ -55,4 +55,8 @@ async function openDispute({ jobId, reason }) {
 
 function getEscrow(jobId) { return escrows.get(jobId) || null; }
 
-module.exports = { createEscrow, markDelivered, openDispute, getEscrow, autoRelease };
+function getAllEscrows() {
+  return Array.from(escrows.values());
+}
+
+module.exports = { createEscrow, markDelivered, openDispute, getEscrow, autoRelease, getAllEscrows };
