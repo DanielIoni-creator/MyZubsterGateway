@@ -1,104 +1,81 @@
-require('dotenv').config();
 const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const compression = require('compression');
-const i18nMiddleware = require('./middleware/i18n');
+const { createOrder, onPaymentReceived } = require('./buy_myz');
+const { createEscrow, lockFunds, submitProof, release, dispute, getEscrow } = require('./escrow_simulator');
+const { mint, balance } = require('./token_simulator');
 
 const app = express();
+app.use(express.json());
 
-// ===== MIDDLEWARE =====
-app.use(helmet());
-app.use(cors());
-app.use(compression());
-app.use(morgan('dev'));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(i18nMiddleware);
-
-const activityLogger = require('./middleware/activityLogger');
-app.use(activityLogger());
-
-// ===== DATABASE =====
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myzubster', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.error('MongoDB error:', err));
-
-// ===== ROUTES =====
-
-// Health check
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'OK',
-    message: req.t('health.message', { service: 'MyZubster' }),
-    timestamp: new Date().toISOString(),
-    version: '1.0.0'
-  });
+// 1. Acquista MYZ con XMR (simulato)
+app.post('/buy-myz', (req, res) => {
+    const { userTariWallet, amountMYZ } = req.body;
+    const order = createOrder(userTariWallet, amountMYZ);
+    onPaymentReceived(order.id, 10);
+    res.json({ orderId: order.id, xmrAddress: order.xmrAddress, amountXMR: order.amountXMR, status: 'pending' });
 });
 
-// Auth routes
-const authRoutes = require('./src/routes/auth');
-app.use('/api/auth', authRoutes);
-
-// Token routes
-const tokenRoutes = require('./src/routes/tokens');
-app.use('/api/tokens', tokenRoutes);
-
-// Order routes
-const orderRoutes = require('./src/routes/orders');
-app.use('/api/orders', orderRoutes);
-
-// Admin routes
-const adminRoutes = require('./src/routes/admin');
-app.use('/api/admin', adminRoutes);
-
-// Monero routes
-const moneroRoutes = require('./src/routes/monero');
-app.use('/api/monero', moneroRoutes);
-
-// User routes
-const userRoutes = require('./src/routes/users');
-app.use('/api/users', userRoutes);
-
-// Garden sensor routes
-const gardenRoutes = require('./routes/garden');
-app.use('/api/garden', gardenRoutes);
-
-// Webhook verification routes
-const webhookRoutes = require('./routes/webhook');
-app.use('/api/webhook', webhookRoutes);
-
-// Activity audit log routes
-const activityRoutes = require('./routes/activity');
-app.use('/api/activity', activityRoutes);
-app.use('/api/admin/activity', activityRoutes.adminRouter);
-
-// ===== ERROR HANDLER =====
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  const message =
-    err.message ||
-    (typeof req.t === 'function'
-      ? req.t('errors.internal')
-      : 'Internal server error');
-
-  res.status(err.status || 500).json({
-    success: false,
-    message
-  });
+// 2. Crea escrow
+app.post('/escrow/create', (req, res) => {
+    const { escrowId, buyer, seller, amount } = req.body;
+    try {
+        const id = createEscrow(escrowId, buyer, seller, amount);
+        res.json({ escrowId: id, status: 'created' });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
 });
 
-// ===== START SERVER =====
-const PORT = process.env.PORT || 3000;
+// 3. Blocca fondi nell'escrow
+app.post('/escrow/lock', (req, res) => {
+    const { escrowId, payer, amount } = req.body;
+    try {
+        lockFunds(escrowId, payer, amount);
+        res.json({ escrowId, status: 'locked' });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// 4. Invia prova
+app.post('/escrow/proof', (req, res) => {
+    const { escrowId, proofHash } = req.body;
+    try {
+        submitProof(escrowId, proofHash);
+        res.json({ escrowId, status: 'proof_submitted' });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// 5. Rilascia fondi
+app.post('/escrow/release', (req, res) => {
+    const { escrowId, caller } = req.body;
+    try {
+        release(escrowId, caller);
+        res.json({ escrowId, status: 'released' });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// 6. Disputa
+app.post('/escrow/dispute', (req, res) => {
+    const { escrowId, caller } = req.body;
+    try {
+        dispute(escrowId, caller);
+        res.json({ escrowId, status: 'disputed' });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// 7. Saldo di un wallet
+app.get('/balance/:address', (req, res) => {
+    const address = req.params.address;
+    res.json({ address, balance: balance(address) });
+});
+
+const PORT = 3002;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`http://localhost:${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🚀 Gateway API running on port ${PORT}`);
 });
-
-module.exports = app;
