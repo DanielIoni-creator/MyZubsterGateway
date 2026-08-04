@@ -10,6 +10,16 @@ const { assignReward } = require('./services/rewardService');
 
 const app = express();
 app.use(express.json());
+// ---------- SWAGGER / OPENAPI ----------
+const swaggerUi = require('swagger-ui-express');
+const openapiSpec = require('./openapi.json');
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'MyZubsterGateway API Docs'
+}));
+app.get('/openapi.json', (req, res) => res.json(openapiSpec));
+console.log('Swagger UI available at /api-docs');
+
 
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myzubster')
