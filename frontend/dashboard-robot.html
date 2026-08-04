@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="it">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>MyZubster - Robot Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh}
+.header{background:linear-gradient(135deg,#1e293b,#0f172a);padding:24px 32px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.header h1{font-size:24px;color:#38bdf8}
+.stats{display:flex;gap:16px;flex-wrap:wrap}
+.stat-box{background:#1e293b;padding:12px 20px;border-radius:10px;border:1px solid #334155;text-align:center;min-width:100px}
+.stat-box .label{font-size:11px;color:#94a3b8;text-transform:uppercase}
+.stat-box .value{font-size:22px;font-weight:bold;color:#38bdf8}
+.container{max-width:1200px;margin:0 auto;padding:24px}
+.robot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:32px}
+.robot-card{background:#1e293b;border-radius:12px;padding:20px;border:1px solid #334155}
+.robot-card .name{font-size:18px;font-weight:bold;color:#e2e8f0;margin-bottom:8px}
+.badge{padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600;display:inline-block;margin-right:8px}
+.badge-idle{background:#166534;color:#4ade80}
+.badge-working{background:#1e3a5f;color:#60a5fa}
+.badge-delivering{background:#713f12;color:#fbbf24}
+.badge-dispute{background:#7f1d1d;color:#f87171}
+.badge-offline{background:#334155;color:#94a3b8}
+.badge-completed{background:#166534;color:#4ade80}
+.info-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1e293b;font-size:13px}
+.info-row .key{color:#94a3b8}
+.info-row .val{color:#e2e8f0;font-weight:500}
+.section-title{font-size:18px;font-weight:bold;margin:24px 0 12px;color:#38bdf8}
+table{width:100%;border-collapse:collapse;background:#1e293b;border-radius:12px;overflow:hidden}
+th{background:#0f172a;padding:12px 16px;text-align:left;font-weight:600;color:#94a3b8;font-size:12px;text-transform:uppercase}
+td{padding:12px 16px;border-bottom:1px solid #334155;font-size:14px}
+.loading{text-align:center;padding:40px;color:#94a3b8}
+.error{background:#7f1d1d;color:#fca5a5;padding:16px;border-radius:8px;margin:16px 0}
+@media(max-width:640px){.header{padding:16px}.robot-grid{grid-template-columns:1fr}}
+</style></head>
+<body>
+<div class="header"><h1>Robot Dashboard</h1><div class="stats">
+<div class="stat-box"><div class="label">Attivi</div><div class="value" id="ac">-</div></div>
+<div class="stat-box"><div class="label">Working</div><div class="value" id="wc">-</div></div>
+<div class="stat-box"><div class="label">Earned</div><div class="value" id="te">-</div></div>
+</div></div>
+<div class="container">
+<div class="section-title">Robot Attivi</div>
+<div id="rl" class="robot-grid"><div class="loading">Caricamento robot...</div></div>
+<div class="section-title">Cronologia Job</div>
+<table><thead><tr><th>Job ID</th><th>Robot</th><th>Stato</th><th>Importo</th><th>Data</th></tr></thead>
+<tbody id="jh"><tr><td colspan="5" class="loading">Caricamento...</td></tr></tbody></table>
+</div>
+<script>
+var A="http://localhost:10000";
+function sb(s){var m={idle:"badge-idle",working:"badge-working",delivering:"badge-delivering",dispute:"badge-dispute",completed:"badge-completed"};return '<span class='+(m[s]||"badge-offline")+'>'+(s||"offline")+"</span>"}
+async function lr(){try{var r=await fetch(A+"/api/robot/list");var d=await r.json();var b=d.data||d.robots||[];if(!b.length){document.getElementById("rl").innerHTML='<div class="loading">Nessun robot trovato</div>';return}var ac=0,wc=0,te=0,h="";b.forEach(function(x){if(x.status!=="offline")ac++;if(x.status==="working")wc++;te+=x.totalEarned||0;h+='<div class="robot-card"><div class="name">'+(x.name||x.robotId||"Unknown")+"</div><div style='margin:8px 0'>"+sb(x.status)+'<span style="font-size:12px;color:#94a3b8"> ID:'+(x.robotId||x._id||"-")+"</span></div>"+'<div class="info-row"><span class="key">Reputazione</span><span class="val">'+(x.reputation||0)+"</span></div>"+'<div class="info-row"><span class="key">Job</span><span class="val">'+(x.completedJobs||0)+"</span></div>"+'<div class="info-row"><span class="key">Earned</span><span class="val">'+(x.totalEarned||0)+" MYZ</span></div></div>"});document.getElementById("rl").innerHTML=h;document.getElementById("ac").textContent=ac;document.getElementById("wc").textContent=wc;document.getElementById("te").textContent=te+" MYZ"}catch(e){document.getElementById("rl").innerHTML='<div class="error">Errore: '+e.message+"</div>"}}
+async function lj(){try{var r=await fetch(A+"/api/robot/escrow/list");var d=await r.json();var j=(d.data||d.jobs||[]).slice(0,20);if(!j.length){document.getElementById("jh").innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px">Nessun job recente</td></tr>';return}var h="";j.forEach(function(x){h+="<tr><td>"+(x.jobId||x._id||"-").toString().substring(0,12)+"</td><td>"+(x.robotId||"-")+"</td><td>"+sb(x.status)+"</td><td>"+(x.amount||0)+" "+(x.currency||"MYZ")+"</td><td>"+new Date(x.createdAt||Date.now()).toLocaleDateString()+"</td></tr>"});document.getElementById("jh").innerHTML=h}catch(e){document.getElementById("jh").innerHTML='<tr><td colspan="5"><div class="error">Errore: '+e.message+"</div></td></tr>"}}
+lr();lj();setInterval(function(){lr();lj()},30000);
+</script></body></html>
