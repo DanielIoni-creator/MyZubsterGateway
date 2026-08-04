@@ -1,0 +1,9 @@
+[0;1;32m●[0m tor.service - Anonymizing overlay network for TCP (multi-instance-master)
+     Loaded: loaded (]8;;file://myzubster/usr/lib/systemd/system/tor.service/usr/lib/systemd/system/tor.service]8;;; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)
+     Active: [0;1;32mactive (exited)[0m since Tue 2026-07-21 12:09:51 CEST; 6s ago
+    Process: 71263 ExecStart=/bin/true (code=exited, status=0/SUCCESS)
+   Main PID: 71263 (code=exited, status=0/SUCCESS)
+        CPU: 1ms
+
+Jul 21 12:09:51 myzubster systemd[1]: Starting tor.service - Anonymizing overlay network for TCP (multi-instance-master)...
+Jul 21 12:09:51 myzubster systemd[1]: Finished tor.service - Anonymizing overlay network for TCP (multi-instance-master).
