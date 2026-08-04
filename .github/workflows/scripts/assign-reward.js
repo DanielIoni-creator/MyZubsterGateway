@@ -1,28 +1,33 @@
-const axios = require('axios');
+#!/usr/bin/env node
 
-async function main() {
-  const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:3002';
-  const MYZ_REWARD_PER_PR = parseInt(process.env.MYZ_REWARD_PER_PR || '10');
-  const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const fs = require('fs');
 
-  const prData = JSON.parse(process.env.GITHUB_EVENT_PATH);
-  const userId = prData.pull_request.user.login;
-  const prUrl = prData.pull_request.html_url;
-
-  console.log(`🔄 Assigning reward of ${MYZ_REWARD_PER_PR} MYZ to ${userId} for PR ${prUrl}`);
-
-  try {
-    const response = await axios.post(`${GATEWAY_URL}/api/reward`, {
-      userId: userId,
-      amount: MYZ_REWARD_PER_PR,
-      reason: `PR merged: ${prUrl}`,
-      source: 'github_bot'
-    });
-    console.log('✅ Reward assigned:', response.data);
-  } catch (error) {
-    console.error('❌ Failed to assign reward:', error.message);
-    process.exit(1);
-  }
+const eventPath = process.env.GITHUB_EVENT_PATH;
+if (!eventPath) {
+  console.error('❌ GITHUB_EVENT_PATH not set');
+  process.exit(1);
 }
 
-main();
+let eventData;
+try {
+  const rawData = fs.readFileSync(eventPath, 'utf8');
+  eventData = JSON.parse(rawData);
+} catch (err) {
+  console.error('❌ Failed to read or parse event.json:', err.message);
+  process.exit(1);
+}
+
+// ============================================
+// Customize this logic for your reward system
+// ============================================
+// Example: extract user from issue/PR comment
+const comment = eventData.comment?.body || '';
+const issueNumber = eventData.issue?.number || eventData.pull_request?.number;
+
+console.log(`📝 Processing event for issue #${issueNumber}`);
+console.log(`💬 Comment: ${comment}`);
+
+// Add your reward assignment logic here...
+// e.g., parse the comment for "I claim this bounty", then assign the user
+
+console.log('✅ assign-reward.js executed successfully');
