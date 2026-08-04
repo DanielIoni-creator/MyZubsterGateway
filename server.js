@@ -7,6 +7,7 @@ const { createOrder, onPaymentReceived } = require('./buy_myz');
 const { createEscrow, lockFunds, submitProof, release, dispute, getEscrow } = require('./escrow_simulator');
 const { mint, balance } = require('./token_simulator');
 const { assignReward } = require('./services/rewardService');
+const { cacheMiddleware, getStats, del } = require('./services/cacheService');
 
 const app = express();
 app.use(express.json());
@@ -51,6 +52,17 @@ console.log('✅ Caricamento routes robotAnimal...');
 app.use('/api/robot/animal', require('./routes/robotAnimal'));
 
 app.use('/api/backup', require('./routes/backup'));
+
+
+// Cache stats (Bounty B16)
+app.get('/api/cache/stats', async (req, res) => {
+  const stats = await getStats();
+  res.json({ success: true, data: stats });
+});
+app.delete('/api/cache/clear', async (req, res) => {
+  const count = await del('*');
+  res.json({ success: true, cleared: count });
+});
 
 app.get('/health', (req, res) => {
   res.json({
