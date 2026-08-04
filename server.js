@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const mongoose = require('mongoose');
 const { createOrder, onPaymentReceived } = require('./buy_myz');
 const { createEscrow, lockFunds, submitProof, release, dispute, getEscrow } = require('./escrow_simulator');
@@ -7,6 +8,12 @@ const { assignReward } = require('./services/rewardService');
 
 const app = express();
 app.use(express.json());
+
+// Serve static files and dashboard
+app.use(express.static(path.join(__dirname, 'public')));
+app.get('/dashboard', (req, res) => {
+  res.redirect('/dashboard.html');
+});
 
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myzubster')
   .then(() => console.log('✅ Connected to MongoDB'))

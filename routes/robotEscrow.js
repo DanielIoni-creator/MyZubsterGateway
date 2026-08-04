@@ -46,6 +46,16 @@ router.post('/dispute', async (req, res) => {
   }
 });
 
+// GET /api/robot/escrow/list
+router.get('/list', (req, res) => {
+  try {
+    const escrows = escrowRobot.listEscrows();
+    res.json({ success: true, data: escrows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/robot/escrow/:jobId
 router.get('/:jobId', (req, res) => {
   try {
