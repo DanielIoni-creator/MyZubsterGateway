@@ -1,28 +1,14 @@
-// token_simulator.js
 const balances = new Map();
 
-function mint(to, amount) {
-    if (!balances.has(to)) balances.set(to, 0);
-    const newBalance = balances.get(to) + amount;
-    balances.set(to, newBalance);
-    console.log(`✅ Minted ${amount} to ${to} (new balance: ${newBalance})`);
+function mint(wallet, amount) {
+  const current = balances.get(wallet) || 0;
+  balances.set(wallet, current + amount);
+  console.log(`✅ Minted ${amount} to ${wallet} (new balance: ${balances.get(wallet)})`);
+  return `tx_sim_${Date.now()}`;
 }
 
-function transfer(from, to, amount) {
-    console.log(`🔄 Transferring ${amount} from ${from} to ${to}`);
-    const fromBalance = balances.get(from) || 0;
-    if (fromBalance < amount) {
-        console.error(`❌ Insufficient balance: ${fromBalance} < ${amount}`);
-        throw new Error(`Insufficient balance: ${fromBalance} < ${amount}`);
-    }
-    balances.set(from, fromBalance - amount);
-    const toBalance = (balances.get(to) || 0) + amount;
-    balances.set(to, toBalance);
-    console.log(`✅ Transfer complete. New balances: ${from}=${fromBalance - amount}, ${to}=${toBalance}`);
+function balance(wallet) {
+  return balances.get(wallet) || 0;
 }
 
-function balance(address) {
-    return balances.get(address) || 0;
-}
-
-module.exports = { mint, transfer, balance };
+module.exports = { mint, balance };
