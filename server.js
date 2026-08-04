@@ -51,6 +51,7 @@ console.log('✅ Caricamento routes robotAnimal...');
 app.use('/api/robot/animal', require('./routes/robotAnimal'));
 
 app.use('/api/backup', require('./routes/backup'));
+app.use('/api/analytics', require('./routes/analytics'));
 
 app.get('/health', (req, res) => {
   res.json({

@@ -1,0 +1,22 @@
+{
+  "health": {
+    "message": "Gateway {{service}} sedang berjalan!"
+  },
+  "auth": {
+    "loginEndpoint": "Titik akhir log masuk",
+    "registerEndpoint": "Titik akhir pendaftaran",
+    "required": "Pengesahan diperlukan"
+  },
+  "admin": {
+    "required": "Keistimewaan pentadbir diperlukan"
+  },
+  "validation": {
+    "targetUrlRequired": "targetUrl diperlukan"
+  },
+  "webhooks": {
+    "sentWithRetry": "Webhook dihantar dengan percubaan semula automatik"
+  },
+  "errors": {
+    "internal": "Ralat pelayan dalaman"
+  }
+}
