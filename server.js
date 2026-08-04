@@ -7,6 +7,10 @@ const { assignReward } = require('./services/rewardService');
 
 const app = express();
 app.use(express.json());
+app.use(express.static('.'));
+app.use(express.static('public'));
+
+const SERVER_START_TIME = Date.now();
 
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myzubster')
   .then(() => console.log('✅ Connected to MongoDB'))
@@ -52,6 +56,48 @@ app.get('/health', (req, res) => {
     version: '1.0.0'
   });
 });
+
+// GET /api/status — Gateway status info for the status page
+app.get('/api/status', (req, res) => {
+  const robotBrain = require('./robot_brain');
+  const robots = robotBrain.getAllRobots();
+  const events = robotBrain.getAllEvents(10);
+  
+  const uptime = Date.now() - SERVER_START_TIME;
+  const activeRobots = robots.filter(r => r.status !== 'idle').length;
+  const currentJobs = robots.filter(r => r.currentJob !== null).length;
+  
+  res.json({
+    success: true,
+    data: {
+      uptime,
+      uptimeHuman: formatUptime(uptime),
+      totalRobots: robots.length,
+      activeRobots,
+      idleRobots: robots.length - activeRobots,
+      currentJobs,
+      robotsByStatus: {
+        idle: robots.filter(r => r.status === 'idle').length,
+        working: robots.filter(r => r.status === 'working').length,
+        delivering: robots.filter(r => r.status === 'delivering').length,
+        dispute: robots.filter(r => r.status === 'dispute').length
+      },
+      recentEvents: events,
+      serverTime: new Date().toISOString()
+    }
+  });
+});
+
+function formatUptime(ms) {
+  const sec = Math.floor(ms / 1000);
+  const min = Math.floor(sec / 60);
+  const hrs = Math.floor(min / 60);
+  const days = Math.floor(hrs / 24);
+  if (days > 0) return `${days}d ${hrs % 24}h ${min % 60}m`;
+  if (hrs > 0) return `${hrs}h ${min % 60}m ${sec % 60}s`;
+  if (min > 0) return `${min}m ${sec % 60}s`;
+  return `${sec}s`;
+}
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

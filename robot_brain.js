@@ -75,4 +75,27 @@ function getRobotStatus(robotId) {
   };
 }
 
-module.exports = { createRobot, assignJobToRobot, executeJob, deliverJob, handleDispute, getRobotStatus };
+function getAllRobots() {
+  return Array.from(robotState.values()).map(r => ({
+    robotId: r.robotId,
+    name: r.name,
+    status: r.status,
+    currentJob: r.currentJob,
+    reputation: r.reputation,
+    jobsCompleted: r.jobsCompleted,
+    totalEarned: r.totalEarned,
+    createdAt: r.createdAt
+  }));
+}
+
+function getAllEvents(limit = 10) {
+  const events = [];
+  for (const robot of robotState.values()) {
+    for (const evt of robot.history) {
+      events.push({ ...evt, robotName: robot.name, robotId: robot.robotId });
+    }
+  }
+  return events.sort((a, b) => b.timestamp - a.timestamp).slice(0, limit);
+}
+
+module.exports = { createRobot, assignJobToRobot, executeJob, deliverJob, handleDispute, getRobotStatus, getAllRobots, getAllEvents };
