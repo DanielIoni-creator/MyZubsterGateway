@@ -7,10 +7,18 @@ const { createOrder, onPaymentReceived } = require('./buy_myz');
 const { createEscrow, lockFunds, submitProof, release, dispute, getEscrow } = require('./escrow_simulator');
 const { mint, balance } = require('./token_simulator');
 const { assignReward } = require('./services/rewardService');
+const { webhookHandler } = require('./routes/webhook');
 
 const { rateLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
+
+// Raw body parser for GitHub webhook signature verification
+app.use('/api/webhooks/github', express.raw({ type: 'application/json' }), (req, res, next) => {
+  webhookHandler(req, res);
+});
+
+// JSON body parser for all other routes
 app.use(express.json());
 
 // Global rate limiting (Bounty B15)
@@ -46,27 +54,17 @@ app.post('/escrow/create', (req, res) => {
 });
 
 app.use('/api/rewards', require('./routes/rewards'));
+app.use('/api/robot', require('./routes/robot'));
+app.use('/api/robot/escrow', require('./routes/robotEscrow'));
 app.use('/api/bounty', require('./routes/bounty'));
 app.use('/api/stake', require('./routes/stake'));
 app.use('/api/escrow/house', require('./routes/escrowHouse'));
-
-app.use('/api/robot', require('./routes/robot'));
-app.use('/api/robot/escrow', require('./routes/robotEscrow'));
-app.use('/api/robot/logo', require('./routes/robotLogo'));
-app.use('/api/robot/code', require('./routes/robotCode'));
-app.use('/api/robot/animal', require('./routes/robotAnimal'));
-
-app.use('/api/ratelimit', require('./routes/ratelimit'));
 
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    services: {
-      telegram: !!process.env.TELEGRAM_BOT_TOKEN,
-      github: !!process.env.GITHUB_TOKEN,
-      ai: !!process.env.OPENAI_API_KEY
-    }
+    version: '1.1.0'
   });
 });
 
@@ -93,4 +91,5 @@ if (fs.existsSync(frontendDist)) {
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`🚀 Gateway running on http://localhost:${PORT}`);
+  console.log(`📡 Webhook endpoint: POST /api/webhooks/github`);
 });

@@ -1,81 +1,86 @@
-// routes/webhook.js
-const express = require('express');
-const router = express.Router();
-const WebhookService = require('../services/webhookService');
+// routes/webhook.js – GitHub Webhook per reward automatici (BOUNTY B3)
+const crypto = require('crypto');
+const { completeBounty, assignBounty, createBounty } = require('../bounty');
 
-router.post('/delivery', async (req, res) => {
-  try {
-    const log = await WebhookService.recordDeliveryWebhook({
-      payload: req.body,
-      signatureHeader: req.get('X-Webhook-Signature'),
-      source: req.get('X-Webhook-Source') || 'seller',
-    });
+const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET || 'myzubster-dev-secret';
 
-    res.status(log.status === 'verified' ? 201 : 202).json({
-      success: true,
-      data: {
-        id: log._id,
-        status: log.status,
-        verification: log.verification,
-        orderId: log.orderId,
-        escrowId: log.escrowId,
-      },
-    });
-  } catch (error) {
-    const status = error.statusCode || 500;
-    res.status(status).json({
-      success: false,
-      error: error.message,
-    });
-  }
-});
+function verifySignature(payload, signature) {
+  if (!signature) return false;
+  const hmac = crypto.createHmac('sha256', WEBHOOK_SECRET);
+  const digest = 'sha256=' + hmac.update(payload).digest('hex');
+  return crypto.timingSafeEqual(Buffer.from(digest), Buffer.from(signature));
+}
 
-router.get('/logs', async (req, res) => {
-  try {
-    const { orderId, escrowId, status, eventType, limit } = req.query;
-    const filter = {};
+function handlePullRequest(payload) {
+  const action = payload.action;
+  const pr = payload.pull_request;
+  if (!pr) return null;
 
-    if (orderId) filter.orderId = orderId;
-    if (escrowId) filter.escrowId = escrowId;
-    if (status) filter.status = status;
-    if (eventType) filter.eventType = eventType;
+  const isMerged = action === 'closed' && pr.merged === true;
+  if (!isMerged) return null;
 
-    const logs = await WebhookService.listLogs(filter, limit);
-    res.json({ success: true, data: logs });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
-  }
-});
+  const issueRef = pr.body || '';
+  const issueMatch = issueRef.match(/#(\d+)/);
+  const issueNum = issueMatch ? parseInt(issueMatch[1]) : null;
+  const user = pr.user ? pr.user.login : 'unknown';
+  const repoName = payload.repository ? payload.repository.full_name : 'unknown';
 
-router.post('/test-webhook', async (req, res) => {
-  const { targetUrl, payload } = req.body;
+  return {
+    issueNum,
+    contributor: user,
+    repo: repoName,
+    prNumber: pr.number,
+    prTitle: pr.title,
+    mergedAt: pr.merged_at
+  };
+}
 
-  if (!targetUrl) {
-    return res.status(400).json({
-      error: req.t('validation.targetUrlRequired'),
-    });
+function webhookHandler(req, res) {
+  const signature = req.headers['x-hub-signature-256'];
+  const event = req.headers['x-github-event'];
+  const deliveryId = req.headers['x-github-delivery'];
+
+  let payload = '';
+  if (typeof req.body === 'string') {
+    payload = req.body;
+  } else {
+    payload = JSON.stringify(req.body);
+    req.body = JSON.parse(payload);
   }
 
-  try {
-    const result = await WebhookService.sendWebhookAsync(
-      targetUrl,
-      payload || { test: true, timestamp: new Date().toISOString() }
-    );
-
-    res.json({
-      success: true,
-      result,
-      message: req.t('webhooks.sentWithRetry'),
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
+  if (!verifySignature(payload, signature)) {
+    console.warn(`❌ Webhook: invalid signature (delivery: ${deliveryId})`);
+    return res.status(401).json({ error: 'Invalid signature' });
   }
-});
 
-module.exports = router;
+  console.log(`📥 Webhook received: event=${event}, delivery=${deliveryId}`);
+
+  if (event === 'pull_request') {
+    const rewardInfo = handlePullRequest(req.body);
+    if (rewardInfo && rewardInfo.issueNum) {
+      try {
+        createBounty(`gh-${rewardInfo.issueNum}`, 10, rewardInfo.contributor);
+        assignBounty(`gh-${rewardInfo.issueNum}`, rewardInfo.contributor);
+        const result = completeBounty(`gh-${rewardInfo.issueNum}`, rewardInfo.contributor);
+        console.log(`✅ Bounty auto-rewarded: ${rewardInfo.contributor} for PR #${rewardInfo.prNumber} (issue #${rewardInfo.issueNum})`);
+        return res.json({
+          success: true,
+          message: `Bounty rewarded to ${rewardInfo.contributor}`,
+          bounty: result
+        });
+      } catch (err) {
+        console.log(`⚠️ Bounty reward note: ${err.message}`);
+        return res.json({ success: true, message: `PR merged. ${err.message}` });
+      }
+    }
+    return res.json({ success: true, message: 'PR event processed (no bounty issue referenced)' });
+  }
+
+  if (event === 'ping') {
+    return res.json({ success: true, message: 'Webhook configured correctly' });
+  }
+
+  return res.json({ success: true, message: `Event ${event} received` });
+}
+
+module.exports = { webhookHandler, handlePullRequest, verifySignature };
