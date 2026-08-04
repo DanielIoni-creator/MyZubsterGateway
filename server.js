@@ -57,6 +57,80 @@ app.get('/health', (req, res) => {
   });
 });
 
+
+const Robot = require('./models/Robot');
+const CodeJob = require('./models/CodeJob');
+let recentEvents = [];
+
+// Helper to log events for the status page
+global.logEvent = (msg) => {
+  recentEvents.unshift({ timestamp: new Date(), message: msg });
+  if (recentEvents.length > 10) recentEvents.pop();
+};
+
+app.get('/api/status', async (req, res) => {
+  try {
+    const robots = await Robot.countDocuments({ status: 'active' });
+    const jobs = await CodeJob.countDocuments({ status: 'in-progress' });
+    res.json({
+      uptime: process.uptime(),
+      activeRobots: robots,
+      ongoingJobs: jobs,
+      events: recentEvents
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/status', (req, res) => {
+  res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gateway Status</title>
+  <style>body { font-family: sans-serif; padding: 2rem; } .card { border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem; }</style>
+</head>
+<body>
+  <h1>MyZubster Gateway Status</h1>
+  <div class="card">
+    <p><strong>Uptime:</strong> <span id="uptime">Loading...</span></p>
+    <p><strong>Active Robots:</strong> <span id="robots">Loading...</span></p>
+    <p><strong>Ongoing Jobs:</strong> <span id="jobs">Loading...</span></p>
+  </div>
+  <h2>Recent Events</h2>
+  <ul id="events"></ul>
+
+  <script>
+    async function update() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        const hrs = Math.floor(data.uptime / 3600);
+        const mins = Math.floor((data.uptime % 3600) / 60);
+        document.getElementById('uptime').innerText = hrs + 'h ' + mins + 'm';
+        document.getElementById('robots').innerText = data.activeRobots;
+        document.getElementById('jobs').innerText = data.ongoingJobs;
+        
+        const evList = document.getElementById('events');
+        evList.innerHTML = '';
+        data.events.forEach(e => {
+          const li = document.createElement('li');
+          li.innerText = new Date(e.timestamp).toLocaleTimeString() + ' - ' + e.message;
+          evList.appendChild(li);
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    update();
+    setInterval(update, 10000);
+  </script>
+</body>
+</html>
+  `);
+});
+
 // ---------- FRONTEND STATIC SERVING ----------
 const frontendDist = path.join(__dirname, 'frontend', 'dist');
 if (fs.existsSync(frontendDist)) {
