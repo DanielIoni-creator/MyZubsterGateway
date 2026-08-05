@@ -20,7 +20,11 @@ export const ThemeProvider = ({ children }) => {
       root.classList.toggle('dark', isDark);
     };
     apply();
-    localStorage.setItem(STORAGE_KEY, theme);
+    try {
+      localStorage.setItem(STORAGE_KEY, theme);
+    } catch (e) {
+      // Ignore quota or security exceptions in restricted environments
+    }
 
     if (theme === 'system') {
       const mq = window.matchMedia('(prefers-color-scheme: dark)');
