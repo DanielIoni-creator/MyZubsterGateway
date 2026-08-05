@@ -3,6 +3,8 @@ const router = express.Router();
 const robotBrain = require('../robot_brain');
 const { getRobotStats } = require('../services/robotStatsService');
 
+router.use('/analytics', require('./robotAnalytics'));
+
 router.post('/create', (req, res) => {
   try {
     const { robotId, name, walletAddress } = req.body;

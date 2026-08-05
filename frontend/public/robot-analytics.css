@@ -1,0 +1,30 @@
+* { box-sizing: border-box; }
+body { margin: 0; background: #f4f6f7; color: #172127; font-family: "Segoe UI", Arial, sans-serif; }
+header { height: 62px; padding: 0 28px; display: flex; align-items: center; gap: 22px; border-bottom: 1px solid #d9e0e3; background: #fff; font-size: 14px; }
+header a { color: #127c6b; font-size: 19px; font-weight: 700; text-decoration: none; }
+header .export { margin-left: auto; font-size: 14px; }
+main { width: min(1160px, calc(100% - 36px)); margin: 0 auto; padding: 42px 0 70px; }
+.title { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
+.title p { margin: 0 0 6px; color: #b4551b; font-size: 12px; font-weight: 700; }
+h1 { margin: 0 0 28px; font-size: 36px; letter-spacing: 0; }
+h2 { margin: 0 0 18px; font-size: 19px; letter-spacing: 0; }
+button { height: 42px; margin-bottom: 28px; padding: 0 18px; border: 0; border-radius: 6px; background: #127c6b; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; border: 1px solid #d9e0e3; background: #d9e0e3; }
+.metrics article { padding: 21px; background: #fff; }
+.metrics span { display: block; margin-bottom: 7px; color: #66747b; font-size: 13px; }
+.metrics strong { font-size: 27px; }
+.chart-band { margin-top: 28px; padding: 24px; border: 1px solid #d9e0e3; background: #fff; }
+.chart-wrap { height: 280px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 28px; }
+.grid > section { min-width: 0; }
+.table-wrap { overflow-x: auto; border: 1px solid #d9e0e3; background: #fff; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { padding: 13px; border-bottom: 1px solid #e5eaec; text-align: left; }
+th { color: #66747b; font-size: 12px; text-transform: uppercase; }
+#status { color: #66747b; font-size: 13px; }
+@media (max-width: 720px) {
+  header { padding: 0 16px; }
+  main { width: calc(100% - 24px); padding-top: 28px; }
+  h1 { font-size: 30px; }
+  .metrics, .grid { grid-template-columns: 1fr; }
+}

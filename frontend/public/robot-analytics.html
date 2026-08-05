@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-analytics-id" content="">
+    <title>Robot analytics | MyZubster</title>
+    <link rel="stylesheet" href="/robot-analytics.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
+    <script src="/robot-analytics.js" defer></script>
+  </head>
+  <body>
+    <header><a href="/">MyZubster</a><span>Robot analytics</span><a class="export" href="/api/robot/analytics/report.csv">Export CSV</a></header>
+    <main>
+      <div class="title"><div><p>PERFORMANCE</p><h1>Robot analytics</h1></div><button id="refresh">Refresh</button></div>
+      <section class="metrics">
+        <article><span>Tracked robots</span><strong id="robots">0</strong></article>
+        <article><span>Completed jobs</span><strong id="jobs">0</strong></article>
+        <article><span>Tracked events</span><strong id="events">0</strong></article>
+      </section>
+      <section class="chart-band"><h2>Revenue by robot</h2><div class="chart-wrap"><canvas id="revenue-chart"></canvas></div></section>
+      <div class="grid">
+        <section><h2>Category ROI</h2><div id="categories" class="table-wrap"></div></section>
+        <section><h2>Top posts</h2><div id="posts" class="table-wrap"></div></section>
+      </div>
+      <p id="status" role="status"></p>
+    </main>
+  </body>
+</html>
