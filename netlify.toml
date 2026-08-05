@@ -1,11 +1,6 @@
 [build]
-  command = "echo 'Skipping frontend build for now'"
-  publish = "."
+  command = "mkdir -p public && cp index.html public/ && echo 'Deploy ready'"
+  publish = "public"
 
 [build.environment]
   NODE_VERSION = "20"
-
-[[redirects]]
-  from = "/*"
-  to = "/"
-  status = 200
