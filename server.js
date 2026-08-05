@@ -46,6 +46,7 @@ app.use('/api/robot/logo', require('./routes/robotLogo'));
 
 console.log('✅ Caricamento routes robotCode...');
 app.use('/api/robot/code', require('./routes/robotCode'));
+app.use('/api/analytics', require('./routes/analytics'));
 
 console.log('✅ Caricamento routes robotAnimal...');
 app.use('/api/robot/animal', require('./routes/robotAnimal'));
