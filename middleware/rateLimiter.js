@@ -2,6 +2,92 @@ const store = new Map();
 
 function rateLimiter(options = {}) {
   const windowMs = options.windowMs || 60000;
+  const max = options.max || 100;
+  const keyBy = options.keyBy;
+
+  return (req, res, next) => {
+    const ip = req.ip ||
+      (req.headers && (req.headers['x-forwarded-for'] || req.headers['X-Forwarded-For'])) ||
+      (req.connection && req.connection.remoteAddress) ||
+      '127.0.0.1';
+
+    const endpoint = req.originalUrl || req.url || '';
+
+    let key;
+    if (typeof keyBy === 'function') {
+      key = keyBy(req);
+    } else if (keyBy === 'ip+endpoint') {
+      key = `${ip}:${endpoint}`;
+    } else {
+      key = ip;
+    }
+
+    const now = Date.now();
+    let record = store.get(key);
+
+    if (!record || now >= record.resetTime) {
+      record = { count: 1, resetTime: now + windowMs };
+    } else {
+      record.count += 1;
+    }
+
+    store.set(key, record);
+
+    if (res && typeof res.setHeader === 'function') {
+      res.setHeader('X-RateLimit-Limit', max);
+      res.setHeader('X-RateLimit-Remaining', Math.max(0, max - record.count));
+      res.setHeader('X-RateLimit-Reset', Math.ceil(record.resetTime / 1000));
+    }
+
+    if (record.count > max) {
+      if (res && typeof res.status === 'function') {
+        const resStatus = res.status(429);
+        if (resStatus && typeof resStatus.json === 'function') {
+          resStatus.json({ error: 'Too Many Requests' });
+        }
+      }
+      if (typeof next === 'function') {
+        next();
+      }
+      return;
+    }
+
+    if (typeof next === 'function') {
+      next();
+    }
+  };
+}
+
+function getRateLimitStats() {
+  const entries = [];
+  const now = Date.now();
+  for (const [key, record] of store.entries()) {
+    if (now >= record.resetTime) {
+      store.delete(key);
+    } else {
+      entries.push({ key, count: record.count, resetTime: record.resetTime });
+    }
+  }
+  return { entries };
+}
+
+function resetRateLimit(key) {
+  if (key) {
+    store.delete(key);
+  } else {
+    store.clear();
+  }
+}
+
+module.exports = {
+  rateLimiter,
+  getRateLimitStats,
+  resetRateLimit
+};
+const store = new Map();
+
+function rateLimiter(options = {}) {
+  const windowMs = options.windowMs || 60000;
   const max = options.max || 5;
   const keyBy = options.keyBy || 'ip';
 
