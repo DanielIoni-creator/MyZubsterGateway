@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: myzubster-backend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongodb:27017/myzubster
+      - MONERO_RPC_URL=http://monero-wallet:18083
+    depends_on:
+      - mongodb
+      - monero-wallet
+    volumes:
+      - ./logs:/app/logs
+
+  mongodb:
+    image: mongo:7
+    container_name: myzubster-mongodb
+    restart: always
+    volumes:
+      - mongo_data:/data/db
+
+  monero-wallet:
+    image: monero:latest
+    container_name: myzubster-monero
+    restart: always
+    ports:
+      - "18083:18083"
+    volumes:
+      - monero_data:/wallet
+
+volumes:
+  mongo_data:
+  monero_data:
