@@ -1,4 +1,4 @@
 .env
 node_modules/
-# load test artifacts
+# load test artifacts / Artefatti dei test di carico (Bounty P5)
 reports/

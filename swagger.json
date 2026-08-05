@@ -1,0 +1,1399 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "MyZubster Gateway API",
+    "version": "1.0.0",
+    "description": "Complete API documentation for MyZubster Gateway"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:10000",
+      "description": "Local"
+    },
+    {
+      "url": "https://myzubster-gateway.onrender.com",
+      "description": "Production"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Health"
+    },
+    {
+      "name": "Payments"
+    },
+    {
+      "name": "Escrow"
+    },
+    {
+      "name": "Bounty"
+    },
+    {
+      "name": "Rewards"
+    },
+    {
+      "name": "Stake"
+    },
+    {
+      "name": "Robot"
+    },
+    {
+      "name": "Robot Escrow"
+    },
+    {
+      "name": "Robot Logo"
+    },
+    {
+      "name": "Robot Code"
+    },
+    {
+      "name": "Robot Animal"
+    },
+    {
+      "name": "Rate Limit"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "System health check",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/buy-myz": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Create MYZ purchase order",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "userTariWallet",
+                  "amountMYZ"
+                ],
+                "properties": {
+                  "userTariWallet": {
+                    "type": "string"
+                  },
+                  "amountMYZ": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/escrow/create": {
+      "post": {
+        "tags": [
+          "Escrow"
+        ],
+        "summary": "Create general escrow",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "escrowId",
+                  "buyer",
+                  "seller",
+                  "amount"
+                ],
+                "properties": {
+                  "escrowId": {
+                    "type": "string"
+                  },
+                  "buyer": {
+                    "type": "string"
+                  },
+                  "seller": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/bounty/list": {
+      "get": {
+        "tags": [
+          "Bounty"
+        ],
+        "summary": "List all bounties",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/bounty/test": {
+      "get": {
+        "tags": [
+          "Bounty"
+        ],
+        "summary": "Test bounty route",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/bounty/create": {
+      "post": {
+        "tags": [
+          "Bounty"
+        ],
+        "summary": "Create bounty",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "issueId",
+                  "rewardMYZ",
+                  "assignedTo"
+                ],
+                "properties": {
+                  "issueId": {
+                    "type": "string"
+                  },
+                  "rewardMYZ": {
+                    "type": "number"
+                  },
+                  "assignedTo": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/bounty/assign": {
+      "post": {
+        "tags": [
+          "Bounty"
+        ],
+        "summary": "Assign bounty",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "issueId",
+                  "username"
+                ],
+                "properties": {
+                  "issueId": {
+                    "type": "string"
+                  },
+                  "username": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/bounty/complete": {
+      "post": {
+        "tags": [
+          "Bounty"
+        ],
+        "summary": "Complete bounty",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "issueId",
+                  "walletAddress"
+                ],
+                "properties": {
+                  "issueId": {
+                    "type": "string"
+                  },
+                  "walletAddress": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/rewards": {
+      "get": {
+        "tags": [
+          "Rewards"
+        ],
+        "summary": "Get user rewards",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/rewards/trigger": {
+      "post": {
+        "tags": [
+          "Rewards"
+        ],
+        "summary": "Trigger reward",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "userId",
+                  "amount",
+                  "reason"
+                ],
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "type": "number"
+                  },
+                  "reason": {
+                    "type": "string"
+                  },
+                  "source": {
+                    "type": "string",
+                    "default": "manual"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/stake/stake": {
+      "post": {
+        "tags": [
+          "Stake"
+        ],
+        "summary": "Stake tokens",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "userId",
+                  "amount",
+                  "blocks"
+                ],
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "type": "number"
+                  },
+                  "blocks": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/stake/active": {
+      "get": {
+        "tags": [
+          "Stake"
+        ],
+        "summary": "List active stakes",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/stake/level/{userId}": {
+      "get": {
+        "tags": [
+          "Stake"
+        ],
+        "summary": "Get reputation level",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/escrow/house/create": {
+      "post": {
+        "tags": [
+          "Escrow"
+        ],
+        "summary": "Create real estate escrow",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "buyer",
+                  "seller",
+                  "amountMYZ",
+                  "propertyId",
+                  "arbitrator"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "buyer": {
+                    "type": "string"
+                  },
+                  "seller": {
+                    "type": "string"
+                  },
+                  "amountMYZ": {
+                    "type": "number"
+                  },
+                  "propertyId": {
+                    "type": "string"
+                  },
+                  "arbitrator": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/escrow/house/lock": {
+      "post": {
+        "tags": [
+          "Escrow"
+        ],
+        "summary": "Lock escrow funds",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "caller"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "caller": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/escrow/house/proof": {
+      "post": {
+        "tags": [
+          "Escrow"
+        ],
+        "summary": "Submit proof",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "caller",
+                  "proof"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "caller": {
+                    "type": "string"
+                  },
+                  "proof": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/escrow/house/release": {
+      "post": {
+        "tags": [
+          "Escrow"
+        ],
+        "summary": "Release funds",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "caller"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "caller": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/escrow/house/refund": {
+      "post": {
+        "tags": [
+          "Escrow"
+        ],
+        "summary": "Refund escrow",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "caller"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "caller": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/escrow/house/{id}": {
+      "get": {
+        "tags": [
+          "Escrow"
+        ],
+        "summary": "Get escrow by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/robot/create": {
+      "post": {
+        "tags": [
+          "Robot"
+        ],
+        "summary": "Register robot",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "robotId",
+                  "name",
+                  "walletAddress"
+                ],
+                "properties": {
+                  "robotId": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "walletAddress": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/robot/assign": {
+      "post": {
+        "tags": [
+          "Robot"
+        ],
+        "summary": "Assign job to robot",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "robotId",
+                  "jobId",
+                  "clientId",
+                  "amount",
+                  "currency"
+                ],
+                "properties": {
+                  "robotId": {
+                    "type": "string"
+                  },
+                  "jobId": {
+                    "type": "string"
+                  },
+                  "clientId": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "type": "number"
+                  },
+                  "currency": {
+                    "type": "string",
+                    "enum": [
+                      "MYZ",
+                      "XMR"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/robot/execute": {
+      "post": {
+        "tags": [
+          "Robot"
+        ],
+        "summary": "Execute job",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "robotId"
+                ],
+                "properties": {
+                  "robotId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/robot/deliver": {
+      "post": {
+        "tags": [
+          "Robot"
+        ],
+        "summary": "Deliver job",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "robotId"
+                ],
+                "properties": {
+                  "robotId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/robot/job/complete": {
+      "post": {
+        "tags": [
+          "Robot"
+        ],
+        "summary": "Complete job",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "robotId",
+                  "jobId"
+                ],
+                "properties": {
+                  "robotId": {
+                    "type": "string"
+                  },
+                  "jobId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/robot/escrow/create": {
+      "post": {
+        "tags": [
+          "Robot Escrow"
+        ],
+        "summary": "Create robot job escrow",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "jobId",
+                  "clientId",
+                  "robotId",
+                  "amount",
+                  "currency"
+                ],
+                "properties": {
+                  "jobId": {
+                    "type": "string"
+                  },
+                  "clientId": {
+                    "type": "string"
+                  },
+                  "robotId": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "type": "number"
+                  },
+                  "currency": {
+                    "type": "string",
+                    "enum": [
+                      "MYZ",
+                      "XMR"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/robot/escrow/deliver": {
+      "post": {
+        "tags": [
+          "Robot Escrow"
+        ],
+        "summary": "Mark delivered",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "jobId"
+                ],
+                "properties": {
+                  "jobId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/robot/escrow/dispute": {
+      "post": {
+        "tags": [
+          "Robot Escrow"
+        ],
+        "summary": "Open dispute",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "jobId",
+                  "reason"
+                ],
+                "properties": {
+                  "jobId": {
+                    "type": "string"
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/robot/escrow/{jobId}": {
+      "get": {
+        "tags": [
+          "Robot Escrow"
+        ],
+        "summary": "Get escrow by job ID",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/robot/logo/create": {
+      "post": {
+        "tags": [
+          "Robot Logo"
+        ],
+        "summary": "Create logo job",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "jobId",
+                  "clientId",
+                  "robotId",
+                  "prompt"
+                ],
+                "properties": {
+                  "jobId": {
+                    "type": "string"
+                  },
+                  "clientId": {
+                    "type": "string"
+                  },
+                  "robotId": {
+                    "type": "string"
+                  },
+                  "prompt": {
+                    "type": "string"
+                  },
+                  "style": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "type": "number",
+                    "default": 100
+                  },
+                  "currency": {
+                    "type": "string",
+                    "default": "MYZ"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/robot/logo/generate": {
+      "post": {
+        "tags": [
+          "Robot Logo"
+        ],
+        "summary": "Generate logo",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "jobId"
+                ],
+                "properties": {
+                  "jobId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/robot/logo/job/{jobId}": {
+      "get": {
+        "tags": [
+          "Robot Logo"
+        ],
+        "summary": "Get logo job status",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/robot/logo/jobs": {
+      "get": {
+        "tags": [
+          "Robot Logo"
+        ],
+        "summary": "List all logo jobs",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/robot/code/test": {
+      "get": {
+        "tags": [
+          "Robot Code"
+        ],
+        "summary": "Test code route",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/robot/code/create": {
+      "post": {
+        "tags": [
+          "Robot Code"
+        ],
+        "summary": "Create code job",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "jobId",
+                  "clientId",
+                  "robotId",
+                  "prompt"
+                ],
+                "properties": {
+                  "jobId": {
+                    "type": "string"
+                  },
+                  "clientId": {
+                    "type": "string"
+                  },
+                  "robotId": {
+                    "type": "string"
+                  },
+                  "prompt": {
+                    "type": "string"
+                  },
+                  "language": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "type": "number",
+                    "default": 100
+                  },
+                  "currency": {
+                    "type": "string",
+                    "default": "MYZ"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/robot/code/generate": {
+      "post": {
+        "tags": [
+          "Robot Code"
+        ],
+        "summary": "Generate code",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "jobId"
+                ],
+                "properties": {
+                  "jobId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/robot/code/pr": {
+      "post": {
+        "tags": [
+          "Robot Code"
+        ],
+        "summary": "Create GitHub PR",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "jobId",
+                  "repo"
+                ],
+                "properties": {
+                  "jobId": {
+                    "type": "string"
+                  },
+                  "repo": {
+                    "type": "string"
+                  },
+                  "branch": {
+                    "type": "string"
+                  },
+                  "prTitle": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/robot/code/job/{jobId}": {
+      "get": {
+        "tags": [
+          "Robot Code"
+        ],
+        "summary": "Get code job status",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/robot/code/jobs": {
+      "get": {
+        "tags": [
+          "Robot Code"
+        ],
+        "summary": "List all code jobs",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/robot/animal/report": {
+      "post": {
+        "tags": [
+          "Robot Animal"
+        ],
+        "summary": "Report animal in need",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "reportId",
+                  "clientId",
+                  "robotId",
+                  "animalType",
+                  "location"
+                ],
+                "properties": {
+                  "reportId": {
+                    "type": "string"
+                  },
+                  "clientId": {
+                    "type": "string"
+                  },
+                  "robotId": {
+                    "type": "string"
+                  },
+                  "animalType": {
+                    "type": "string"
+                  },
+                  "location": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "severity": {
+                    "type": "string"
+                  },
+                  "photoUrl": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "type": "number",
+                    "default": 50
+                  },
+                  "currency": {
+                    "type": "string",
+                    "default": "MYZ"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/robot/animal/assign": {
+      "post": {
+        "tags": [
+          "Robot Animal"
+        ],
+        "summary": "Assign robot to report",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "reportId",
+                  "robotId"
+                ],
+                "properties": {
+                  "reportId": {
+                    "type": "string"
+                  },
+                  "robotId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/ratelimit/stats": {
+      "get": {
+        "tags": [
+          "Rate Limit"
+        ],
+        "summary": "Get rate limit stats",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/ratelimit/reset": {
+      "post": {
+        "tags": [
+          "Rate Limit"
+        ],
+        "summary": "Reset rate limit (admin)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "key"
+                ],
+                "properties": {
+                  "key": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    }
+  }
+}

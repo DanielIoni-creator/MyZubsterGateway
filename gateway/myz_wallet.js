@@ -1,19 +1,23 @@
-// myz_wallet.js – Gestione $MYZ su Tari (stub per ora)
+// gateway/myz_wallet.js – Gestione $MYZ su Tari (versione gateway)
+const axios = require('axios');
+
+const TARI_WALLET_URL = process.env.TARI_WALLET_URL || 'http://localhost:18089';
 const escrowLocks = new Map();
 
 async function lockMYZ(userId, amount) {
-  console.log(`🔒 Locked ${amount} MYZ for user ${userId}`);
-  escrowLocks.set(userId, { amount, txId: `tx_${Date.now()}` });
-  return `tx_${Date.now()}`;
+  console.log(`🔒 [Gateway] Locked ${amount} MYZ for user ${userId}`);
+  const txId = `tx_myz_${Date.now()}`;
+  escrowLocks.set(userId, { amount, txId });
+  return txId;
 }
 
 async function releaseMYZ(userId, amount) {
-  console.log(`💰 Released ${amount} MYZ to user ${userId}`);
+  console.log(`💰 [Gateway] Released ${amount} MYZ to user ${userId}`);
   return `tx_release_${Date.now()}`;
 }
 
 async function refundMYZ(userId, amount) {
-  console.log(`↩️ Refunded ${amount} MYZ to user ${userId}`);
+  console.log(`↩️ [Gateway] Refunded ${amount} MYZ to user ${userId}`);
   return `tx_refund_${Date.now()}`;
 }
 

@@ -1,0 +1,227 @@
+/// <reference types="node" />
+/// <reference types="node" />
+import { SrvRecord } from "dns";
+import { RedisOptions, RetryStrategy } from "../redis/RedisOptions";
+import { ReplyMappingMode } from "../types";
+import { CommanderOptions } from "../utils/Commander";
+import { NodeRole } from "./util";
+import type { HimportFieldset } from "../himport/types";
+export type DNSResolveSrvFunction = (hostname: string, callback: (err: NodeJS.ErrnoException | null | undefined, records?: SrvRecord[]) => void) => void;
+export type DNSLookupFunction = (hostname: string, callback: (err: NodeJS.ErrnoException | null | undefined, address: string, family?: number) => void) => void;
+export type NatMapFunction = (key: string) => {
+    host: string;
+    port: number;
+} | null;
+export type NatMap = {
+    [key: string]: {
+        host: string;
+        port: number;
+    };
+} | NatMapFunction;
+export type ClusterNodeRetryStrategy = RetryStrategy;
+/**
+ * Options for Cluster constructor
+ */
+export interface ClusterOptions extends CommanderOptions {
+    /**
+     * See "Quick Start" section.
+     *
+     * @default (times) => Math.min(100 + times * 2, 2000)
+     */
+    clusterRetryStrategy?: ((times: number, reason?: Error) => number | void | null) | null | undefined;
+    /**
+     * See Redis class.
+     *
+     * @default true
+     */
+    enableOfflineQueue?: boolean | undefined;
+    /**
+     * When enabled, ioredis only emits "ready" event when `CLUSTER INFO`
+     * command reporting the cluster is ready for handling commands.
+     *
+     * @default true
+     */
+    enableReadyCheck?: boolean | undefined;
+    /**
+     * Scale reads to the node with the specified role.
+     *
+     * @default "master"
+     */
+    scaleReads?: NodeRole | Function | undefined;
+    /**
+     * When a MOVED or ASK error is received, client will redirect the
+     * command to another node.
+     * This option limits the max redirections allowed to send a command.
+     *
+     * @default 16
+     */
+    maxRedirections?: number | undefined;
+    /**
+     * When an error is received when sending a command (e.g.
+     * "Connection is closed." when the target Redis node is down), client will retry
+     * if `retryDelayOnFailover` is valid delay time (in ms).
+     *
+     * @default 100
+     */
+    retryDelayOnFailover?: number | undefined;
+    /**
+     * When a CLUSTERDOWN error is received, client will retry
+     * if `retryDelayOnClusterDown` is valid delay time (in ms).
+     *
+     * @default 100
+     */
+    retryDelayOnClusterDown?: number | undefined;
+    /**
+     * When a TRYAGAIN error is received, client will retry
+     * if `retryDelayOnTryAgain` is valid delay time (in ms).
+     *
+     * @default 100
+     */
+    retryDelayOnTryAgain?: number | undefined;
+    /**
+     * By default, this value is 0, which means when a `MOVED` error is received,
+     * the client will resend the command instantly to the node returned together with
+     * the `MOVED` error. However, sometimes it takes time for a cluster to become
+     * state stabilized after a failover, so adding a delay before resending can
+     * prevent a ping pong effect.
+     *
+     * @default 0
+     */
+    retryDelayOnMoved?: number | undefined;
+    /**
+     * The milliseconds before a timeout occurs while refreshing
+     * slots from the cluster.
+     *
+     * @default 1000
+     */
+    slotsRefreshTimeout?: number | undefined;
+    /**
+     * The milliseconds between every automatic slots refresh.
+     *
+     * @default 5000
+     */
+    slotsRefreshInterval?: number | undefined;
+    /**
+     * Use sharded subscribers instead of a single subscriber.
+     *
+     * If sharded subscribers are used, then one additional subscriber connection per master node
+     * is established. If you don't plan to use SPUBLISH/SSUBSCRIBE, then this should be disabled.
+     *
+     * @default false
+     */
+    shardedSubscribers?: boolean | undefined;
+    /**
+     * When a cluster node connection is closed, this function will be called
+     * to determine the retry delay (in ms). Returning `null` or a non-number
+     * disables reconnection for that node.
+     *
+     * By default this is `null`, meaning cluster nodes will NOT automatically
+     * reconnect — the cluster relies on `MOVED` errors to refresh topology.
+     * Set this to enable reconnection, e.g. for replica nodes that restart
+     * without any slot changes.
+     *
+     * @example
+     * clusterNodeRetryStrategy: (times) => Math.min(times * 100, 3000)
+     *
+     * @default null
+     */
+    clusterNodeRetryStrategy?: ClusterNodeRetryStrategy;
+    /**
+     * Passed to the constructor of `Redis`
+     *
+     * @default null
+     */
+    redisOptions?: Omit<RedisOptions, "port" | "host" | "path" | "sentinels" | "retryStrategy" | "enableOfflineQueue" | "readOnly" | "himportFieldsets"> | undefined;
+    /**
+     * By default, When a new Cluster instance is created,
+     * it will connect to the Redis cluster automatically.
+     * If you want to keep the instance disconnected until the first command is called,
+     * set this option to `true`.
+     *
+     * @default false
+     */
+    lazyConnect?: boolean | undefined;
+    /**
+     * Discover nodes using SRV records
+     *
+     * @default false
+     */
+    useSRVRecords?: boolean | undefined;
+    /**
+     * SRV records will be resolved via this function.
+     *
+     * You may provide a custom `resolveSrv` function when you want to customize
+     * the cache behavior of the default function.
+     *
+     * @default require('dns').resolveSrv
+     */
+    resolveSrv?: DNSResolveSrvFunction | undefined;
+    /**
+     * Hostnames will be resolved to IP addresses via this function.
+     * This is needed when the addresses of startup nodes are hostnames instead
+     * of IPs.
+     *
+     * You may provide a custom `lookup` function when you want to customize
+     * the cache behavior of the default function.
+     *
+     * @default require('dns').lookup
+     */
+    dnsLookup?: DNSLookupFunction | undefined;
+    natMap?: NatMap | undefined;
+    /**
+     * See Redis class.
+     *
+     * @default false
+     */
+    enableAutoPipelining?: boolean | undefined;
+    /**
+     * See Redis class.
+     *
+     * @default []
+     */
+    autoPipeliningIgnoredCommands?: string[] | undefined;
+    /**
+     * Custom LUA commands
+     */
+    scripts?: Record<string, {
+        lua: string;
+        numberOfKeys?: number;
+        readOnly?: boolean;
+    }> | undefined;
+    /**
+     * Managed-fieldset support is experimental and requires Redis 8.10 or newer.
+     *
+     * Long-lived HIMPORT fieldsets managed across all current and future master
+     * connections for the lifetime of this Cluster client.
+     * Configure this option at the top level, not under `redisOptions`.
+     *
+     * When a managed `HIMPORT SET` needs fieldset preparation or recovery,
+     * later commands issued on this Cluster client may be sent before that SET
+     * resumes. Await the SET before issuing commands that depend on its write.
+     *
+     * Explicit pipelines containing a managed `HIMPORT SET` wait for required
+     * fieldset preparation on the selected master before the batch is sent.
+     *
+     * Background preparation failures do not prevent the connection from
+     * becoming ready and are reported through the `node error` event. A
+     * dependent managed `HIMPORT SET` retries preparation and rejects if
+     * recovery fails.
+     *
+     * Direct `HIMPORT PREPARE`, `DISCARD`, and `DISCARDALL` calls fan out to all
+     * current masters. Within an explicit pipeline, these commands remain
+     * connection-affine and are not managed.
+     *
+     * Use explicit HIMPORT commands on a separate unconfigured client for
+     * bounded, manually managed batches.
+     *
+     * @default undefined
+     * @experimental
+     */
+    himportFieldsets?: readonly HimportFieldset[] | undefined;
+}
+export type ClusterOptionsWithReplyMapping<Mapping extends ReplyMappingMode> = ClusterOptions & {
+    redisOptions?: ClusterOptions["redisOptions"] & {
+        replyMapping?: Mapping;
+    };
+};
+export declare const DEFAULT_CLUSTER_OPTIONS: ClusterOptions;

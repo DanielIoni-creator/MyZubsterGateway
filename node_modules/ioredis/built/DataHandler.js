@@ -1,0 +1,373 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const Command_1 = require("./Command");
+const utils_1 = require("./utils");
+const SubscriptionSet_1 = require("./SubscriptionSet");
+const decoder_1 = require("./resp/decoder");
+const debug = (0, utils_1.Debug)("dataHandler");
+class DataHandler {
+    constructor(redis, parserOptions) {
+        this.redis = redis;
+        // Parser options can't change over the lifetime of a connection, so the
+        // mapping is resolved once instead of per reply.
+        const typeMapping = getParserTypeMapping(parserOptions);
+        const decoder = new decoder_1.Decoder({
+            getTypeMapping: () => typeMapping,
+            onReply: (reply) => {
+                this.dispatch(() => this.returnReply(reply));
+            },
+            onErrorReply: (err) => {
+                this.dispatch(() => this.returnError(err));
+            },
+            onPush: (reply) => {
+                this.dispatch(() => this.returnPush(reply));
+            },
+        });
+        // prependListener ensures the parser receives and processes data before socket timeout checks are performed
+        redis.stream.prependListener("data", (data) => {
+            try {
+                decoder.write(data);
+            }
+            catch (err) {
+                this.returnFatalError(err);
+            }
+        });
+        // prependListener() doesn't enable flowing mode automatically - we need to resume the stream manually
+        redis.stream.resume();
+    }
+    // Rethrows user listener/transformer exceptions asynchronously so they
+    // surface as uncaught exceptions (as with redis-parser in v5) instead of
+    // unwinding the decoder mid-parse and tearing down the connection as a
+    // fatal protocol error.
+    dispatch(fn) {
+        try {
+            fn();
+        }
+        catch (err) {
+            process.nextTick(() => {
+                throw err;
+            });
+        }
+    }
+    returnFatalError(err) {
+        err.message += ". Please report this.";
+        this.redis.recoverFromFatalError(err, err, { offlineQueue: false });
+    }
+    returnError(err) {
+        const item = this.shiftCommand(err);
+        if (!item) {
+            return;
+        }
+        err.command = {
+            name: item.command.name,
+            args: item.command.args,
+        };
+        // A MOVED reply to SSUBSCRIBE means the shard channel's slot migrated.
+        // Signal the subscriber layer to refresh its topology, but still settle
+        // the command through normal error handling so the caller's promise
+        // rejects instead of staying pending forever.
+        const isMovedSsubscribe = item.command.name === "ssubscribe" && err.message.startsWith("MOVED ");
+        if (isMovedSsubscribe) {
+            this.redis.emit("moved");
+        }
+        this.redis.handleReconnection(err, item);
+    }
+    returnReply(reply) {
+        if (this.handleMonitorReply(reply)) {
+            return;
+        }
+        // Under RESP3, pub/sub traffic arrives exclusively as push frames
+        // (returnPush), so a normal reply on a subscribed connection is always a
+        // command response. Routing it by content would misinterpret replies that
+        // merely look like pub/sub messages (e.g. an LRANGE result starting with
+        // "message") and desync the command queue.
+        if (this.redis.condition.protocol !== 3 && this.handleSubscriberReply(reply)) {
+            return;
+        }
+        const item = this.shiftCommand(reply);
+        if (!item) {
+            return;
+        }
+        if (Command_1.default.checkFlag("ENTER_SUBSCRIBER_MODE", item.command.name)) {
+            this.redis.condition.subscriber = new SubscriptionSet_1.default();
+            this.redis.condition.subscriber.add(item.command.name, reply[1].toString());
+            if (!fillSubCommand(item.command, reply[2])) {
+                this.redis.commandQueue.unshift(item);
+            }
+        }
+        else if (Command_1.default.checkFlag("EXIT_SUBSCRIBER_MODE", item.command.name)) {
+            if (!fillUnsubCommand(item.command, reply[2])) {
+                this.redis.commandQueue.unshift(item);
+            }
+        }
+        else {
+            item.command.resolve(reply);
+        }
+    }
+    returnPush(reply) {
+        if (!Array.isArray(reply) || reply.length === 0) {
+            return;
+        }
+        const replyType = reply[0].toString();
+        debug('receive push "%s"', replyType);
+        switch (replyType) {
+            case "message":
+            case "pmessage":
+            case "smessage":
+                this.handleSubscriberReply(reply);
+                break;
+            case "ssubscribe":
+            case "subscribe":
+            case "psubscribe": {
+                if (!this.redis.condition.subscriber) {
+                    this.redis.condition.subscriber = new SubscriptionSet_1.default();
+                }
+                const channel = reply[1].toString();
+                this.redis.condition.subscriber.add(replyType, channel);
+                const item = this.shiftCommand(reply);
+                if (!item) {
+                    return;
+                }
+                if (!fillSubCommand(item.command, reply[2])) {
+                    this.redis.commandQueue.unshift(item);
+                }
+                break;
+            }
+            case "sunsubscribe":
+            case "unsubscribe":
+            case "punsubscribe": {
+                if (this.redis.condition.subscriber) {
+                    const channel = reply[1] ? reply[1].toString() : null;
+                    if (channel) {
+                        this.redis.condition.subscriber.del(replyType, channel);
+                    }
+                }
+                const count = reply[2];
+                if (Number(count) === 0) {
+                    this.redis.condition.subscriber = false;
+                }
+                if (this.handleUnsolicitedUnsubscribe(replyType)) {
+                    return;
+                }
+                const item = this.shiftCommand(reply);
+                if (!item) {
+                    return;
+                }
+                if (!fillUnsubCommand(item.command, count)) {
+                    this.redis.commandQueue.unshift(item);
+                }
+                break;
+            }
+        }
+    }
+    // Cluster sends unsolicited `sunsubscribe` pushes on slot migration; those
+    // answer no queued command, so shifting the queue head would resolve an
+    // unrelated in-flight command. Detected via a non-matching queue head, and
+    // `sunsubscribe` reuses the ssubscribe-MOVED recovery path.
+    handleUnsolicitedUnsubscribe(replyType) {
+        const head = this.redis.commandQueue.peekFront();
+        // Command names keep the user's casing (e.g. `call("UNSUBSCRIBE")`), while
+        // reply types from the server are lowercase — compare case-insensitively
+        // or an uppercase unsubscribe would be treated as unsolicited and its
+        // reply dropped, desyncing the queue.
+        if (head && head.command.name.toLowerCase() === replyType) {
+            return false;
+        }
+        if (replyType === "sunsubscribe") {
+            this.redis.emit("moved");
+        }
+        return true;
+    }
+    handleSubscriberReply(reply) {
+        if (!this.redis.condition.subscriber) {
+            return false;
+        }
+        const replyType = Array.isArray(reply) ? reply[0].toString() : null;
+        debug('receive reply "%s" in subscriber mode', replyType);
+        switch (replyType) {
+            case "message":
+                if (this.redis.listeners("message").length > 0) {
+                    // Check if there're listeners to avoid unnecessary `toString()`.
+                    this.redis.emit("message", reply[1].toString(), reply[2] ? reply[2].toString() : "");
+                }
+                this.redis.emit("messageBuffer", reply[1], reply[2]);
+                break;
+            case "pmessage": {
+                const pattern = reply[1].toString();
+                if (this.redis.listeners("pmessage").length > 0) {
+                    this.redis.emit("pmessage", pattern, reply[2].toString(), reply[3].toString());
+                }
+                this.redis.emit("pmessageBuffer", pattern, reply[2], reply[3]);
+                break;
+            }
+            case "smessage": {
+                if (this.redis.listeners("smessage").length > 0) {
+                    this.redis.emit("smessage", reply[1].toString(), reply[2] ? reply[2].toString() : "");
+                }
+                this.redis.emit("smessageBuffer", reply[1], reply[2]);
+                break;
+            }
+            case "ssubscribe":
+            case "subscribe":
+            case "psubscribe": {
+                const channel = reply[1].toString();
+                this.redis.condition.subscriber.add(replyType, channel);
+                const item = this.shiftCommand(reply);
+                if (!item) {
+                    return;
+                }
+                if (!fillSubCommand(item.command, reply[2])) {
+                    this.redis.commandQueue.unshift(item);
+                }
+                break;
+            }
+            case "sunsubscribe":
+            case "unsubscribe":
+            case "punsubscribe": {
+                const channel = reply[1] ? reply[1].toString() : null;
+                if (channel) {
+                    this.redis.condition.subscriber.del(replyType, channel);
+                }
+                const count = reply[2];
+                if (Number(count) === 0) {
+                    this.redis.condition.subscriber = false;
+                }
+                if (this.handleUnsolicitedUnsubscribe(replyType)) {
+                    break;
+                }
+                const item = this.shiftCommand(reply);
+                if (!item) {
+                    return;
+                }
+                if (!fillUnsubCommand(item.command, count)) {
+                    this.redis.commandQueue.unshift(item);
+                }
+                break;
+            }
+            default: {
+                const item = this.shiftCommand(reply);
+                if (!item) {
+                    return;
+                }
+                item.command.resolve(reply);
+            }
+        }
+        return true;
+    }
+    handleMonitorReply(reply) {
+        if (this.redis.status !== "monitoring") {
+            return false;
+        }
+        const replyStr = reply.toString();
+        if (replyStr === "OK") {
+            // Valid commands in the monitoring mode are AUTH and MONITOR,
+            // both of which always reply with 'OK'.
+            // So if we got an 'OK', we can make certain that
+            // the reply is made to AUTH & MONITOR.
+            return false;
+        }
+        // Since commands sent in the monitoring mode will trigger an exception,
+        // any replies we received in the monitoring mode should consider to be
+        // realtime monitor data instead of result of commands.
+        const len = replyStr.indexOf(" ");
+        const timestamp = replyStr.slice(0, len);
+        const argIndex = replyStr.indexOf('"');
+        const args = replyStr
+            .slice(argIndex + 1, -1)
+            .split('" "')
+            .map((elem) => elem.replace(/\\"/g, '"'));
+        const dbAndSource = replyStr.slice(len + 2, argIndex - 2).split(" ");
+        this.redis.emit("monitor", timestamp, args, dbAndSource[1], dbAndSource[0]);
+        return true;
+    }
+    shiftCommand(reply) {
+        const item = this.redis.commandQueue.shift();
+        if (!item) {
+            const message = "Command queue state error. If you can reproduce this, please report it.";
+            const error = new Error(message +
+                (reply instanceof Error
+                    ? ` Last error: ${reply.message}`
+                    : ` Last reply: ${reply.toString()}`));
+            this.redis.emit("error", error);
+            return null;
+        }
+        return item;
+    }
+}
+exports.default = DataHandler;
+// All string RESP types (simple, blob, verbatim) decode to Buffer rather than
+// utf8 strings. This keeps the parser encoding-agnostic: ioredis decides
+// utf8-vs-Buffer per command afterwards via `replyEncoding`. Decoding to utf8
+// here would be irreversible and corrupt binary-safe values (e.g. DUMP output,
+// serialized blobs), whereas bytes -> string stays lossless and deferred. This
+// mirrors the old `redis-parser` running with `returnBuffers: true`.
+// RESP2-compatible shapes: RESP3-only container and numeric types are
+// flattened so replies are identical across both protocols. Strings stay
+// buffers; utf8 conversion is decided per command by `replyEncoding`.
+const legacyTypeMapping = {
+    [decoder_1.RESP_TYPES.SIMPLE_STRING]: Buffer,
+    [decoder_1.RESP_TYPES.BLOB_STRING]: Buffer,
+    [decoder_1.RESP_TYPES.VERBATIM_STRING]: Buffer,
+    [decoder_1.RESP_TYPES.BIG_NUMBER]: String,
+    // RESP2 represented doubles as bulk strings and booleans as `1`/`0`
+    // integers. Decode doubles to Buffer (like blob strings, so `replyEncoding`
+    // still chooses string-vs-buffer per command) and booleans to numbers, so
+    // RESP3 replies match the classic RESP2 shape.
+    [decoder_1.RESP_TYPES.DOUBLE]: Buffer,
+    [decoder_1.RESP_TYPES.BOOLEAN]: Number,
+    [decoder_1.RESP_TYPES.MAP]: Array,
+    [decoder_1.RESP_TYPES.SET]: Array,
+};
+// Leaving MAP and DOUBLE unmapped makes the decoder produce plain objects
+// (with string keys) and numbers respectively.
+const resp3TypeMapping = {
+    [decoder_1.RESP_TYPES.SIMPLE_STRING]: Buffer,
+    [decoder_1.RESP_TYPES.BLOB_STRING]: Buffer,
+    [decoder_1.RESP_TYPES.VERBATIM_STRING]: Buffer,
+    [decoder_1.RESP_TYPES.BIG_NUMBER]: String,
+    [decoder_1.RESP_TYPES.SET]: Array,
+};
+function getParserTypeMapping(parserOptions) {
+    const base = parserOptions.replyMapping === "resp3"
+        ? resp3TypeMapping
+        : legacyTypeMapping;
+    // `stringNumbers` means "all numerics as strings", so it wins over the
+    // preset for DOUBLE as well.
+    return parserOptions.stringNumbers
+        ? { ...base, [decoder_1.RESP_TYPES.NUMBER]: String, [decoder_1.RESP_TYPES.DOUBLE]: String }
+        : base;
+}
+const remainingRepliesMap = new WeakMap();
+function fillSubCommand(command, count) {
+    let remainingReplies = remainingRepliesMap.has(command)
+        ? remainingRepliesMap.get(command)
+        : command.args.length;
+    remainingReplies -= 1;
+    if (remainingReplies <= 0) {
+        command.resolve(count);
+        remainingRepliesMap.delete(command);
+        return true;
+    }
+    remainingRepliesMap.set(command, remainingReplies);
+    return false;
+}
+function fillUnsubCommand(command, count) {
+    let remainingReplies = remainingRepliesMap.has(command)
+        ? remainingRepliesMap.get(command)
+        : command.args.length;
+    if (remainingReplies === 0) {
+        if (Number(count) === 0) {
+            remainingRepliesMap.delete(command);
+            command.resolve(count);
+            return true;
+        }
+        return false;
+    }
+    remainingReplies -= 1;
+    if (remainingReplies <= 0) {
+        command.resolve(count);
+        return true;
+    }
+    remainingRepliesMap.set(command, remainingReplies);
+    return false;
+}

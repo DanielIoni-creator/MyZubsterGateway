@@ -1,0 +1,14 @@
+{
+  "name": "logo",
+  "extends": "basic",
+  "description": "Robot di generazione loghi: riceve un prompt e restituisce l'URL dell'immagine.",
+  "vars": {
+    "TASK_LABEL": "generazione logo",
+    "TASK_NOUN": "logo",
+    "INPUT_FIELD": "prompt",
+    "INPUT_DESCRIPTION": "Descrizione del logo da generare",
+    "OUTPUT_FIELD": "imageUrl",
+    "DEFAULT_AMOUNT": "100",
+    "SAMPLE_INPUT": "\"Logo minimale per una startup di robotica\""
+  }
+}

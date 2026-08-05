@@ -75,4 +75,8 @@ function getRobotStatus(robotId) {
   };
 }
 
-module.exports = { createRobot, assignJobToRobot, executeJob, deliverJob, handleDispute, getRobotStatus };
+function getAllRobots() {
+  return Array.from(robotState.values());
+}
+
+module.exports = { createRobot, assignJobToRobot, executeJob, deliverJob, handleDispute, getRobotStatus, getAllRobots };

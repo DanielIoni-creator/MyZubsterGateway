@@ -1,0 +1,14 @@
+{
+  "name": "translation",
+  "extends": "basic",
+  "description": "Robot di traduzione: riceve un testo e una lingua di destinazione, restituisce la traduzione.",
+  "vars": {
+    "TASK_LABEL": "traduzione",
+    "TASK_NOUN": "traduzione",
+    "INPUT_FIELD": "text",
+    "INPUT_DESCRIPTION": "Testo da tradurre",
+    "OUTPUT_FIELD": "translation",
+    "DEFAULT_AMOUNT": "50",
+    "SAMPLE_INPUT": "\"Buongiorno a tutti\""
+  }
+}
