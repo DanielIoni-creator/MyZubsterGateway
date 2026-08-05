@@ -1,6 +1,6 @@
 [build]
-  command = "npm install && npm run build || echo 'No build script, using static'"
-  publish = "frontend"
+  command = "cd frontend && npm install && npm run build"
+  publish = "frontend/dist"
 
 [build.environment]
   NODE_VERSION = "20"
