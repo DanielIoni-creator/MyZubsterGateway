@@ -9,8 +9,7 @@ const { createOrder, onPaymentReceived } = require('./buy_myz');
 const { createEscrow, lockFunds, submitProof, release, dispute, getEscrow } = require('./escrow_simulator');
 const { mint, balance } = require('./token_simulator');
 const { assignReward } = require('./services/rewardService');
-const { cacheMiddleware } = require('./services/cacheService');
-const ratelimiter = require('./middleware/ratelimiter');
+const { rateLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 app.use(express.json());

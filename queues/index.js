@@ -1,6 +1,7 @@
 const Bull = require('bull');
 const { ExpressAdapter } = require('@bull-board/express');
-const { BullAdapter, createBullBoard } = require('@bull-board/api');
+const { createBullBoard } = require('@bull-board/api');
+const { BullAdapter } = require('@bull-board/api/bullAdapter');
 
 // Redis connection configuration
 const redisHost = process.env.REDIS_HOST || '127.0.0.1';

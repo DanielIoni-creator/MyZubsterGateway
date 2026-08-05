@@ -5,8 +5,7 @@
 
 const rateLimitStore = new Map(); // { key: { count, resetTime } }
 
-// Clean up expired entries periodically
-setInterval(() => {
+const cleanupInterval = setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of rateLimitStore) {
     if (now > entry.resetTime) {
@@ -14,6 +13,7 @@ setInterval(() => {
     }
   }
 }, 60000);
+cleanupInterval.unref();
 
 function rateLimiter(options = {}) {
   const {
