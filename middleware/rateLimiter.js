@@ -1,3 +1,65 @@
+const store = new Map();
+
+function rateLimiter(options = {}) {
+  const windowMs = options.windowMs || 60000;
+  const max = options.max || 5;
+  const keyBy = options.keyBy || 'ip';
+
+  return (req, res, next) => {
+    const ip = req.ip || (req.connection && req.connection.remoteAddress) || '127.0.0.1';
+    const key = keyBy === 'ip+endpoint' ? `${ip}:${req.originalUrl || ''}` : ip;
+
+    const now = Date.now();
+    let record = store.get(key);
+
+    if (!record || now >= record.resetTime) {
+      record = {
+        count: 0,
+        resetTime: now + windowMs,
+        limit: max
+      };
+      store.set(key, record);
+    }
+
+    if (record.count >= max) {
+      res.setHeader('X-RateLimit-Limit', max);
+      res.setHeader('X-RateLimit-Remaining', 0);
+      res.setHeader('X-RateLimit-Reset', Math.ceil(record.resetTime / 1000));
+      return res.status(429).json({ error: 'Too Many Requests' });
+    }
+
+    record.count++;
+    res.setHeader('X-RateLimit-Limit', max);
+    res.setHeader('X-RateLimit-Remaining', max - record.count);
+    res.setHeader('X-RateLimit-Reset', Math.ceil(record.resetTime / 1000));
+
+    next();
+  };
+}
+
+function getRateLimitStats() {
+  const entries = [];
+  for (const [key, record] of store.entries()) {
+    entries.push({
+      key,
+      count: record.count,
+      resetTime: record.resetTime,
+      limit: record.limit,
+      remaining: Math.max(0, record.limit - record.count)
+    });
+  }
+  return { entries };
+}
+
+function resetRateLimit() {
+  store.clear();
+}
+
+module.exports = {
+  rateLimiter,
+  getRateLimitStats,
+  resetRateLimit
+};
 /**
  * Rate Limiting Middleware - Bounty B15
  * Configurable rate limiting per IP and endpoint with standard headers.
