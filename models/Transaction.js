@@ -4,12 +4,12 @@ const TransactionSchema = new mongoose.Schema({
   fromUser: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: false
   },
   toUser: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: false
   },
   order: {
     type: mongoose.Schema.Types.ObjectId,
@@ -23,6 +23,9 @@ const TransactionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Request'
   },
+  escrowId: {
+    type: String
+  },
   amount: {
     type: Number,
     required: true,
@@ -30,23 +33,31 @@ const TransactionSchema = new mongoose.Schema({
   },
   currency: {
     type: String,
-    enum: ['XMR', 'credit'],
+    enum: ['MYZ', 'XMR', 'credit'],
     default: 'XMR'
   },
   type: {
     type: String,
-    enum: ['pagamento', 'credito', 'rimborso', 'fee'],
+    enum: ['pagamento', 'credito', 'rimborso', 'fee', 'deposito', 'rilascio'],
     default: 'pagamento'
   },
   paymentId: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  paymentAddress: {
     type: String
   },
   recipientAddress: {
     type: String
   },
+  webhookUrl: {
+    type: String
+  },
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'completed', 'failed', 'refund_pending', 'refunded'],
+    enum: ['pending', 'confirmed', 'completed', 'failed', 'refund_pending', 'refunded', 'in_escrow', 'released', 'disputed'],
     default: 'pending'
   },
   confirmedAt: {
@@ -68,7 +79,7 @@ const TransactionSchema = new mongoose.Schema({
   },
   verificationSource: {
     type: String,
-    enum: ['monitor', 'admin']
+    enum: ['monitor', 'admin', 'webhook']
   },
   refundRequestedAt: {
     type: Date
@@ -100,6 +111,21 @@ const TransactionSchema = new mongoose.Schema({
   refundFailedAt: {
     type: Date
   },
+  disputeReason: {
+    type: String
+  },
+  disputeOpenedAt: {
+    type: Date
+  },
+  disputeResolvedAt: {
+    type: Date
+  },
+  clientId: {
+    type: String
+  },
+  robotId: {
+    type: String
+  },
   note: {
     type: String,
     maxlength: 500
@@ -117,5 +143,9 @@ TransactionSchema.index({ status: 1, createdAt: -1 });
 TransactionSchema.index({ fromUser: 1, createdAt: -1 });
 TransactionSchema.index({ toUser: 1, createdAt: -1 });
 TransactionSchema.index({ amount: 1 });
+TransactionSchema.index({ escrowId: 1 });
+TransactionSchema.index({ paymentAddress: 1 });
+TransactionSchema.index({ currency: 1 });
+TransactionSchema.index({ clientId: 1 });
 
 module.exports = mongoose.model('Transaction', TransactionSchema);

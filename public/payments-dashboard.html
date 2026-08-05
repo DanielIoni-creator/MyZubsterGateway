@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Pagamenti - MyZubster</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #333; }
+    .header { background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; padding: 20px 30px; }
+    .header h1 { font-size: 1.8em; }
+    .header .sub { opacity: 0.8; font-size: 0.9em; margin-top: 5px; }
+    .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-bottom: 25px; }
+    .card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .card h3 { font-size: 0.85em; color: #666; text-transform: uppercase; margin-bottom: 8px; }
+    .card .value { font-size: 2em; font-weight: 700; }
+    .card.myz .value { color: #e67e22; }
+    .card.xmr .value { color: #f39c12; }
+    .card.total .value { color: #2ecc71; }
+    .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+    @media (max-width: 768px) { .charts { grid-template-columns: 1fr; } }
+    .chart-box { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .chart-box h3 { margin-bottom: 15px; color: #333; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    th, td { padding: 12px 15px; text-align: left; }
+    th { background: #1a1a2e; color: white; font-size: 0.85em; }
+    tr:nth-child(even) { background: #f8f9fa; }
+    tr:hover { background: #e9ecef; }
+    .status { padding: 4px 10px; border-radius: 12px; font-size: 0.8em; font-weight: 600; }
+    .status.pending { background: #fff3cd; color: #856404; }
+    .status.confirmed { background: #d4edda; color: #155724; }
+    .status.completed { background: #cce5ff; color: #004085; }
+    .status.refunded { background: #f8d7da; color: #721c24; }
+    .refresh-btn { background: #1a1a2e; color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-size: 0.9em; }
+    .refresh-btn:hover { background: #16213e; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>💳 Dashboard Pagamenti MyZubster</h1>
+    <p class="sub">Monitoraggio transazioni MYZ e XMR in tempo reale</p>
+    <button class="refresh-btn" onclick="refresh()" style="margin-top:10px;">🔄 Aggiorna</button>
+  </div>
+  <div class="container">
+    <div class="cards">
+      <div class="card total"><h3>💰 Totale Transato</h3><div class="value" id="totalAmount">...</div></div>
+      <div class="card myz"><h3>🟠 MYZ</h3><div class="value" id="totalMYZ">...</div></div>
+      <div class="card xmr"><h3>🟡 XMR</h3><div class="value" id="totalXMR">...</div></div>
+      <div class="card"><h3>📊 Transazioni</h3><div class="value" id="txCount">...</div></div>
+    </div>
+    <div class="charts">
+      <div class="chart-box"><h3>Stato Transazioni</h3><canvas id="statusChart"></canvas></div>
+      <div class="chart-box"><h3>Volume per Valuta</h3><canvas id="currencyChart"></canvas></div>
+    </div>
+    <div class="chart-box" style="margin-bottom:25px;">
+      <h3>🕐 Transazioni Recenti</h3>
+      <table><thead><tr><th>ID</th><th>Importo</th><th>Valuta</th><th>Stato</th><th>Data</th></tr></thead><tbody id="recentTxs"><tr><td colspan="5">Caricamento...</td></tr></tbody></table>
+    </div>
+  </div>
+  <script>
+    let statusChart, currencyChart;
+    async function refresh() {
+      try {
+        const resp = await fetch('/api/payments/dashboard/summary');
+        const { data } = await resp.json();
+        document.getElementById('totalAmount').textContent = (data.totale.totale || 0).toFixed(2);
+        document.getElementById('txCount').textContent = data.totale.count || 0;
+        const myz = data.perValuta.find(v => v._id === 'MYZ');
+        const xmr = data.perValuta.find(v => v._id === 'XMR');
+        document.getElementById('totalMYZ').textContent = (myz?.totale || 0).toFixed(2) + ' MYZ';
+        document.getElementById('totalXMR').textContent = (xmr?.totale || 0).toFixed(4) + ' XMR';
+        
+        const statusLabels = data.perStato.map(s => s._id || 'unknown');
+        const statusData = data.perStato.map(s => s.count);
+        const statusColors = { pending: '#ffc107', confirmed: '#28a745', completed: '#17a2b8', refunded: '#dc3545', in_escrow: '#6f42c1', released: '#20c997' };
+        
+        if (statusChart) statusChart.destroy();
+        statusChart = new Chart(document.getElementById('statusChart'), {
+          type: 'doughnut',
+          data: { labels: statusLabels, datasets: [{ data: statusData, backgroundColor: statusLabels.map(l => statusColors[l] || '#6c757d') }] }
+        });
+        
+        const currLabels = data.perValuta.map(v => v._id);
+        const currData = data.perValuta.map(v => v.totale);
+        if (currencyChart) currencyChart.destroy();
+        currencyChart = new Chart(document.getElementById('currencyChart'), {
+          type: 'bar',
+          data: { labels: currLabels, datasets: [{ label: 'Volume', data: currData, backgroundColor: ['#e67e22','#f39c12'] }] }
+        });
+        
+        const tbody = document.getElementById('recentTxs');
+        tbody.innerHTML = data.recenti.map(tx => 
+          '<tr><td>' + (tx.paymentId || tx._id).toString().slice(-12) + '</td><td>' + tx.amount + '</td><td>' + tx.currency + '</td><td><span class="status ' + tx.status + '">' + tx.status + '</span></td><td>' + new Date(tx.createdAt).toLocaleString('it-IT') + '</td></tr>'
+        ).join('') || '<tr><td colspan="5">Nessuna transazione</td></tr>';
+      } catch(e) { console.error(e); }
+    }
+    refresh();
+    setInterval(refresh, 30000);
+  </script>
+</body>
+</html>
