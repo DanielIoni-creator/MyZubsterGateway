@@ -7,6 +7,7 @@ const { assignReward } = require('./services/rewardService');
 
 const app = express();
 app.use(express.json());
+app.use('/uploads', express.static('uploads'));
 
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myzubster')
   .then(() => console.log('✅ Connected to MongoDB'))
@@ -37,12 +38,11 @@ app.post('/escrow/create', (req, res) => {
 app.use('/api/rewards', require('./routes/rewards'));
 app.use('/api/robot', require('./routes/robot'));
 app.use('/api/robot/escrow', require('./routes/robotEscrow'));
-app.use('/api/robot', require('./routes/robot'));
 app.use('/api/bounty', require('./routes/bounty'));
 app.use('/api/stake', require('./routes/stake'));
 app.use('/api/escrow/house', require('./routes/escrowHouse'));
-app.use('/api/robot/escrow', require('./routes/robotEscrow'));
-app.use('/api/robot', require('./routes/robot'));
+app.use('/api/robot/merchant', require('./routes/robotMerchant'));
+app.use('/api/robot/social', require('./routes/robotMerchant'));
 
 app.get('/health', (req, res) => {
   res.json({
