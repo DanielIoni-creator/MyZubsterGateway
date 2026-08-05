@@ -66,6 +66,7 @@ export const navItems = [
   { id: 'orders', label: 'Orders' },
   { id: 'bounties', label: 'Bounties' },
   { id: 'logs', label: 'System Logs' },
+  { id: 'compliance', label: 'Compliance' },
   { id: 'settings', label: 'Settings' },
 ];
 
