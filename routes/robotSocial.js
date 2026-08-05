@@ -1,0 +1,1 @@
+const express=require('express');const router=express.Router();const{handleGenerate}=require('../robot_social');router.post('/generate',(req,res)=>{try{const result=handleGenerate(req.body);if(!result.success)return res.status(400).json(result);res.json(result)}catch(err){res.status(500).json({error:err.message})}});module.exports=router

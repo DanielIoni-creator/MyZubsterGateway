@@ -49,6 +49,7 @@ app.use('/api/robot/code', require('./routes/robotCode'));
 
 console.log('✅ Caricamento routes robotAnimal...');
 app.use('/api/robot/animal', require('./routes/robotAnimal'));
+app.use('/api/robot/social', require('./routes/robotSocial'));
 
 app.use('/api/backup', require('./routes/backup'));
 
