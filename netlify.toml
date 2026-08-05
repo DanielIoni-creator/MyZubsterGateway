@@ -1,12 +1,9 @@
 [build]
-  command = "echo 'No build needed'"
+  command = "echo 'Skipping frontend build for now'"
   publish = "."
 
 [build.environment]
   NODE_VERSION = "20"
-
-[dev]
-  framework = "express"
 
 [[redirects]]
   from = "/*"
