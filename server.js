@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const { bullBoardRouter } = require('./queues');
 const path = require('path');
 const fs = require('fs');
@@ -8,6 +9,8 @@ const { createOrder, onPaymentReceived } = require('./buy_myz');
 const { createEscrow, lockFunds, submitProof, release, dispute, getEscrow } = require('./escrow_simulator');
 const { mint, balance } = require('./token_simulator');
 const { assignReward } = require('./services/rewardService');
+const { cacheMiddleware } = require('./services/cacheService');
+const ratelimiter = require('./middleware/ratelimiter');
 
 const app = express();
 app.use(express.json());

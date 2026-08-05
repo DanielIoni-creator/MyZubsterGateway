@@ -1,2 +1,4 @@
 .env
 node_modules/
+# load test artifacts
+reports/
