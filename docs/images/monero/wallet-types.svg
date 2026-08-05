@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" font-family="system-ui,Segoe UI,Roboto,sans-serif">
+  <rect width="720" height="420" fill="#0E0E12"/>
+  <text x="36" y="48" fill="#E8E8EF" font-size="26" font-weight="700">Choose your Monero wallet</text>
+  <text x="36" y="78" fill="#9A9AA8" font-size="15">Pick one that fits your device. All of them can receive XMR payouts.</text>
+
+  <g>
+    <rect x="36" y="110" width="200" height="270" rx="16" fill="#1A1A22" stroke="#2A2A36"/>
+    <circle cx="136" cy="170" r="26" fill="#FF8400"/>
+    <text x="136" y="179" fill="#0E0E12" font-size="22" font-weight="800" text-anchor="middle">M</text>
+    <text x="136" y="225" fill="#E8E8EF" font-size="17" font-weight="700" text-anchor="middle">Monero GUI</text>
+    <text x="136" y="250" fill="#9A9AA8" font-size="12" text-anchor="middle">Desktop · Win/Mac/Linux</text>
+    <text x="136" y="300" fill="#C8C8D4" font-size="12" text-anchor="middle">Full control</text>
+    <text x="136" y="320" fill="#C8C8D4" font-size="12" text-anchor="middle">Remote or local node</text>
+    <text x="136" y="356" fill="#2EC28B" font-size="12" font-weight="700" text-anchor="middle">Recommended (desktop)</text>
+  </g>
+
+  <g>
+    <rect x="260" y="110" width="200" height="270" rx="16" fill="#1A1A22" stroke="#FF8400"/>
+    <circle cx="360" cy="170" r="26" fill="#FF8400"/>
+    <text x="360" y="179" fill="#0E0E12" font-size="22" font-weight="800" text-anchor="middle">C</text>
+    <text x="360" y="225" fill="#E8E8EF" font-size="17" font-weight="700" text-anchor="middle">Cake Wallet</text>
+    <text x="360" y="250" fill="#9A9AA8" font-size="12" text-anchor="middle">Mobile · iOS / Android</text>
+    <text x="360" y="300" fill="#C8C8D4" font-size="12" text-anchor="middle">Easiest to start</text>
+    <text x="360" y="320" fill="#C8C8D4" font-size="12" text-anchor="middle">No blockchain download</text>
+    <text x="360" y="356" fill="#2EC28B" font-size="12" font-weight="700" text-anchor="middle">Recommended (mobile)</text>
+  </g>
+
+  <g>
+    <rect x="484" y="110" width="200" height="270" rx="16" fill="#1A1A22" stroke="#2A2A36"/>
+    <circle cx="584" cy="170" r="26" fill="#6C5CE7"/>
+    <text x="584" y="178" fill="#FFFFFF" font-size="20" font-weight="800" text-anchor="middle">F</text>
+    <text x="584" y="225" fill="#E8E8EF" font-size="17" font-weight="700" text-anchor="middle">Feather</text>
+    <text x="584" y="250" fill="#9A9AA8" font-size="12" text-anchor="middle">Desktop · light wallet</text>
+    <text x="584" y="300" fill="#C8C8D4" font-size="12" text-anchor="middle">Fast, portable</text>
+    <text x="584" y="320" fill="#C8C8D4" font-size="12" text-anchor="middle">Advanced options</text>
+    <text x="584" y="356" fill="#9A9AA8" font-size="12" text-anchor="middle">Optional</text>
+  </g>
+</svg>
