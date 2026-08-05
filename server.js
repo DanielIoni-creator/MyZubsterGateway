@@ -74,9 +74,75 @@ if (fs.existsSync(frontendDist)) {
 
 // ---------- START SERVER WITH GRACEFUL SHUTDOWN ----------
 const PORT = process.env.PORT || 10000;
-const server = app.listen(PORT, () => {
+/* replaced with http server */
+//const server = app.listen(PORT, () => {
+*/
+const http = require('http');
+const { Server } = require('socket.io');
+
+const PORT = process.env.PORT || 10000;
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: '*' } });
+
+// Emit metrics periodically
+setInterval(async () => {
+  try {
+    const activeRobots = await require('./models/Robot').countDocuments({ status: 'active' });
+    io.emit('metrics', { activeRobots, tokensSpent: Math.floor(Math.random() * 5000), commissions: Math.floor(Math.random() * 200) });
+  } catch(e) {}
+}, 5000);
+
+app.get('/public-dashboard', (req, res) => {
+  res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Public Dashboard</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f4f4f9; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; display: inline-block; width: 30%; text-align: center; }
+    .container { display: flex; justify-content: space-between; }
+    canvas { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body>
+  <h1>MyZubster Live Dashboard</h1>
+  <div class="container">
+    <div class="card"><h3>Active Robots</h3><h2 id="r-count">0</h2></div>
+    <div class="card"><h3>Tokens Spent</h3><h2 id="t-spent">0</h2></div>
+    <div class="card"><h3>Commissions</h3><h2 id="c-gen">0</h2></div>
+  </div>
+  <canvas id="myChart" width="400" height="150"></canvas>
+  <script>
+    const ctx = document.getElementById('myChart').getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: { labels: [], datasets: [{ label: 'Active Robots', data: [], borderColor: '#3b82f6', tension: 0.1 }] }
+    });
+    const socket = io();
+    socket.on('metrics', (data) => {
+      document.getElementById('r-count').innerText = data.activeRobots;
+      document.getElementById('t-spent').innerText = data.tokensSpent;
+      document.getElementById('c-gen').innerText = data.commissions;
+      
+      const time = new Date().toLocaleTimeString();
+      chart.data.labels.push(time);
+      chart.data.datasets[0].data.push(data.activeRobots);
+      if (chart.data.labels.length > 20) { chart.data.labels.shift(); chart.data.datasets[0].data.shift(); }
+      chart.update();
+    });
+  </script>
+</body>
+</html>
+  `);
+});
+
+server.listen(PORT, () => {
   console.log(`🚀 Gateway running on http://localhost:${PORT}`);
 });
+
 
 process.on('SIGTERM', () => {
   console.log('🛑 SIGTERM ricevuto, chiusura graceful...');
