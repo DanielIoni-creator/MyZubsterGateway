@@ -21,6 +21,7 @@ const animalRoutes = require('./routes/animals');
 const plantRoutes = require('./routes/plants');
 const rewardRoutes = require('./routes/rewards');
 const contributorsRoutes = require('./routes/contributors');
+const marketingTemplateRoutes = require('./routes/marketingTemplates');
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -37,6 +38,7 @@ app.use('/api/animals', animalRoutes);
 app.use('/api/plants', plantRoutes);
 app.use('/api/rewards', rewardRoutes);
 app.use('/api/contributors', contributorsRoutes);
+app.use('/api/marketing-templates', marketingTemplateRoutes);
 
 // Robot routes
 try {
