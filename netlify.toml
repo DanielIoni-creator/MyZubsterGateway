@@ -1,6 +1,6 @@
 [build]
   command = "echo 'Skipping frontend build for now'"
-  publish = "."
+  publish = "frontend"
 
 [build.environment]
   NODE_VERSION = "20"
