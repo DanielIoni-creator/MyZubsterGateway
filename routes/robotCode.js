@@ -1,9 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const robotCode = require('../robot_code_persistent');
+const robotCode = require('../robot_code');
 const robotBrain = require('../robot_brain');
 
-// Route di test per verificare il caricamento
+// --- MIDDLEWARE DI DEBUG ---
+router.use((req, res, next) => {
+  console.log(`[DEBUG] robotCode router ha ricevuto: ${req.method} ${req.path}`);
+  next();
+});
+// -------------------------
+
+// ROTTA DI TEST
 router.get('/test', (req, res) => res.json({ test: 'ok' }));
 
 // Crea un job di codice
