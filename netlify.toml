@@ -1,0 +1,11 @@
+[build]
+  command = "echo 'Skipping frontend build for now'"
+  publish = "."
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[redirects]]
+  from = "/*"
+  to = "/"
+  status = 200
