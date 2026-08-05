@@ -4,6 +4,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import Home from './pages/Home';
 import Bounty from './pages/Bounty';
+import ApiDocs from './pages/ApiDocs';
 import ErrorPage from './pages/ErrorPage';
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/bounty" element={<Bounty />} />
+            <Route path="/api-docs" element={<ApiDocs />} />
             <Route path="/404" element={<ErrorPage type="404" />} />
             <Route path="/500" element={<ErrorPage type="500" />} />
             <Route path="/403" element={<ErrorPage type="403" />} />
