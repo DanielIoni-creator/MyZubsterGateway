@@ -91,4 +91,13 @@ router.get('/status/:robotId', (req, res) => {
   }
 });
 
+router.get('/all', (req, res) => {
+  try {
+    const robots = robotBrain.getAllRobots();
+    res.json({ success: true, data: robots });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

@@ -14,6 +14,7 @@ import Requests from './pages/Requests';
 import Profile from './pages/Profile';
 import Tokens from './pages/Tokens';
 import AdminDashboard from './pages/AdminDashboard';
+import RobotDashboard from './pages/RobotDashboard';
 import ApiDocs from './pages/ApiDocs';
 import ErrorPage from './pages/ErrorPage';
 
@@ -34,6 +35,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/2fa-setup" element={<TwoFactorSetup />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/dashboard/robots" element={<ProtectedRoute><RobotDashboard /></ProtectedRoute>} />
           <Route path="/skills" element={<Skills />} />
           <Route path="/offers" element={<Offers />} />
           <Route path="/offers/create" element={<ProtectedRoute><CreateOffer /></ProtectedRoute>} />

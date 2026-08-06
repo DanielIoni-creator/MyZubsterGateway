@@ -7,6 +7,7 @@ const { createOrder, onPaymentReceived } = require('./buy_myz');
 const { createEscrow, lockFunds, submitProof, release, dispute, getEscrow } = require('./escrow_simulator');
 const { mint, balance } = require('./token_simulator');
 const { assignReward } = require('./services/rewardService');
+const socketService = require('./services/socketService');
 
 const app = express();
 app.use(express.json());
@@ -81,7 +82,13 @@ if (fs.existsSync(frontendDist)) {
 
 // ---------- START SERVER ----------
 const PORT = process.env.PORT || 10000;
-const server = app.listen(PORT, () => {
+const http = require('http');
+const server = http.createServer(app);
+
+// Initialize Socket.io
+socketService.init(server);
+
+server.listen(PORT, () => {
   console.log(`🚀 Gateway running on http://localhost:${PORT}`);
 });
 

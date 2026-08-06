@@ -2,11 +2,14 @@ const escrowRobot = require('./escrow_robot');
 const { notifyRobot, notifyUser } = require('./notifications');
 const robotState = new Map();
 
+const socketService = require('./services/socketService');
+
 function createRobot(robotId, name, walletAddress) {
   if (robotState.has(robotId)) throw new Error(`Robot ${robotId} già esiste`);
   const robot = { robotId, name, walletAddress, status: 'idle', currentJob: null, reputation: 0, jobsCompleted: 0, totalEarned: 0, history: [], createdAt: Date.now() };
   robotState.set(robotId, robot);
   console.log(`🤖 Robot ${name} (${robotId}) creato`);
+  socketService.emitRobotStatus(robotId, 'idle');
   return robot;
 }
 
@@ -20,6 +23,8 @@ async function assignJobToRobot(robotId, jobId, clientId, amount, currency) {
   robot.history.push({ event: 'job_assigned', jobId, amount, currency, timestamp: Date.now() });
   await notifyRobot(robotId, `✅ Job ${jobId} assegnato. ${amount} ${currency} bloccati. Consegna entro 24h.`);
   await notifyUser(clientId, `🤖 Robot ${robot.name} ha accettato il job ${jobId}`);
+  socketService.emitRobotStatus(robotId, 'working');
+  socketService.emitJobProgress(jobId, 0);
   return robot;
 }
 
@@ -28,9 +33,12 @@ async function executeJob(robotId) {
   if (!robot) throw new Error(`Robot ${robotId} non trovato`);
   if (robot.status !== 'working') throw new Error(`Robot ${robotId} non è in esecuzione`);
   console.log(`🔧 Robot ${robot.name} sta eseguendo job ${robot.currentJob.jobId}...`);
+  socketService.emitJobProgress(robot.currentJob.jobId, 50);
   await new Promise(resolve => setTimeout(resolve, 2000));
   robot.status = 'delivering';
   robot.history.push({ event: 'job_executed', jobId: robot.currentJob.jobId, timestamp: Date.now() });
+  socketService.emitRobotStatus(robotId, 'delivering');
+  socketService.emitJobProgress(robot.currentJob.jobId, 90);
   return { success: true, message: 'Lavoro eseguito' };
 }
 
@@ -47,6 +55,8 @@ async function deliverJob(robotId) {
   robot.currentJob = null;
   robot.history.push({ event: 'job_delivered', jobId, timestamp: Date.now() });
   await notifyRobot(robotId, `✅ Job ${jobId} consegnato. In attesa di conferma o disputa.`);
+  socketService.emitRobotStatus(robotId, 'idle');
+  socketService.emitJobProgress(jobId, 100);
   return { success: true, message: 'Job consegnato' };
 }
 
@@ -57,6 +67,7 @@ async function handleDispute(robotId, jobId, reason) {
   robot.status = 'dispute';
   robot.history.push({ event: 'dispute_opened', jobId, reason, timestamp: Date.now() });
   await notifyRobot(robotId, `⚠️ Disputa aperta per job ${jobId}. Motivo: ${reason}`);
+  socketService.emitRobotStatus(robotId, 'dispute');
   return { success: true, message: 'Disputa aperta' };
 }
 
@@ -75,4 +86,16 @@ function getRobotStatus(robotId) {
   };
 }
 
-module.exports = { createRobot, assignJobToRobot, executeJob, deliverJob, handleDispute, getRobotStatus };
+function getAllRobots() {
+  return Array.from(robotState.values()).map(r => ({
+    robotId: r.robotId,
+    name: r.name,
+    status: r.status,
+    currentJob: r.currentJob,
+    reputation: r.reputation,
+    jobsCompleted: r.jobsCompleted,
+    totalEarned: r.totalEarned
+  }));
+}
+
+module.exports = { createRobot, assignJobToRobot, executeJob, deliverJob, handleDispute, getRobotStatus, getAllRobots };
