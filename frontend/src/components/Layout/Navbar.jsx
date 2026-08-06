@@ -13,6 +13,7 @@ const Navbar = () => {
           <Link to="/offers" className="hover:text-gray-300">Offerte</Link>
           <Link to="/skills" className="hover:text-gray-300">Competenze</Link>
           <Link to="/tokens" className="hover:text-gray-300">💎 Token</Link>
+          <Link to="/wallet" className="hover:text-gray-300">👛 Wallet</Link>
           {user ? (
             <>
               <Link to="/offers/create" className="hover:text-gray-300">+ Nuova Offerta</Link>
