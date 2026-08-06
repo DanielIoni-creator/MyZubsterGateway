@@ -1,0 +1,200 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "MyZubster Tokenisation and Institutional API",
+    "version": "1.0.0-draft",
+    "description": "Contract-first API for tokenised assets, compliance and institutional settlement. Operations marked contract-first are not live until their backing module is deployed."
+  },
+  "servers": [
+    { "url": "http://localhost:10000", "description": "Local" },
+    { "url": "https://myzubsterapp.onrender.com", "description": "Hosted gateway" }
+  ],
+  "tags": [
+    { "name": "Tokenisation" },
+    { "name": "Compliance" },
+    { "name": "Institutional" }
+  ],
+  "paths": {
+    "/api/tokenization/assets": {
+      "post": {
+        "tags": ["Tokenisation"],
+        "summary": "Register a tokenised asset",
+        "operationId": "registerAsset",
+        "x-implementation-status": "contract-first",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AssetInput" }, "example": { "externalId": "SG-BOND-2030", "name": "Example SGD Bond 2030", "assetClass": "DEBT_SECURITY", "jurisdiction": "SG", "currency": "SGD", "totalSupply": "1000000.00", "issuerWallet": "wallet_issuer_01", "transferPolicy": "VERIFIED_ONLY" } } }
+        },
+        "responses": {
+          "201": { "description": "Registered", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AssetResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      },
+      "get": {
+        "tags": ["Tokenisation"],
+        "summary": "List tokenised assets",
+        "operationId": "listAssets",
+        "x-implementation-status": "contract-first",
+        "parameters": [
+          { "name": "assetClass", "in": "query", "schema": { "type": "string" } },
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["DRAFT", "ACTIVE", "SUSPENDED", "REDEEMED"] } }
+        ],
+        "responses": { "200": { "description": "Asset list", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "array", "items": { "$ref": "#/components/schemas/Asset" } } } } } } } }
+      }
+    },
+    "/api/tokenization/assets/{assetId}": {
+      "get": {
+        "tags": ["Tokenisation"],
+        "summary": "Get asset lifecycle state",
+        "operationId": "getAsset",
+        "x-implementation-status": "contract-first",
+        "parameters": [{ "$ref": "#/components/parameters/AssetId" }],
+        "responses": {
+          "200": { "description": "Asset", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AssetResponse" } } } },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/api/tokenization/assets/{assetId}/mint": {
+      "post": {
+        "tags": ["Tokenisation"],
+        "summary": "Mint units to an eligible wallet",
+        "operationId": "mintAsset",
+        "x-implementation-status": "contract-first",
+        "parameters": [{ "$ref": "#/components/parameters/AssetId" }, { "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TokenMovement" }, "example": { "walletId": "wallet_fund_01", "amount": "25000.00", "reference": "subscription-001" } } } },
+        "responses": {
+          "202": { "description": "Accepted", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TransactionResponse" } } } },
+          "403": { "$ref": "#/components/responses/ComplianceRejected" },
+          "422": { "$ref": "#/components/responses/Unprocessable" }
+        }
+      }
+    },
+    "/api/tokenization/assets/{assetId}/redeem": {
+      "post": {
+        "tags": ["Tokenisation"],
+        "summary": "Redeem and burn units",
+        "operationId": "redeemAsset",
+        "x-implementation-status": "contract-first",
+        "parameters": [{ "$ref": "#/components/parameters/AssetId" }, { "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TokenMovement" } } } },
+        "responses": {
+          "202": { "description": "Accepted", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TransactionResponse" } } } },
+          "403": { "$ref": "#/components/responses/ComplianceRejected" },
+          "422": { "$ref": "#/components/responses/Unprocessable" }
+        }
+      }
+    },
+    "/api/compliance/wallets/{walletId}": {
+      "put": {
+        "tags": ["Compliance"],
+        "summary": "Create or update a wallet compliance profile",
+        "operationId": "upsertWalletCompliance",
+        "x-implementation-status": "contract-first",
+        "parameters": [{ "$ref": "#/components/parameters/WalletId" }, { "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ComplianceInput" }, "example": { "entityId": "fund-001", "entityType": "INSTITUTION", "verificationLevel": "INSTITUTIONAL", "jurisdiction": "SG", "riskRating": "LOW", "verifiedUntil": "2027-08-06T00:00:00Z" } } } },
+        "responses": {
+          "200": { "description": "Stored", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ComplianceResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" }
+        }
+      },
+      "get": {
+        "tags": ["Compliance"],
+        "summary": "Read wallet eligibility",
+        "operationId": "getWalletCompliance",
+        "x-implementation-status": "contract-first",
+        "parameters": [{ "$ref": "#/components/parameters/WalletId" }],
+        "responses": {
+          "200": { "description": "Profile", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ComplianceResponse" } } } },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/api/compliance/screenings": {
+      "post": {
+        "tags": ["Compliance"],
+        "summary": "Screen a proposed transaction",
+        "operationId": "screenTransaction",
+        "x-implementation-status": "contract-first",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ScreeningInput" }, "example": { "fromWalletId": "wallet_bank_01", "toWalletId": "wallet_fund_01", "assetId": "asset_01", "amount": "10000.00", "jurisdiction": "SG" } } } },
+        "responses": {
+          "200": { "description": "Decision", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ScreeningResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" }
+        }
+      }
+    },
+    "/api/institutional/settlements": {
+      "post": {
+        "tags": ["Institutional"],
+        "summary": "Create a delivery-versus-payment settlement",
+        "operationId": "createSettlement",
+        "x-implementation-status": "contract-first",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SettlementInput" }, "example": { "assetId": "asset_01", "assetAmount": "25000.00", "sellerWalletId": "wallet_bank_01", "buyerWalletId": "wallet_fund_01", "cashCurrency": "SGD-CBDC", "cashAmount": "2497500.00", "reference": "trade-2026-0042" } } } },
+        "responses": {
+          "202": { "description": "Accepted", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SettlementResponse" } } } },
+          "403": { "$ref": "#/components/responses/ComplianceRejected" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      },
+      "get": {
+        "tags": ["Institutional"],
+        "summary": "List settlement instructions",
+        "operationId": "listSettlements",
+        "x-implementation-status": "contract-first",
+        "parameters": [{ "name": "status", "in": "query", "schema": { "$ref": "#/components/schemas/SettlementStatus" } }],
+        "responses": { "200": { "description": "Settlement list", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "array", "items": { "$ref": "#/components/schemas/Settlement" } } } } } } } }
+      }
+    },
+    "/api/institutional/settlements/{settlementId}": {
+      "get": {
+        "tags": ["Institutional"],
+        "summary": "Get settlement status and audit references",
+        "operationId": "getSettlement",
+        "x-implementation-status": "contract-first",
+        "parameters": [{ "$ref": "#/components/parameters/SettlementId" }],
+        "responses": {
+          "200": { "description": "Settlement", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SettlementResponse" } } } },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": { "BearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" } },
+    "parameters": {
+      "AssetId": { "name": "assetId", "in": "path", "required": true, "schema": { "type": "string" } },
+      "WalletId": { "name": "walletId", "in": "path", "required": true, "schema": { "type": "string" } },
+      "SettlementId": { "name": "settlementId", "in": "path", "required": true, "schema": { "type": "string" } },
+      "IdempotencyKey": { "name": "Idempotency-Key", "in": "header", "required": true, "schema": { "type": "string", "minLength": 8, "maxLength": 128 } }
+    },
+    "schemas": {
+      "DecimalString": { "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?$", "example": "1000.00" },
+      "AssetInput": { "type": "object", "required": ["externalId", "name", "assetClass", "jurisdiction", "currency", "totalSupply", "issuerWallet", "transferPolicy"], "properties": { "externalId": { "type": "string" }, "name": { "type": "string" }, "assetClass": { "type": "string", "enum": ["DEBT_SECURITY", "EQUITY", "FUND_UNIT", "REAL_WORLD_ASSET", "OTHER"] }, "jurisdiction": { "type": "string" }, "currency": { "type": "string" }, "totalSupply": { "$ref": "#/components/schemas/DecimalString" }, "issuerWallet": { "type": "string" }, "transferPolicy": { "type": "string", "enum": ["VERIFIED_ONLY", "INSTITUTIONAL_ONLY", "CUSTOM"] } } },
+      "Asset": { "allOf": [{ "$ref": "#/components/schemas/AssetInput" }, { "type": "object", "properties": { "assetId": { "type": "string" }, "status": { "type": "string", "enum": ["DRAFT", "ACTIVE", "SUSPENDED", "REDEEMED"] }, "createdAt": { "type": "string", "format": "date-time" } } }] },
+      "AssetResponse": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "$ref": "#/components/schemas/Asset" } } },
+      "TokenMovement": { "type": "object", "required": ["walletId", "amount"], "properties": { "walletId": { "type": "string" }, "amount": { "$ref": "#/components/schemas/DecimalString" }, "reference": { "type": "string" } } },
+      "TransactionResponse": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "object", "properties": { "transactionId": { "type": "string" }, "status": { "type": "string", "enum": ["PENDING", "CONFIRMED", "FAILED"] }, "txHash": { "type": "string", "nullable": true } } } } },
+      "ComplianceInput": { "type": "object", "required": ["entityId", "entityType", "verificationLevel", "jurisdiction", "riskRating"], "properties": { "entityId": { "type": "string" }, "entityType": { "type": "string", "enum": ["PERSON", "INSTITUTION"] }, "verificationLevel": { "type": "string", "enum": ["BASE", "VERIFIED", "INSTITUTIONAL"] }, "jurisdiction": { "type": "string" }, "riskRating": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "PROHIBITED"] }, "verifiedUntil": { "type": "string", "format": "date-time" } } },
+      "ComplianceResponse": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "allOf": [{ "$ref": "#/components/schemas/ComplianceInput" }, { "type": "object", "properties": { "walletId": { "type": "string" }, "eligible": { "type": "boolean" }, "updatedAt": { "type": "string", "format": "date-time" } } }] } } },
+      "ScreeningInput": { "type": "object", "required": ["fromWalletId", "toWalletId", "assetId", "amount"], "properties": { "fromWalletId": { "type": "string" }, "toWalletId": { "type": "string" }, "assetId": { "type": "string" }, "amount": { "$ref": "#/components/schemas/DecimalString" }, "jurisdiction": { "type": "string" } } },
+      "ScreeningResponse": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "object", "properties": { "screeningId": { "type": "string" }, "decision": { "type": "string", "enum": ["ALLOW", "REVIEW", "BLOCK"] }, "reasons": { "type": "array", "items": { "type": "string" } }, "expiresAt": { "type": "string", "format": "date-time" } } } } },
+      "SettlementInput": { "type": "object", "required": ["assetId", "assetAmount", "sellerWalletId", "buyerWalletId", "cashCurrency", "cashAmount", "reference"], "properties": { "assetId": { "type": "string" }, "assetAmount": { "$ref": "#/components/schemas/DecimalString" }, "sellerWalletId": { "type": "string" }, "buyerWalletId": { "type": "string" }, "cashCurrency": { "type": "string" }, "cashAmount": { "$ref": "#/components/schemas/DecimalString" }, "reference": { "type": "string" } } },
+      "SettlementStatus": { "type": "string", "enum": ["PENDING", "LOCKED", "SETTLED", "FAILED", "CANCELLED"] },
+      "Settlement": { "allOf": [{ "$ref": "#/components/schemas/SettlementInput" }, { "type": "object", "properties": { "settlementId": { "type": "string" }, "status": { "$ref": "#/components/schemas/SettlementStatus" }, "assetTxHash": { "type": "string", "nullable": true }, "cashTxHash": { "type": "string", "nullable": true }, "createdAt": { "type": "string", "format": "date-time" }, "settledAt": { "type": "string", "format": "date-time", "nullable": true } } }] },
+      "SettlementResponse": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "$ref": "#/components/schemas/Settlement" } } },
+      "Error": { "type": "object", "required": ["success", "error"], "properties": { "success": { "type": "boolean", "example": false }, "error": { "type": "object", "required": ["code", "message"], "properties": { "code": { "type": "string" }, "message": { "type": "string" }, "requestId": { "type": "string" }, "details": { "type": "object", "additionalProperties": true } } } } }
+    },
+    "responses": {
+      "BadRequest": { "description": "Invalid request", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "NotFound": { "description": "Not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "Conflict": { "description": "Duplicate or conflicting state", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "ComplianceRejected": { "description": "Wallet or transaction is ineligible", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "success": false, "error": { "code": "COMPLIANCE_REJECTED", "message": "Recipient wallet is not eligible", "requestId": "req_01" } } } } },
+      "Unprocessable": { "description": "Business rule or balance failure", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+    }
+  },
+  "security": [{ "BearerAuth": [] }]
+}

@@ -50,6 +50,15 @@ MyZubster is a decentralized ecosystem where **autonomous robots** work for real
 
 ## 📡 API Endpoints
 
+### Institutional tokenisation API
+
+- [OpenAPI contract](docs/openapi/tokenization.json)
+- [Bank and fund integration guide](docs/TOKENIZATION_API_GUIDE.md)
+
+The contract includes token lifecycle, wallet compliance, screening,
+institutional settlement, examples, errors, FAQ, and troubleshooting. Check
+each operation's `x-implementation-status` before use.
+
 ### Swap
 ```bash
 # Get exchange rate
