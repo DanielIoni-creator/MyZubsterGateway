@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AML Monitoring</title>
+  <style>
+    :root { font-family: Inter, system-ui, sans-serif; color: #182126; background: #f4f6f7; }
+    * { box-sizing: border-box; } body { margin: 0; }
+    header { background: #fff; border-bottom: 1px solid #dce2e5; padding: 18px clamp(16px,4vw,48px); display: flex; justify-content: space-between; align-items: center; }
+    h1 { margin: 0; font-size: 20px; letter-spacing: 0; } .live { color: #08783e; font-size: 13px; font-weight: 700; }
+    main { padding: 24px clamp(16px,4vw,48px); overflow-x: auto; }
+    table { width: 100%; min-width: 760px; border-collapse: collapse; background: #fff; border: 1px solid #dce2e5; }
+    th,td { padding: 12px 14px; border-bottom: 1px solid #e8edef; text-align: left; font-size: 14px; }
+    th { background: #edf1f2; color: #526168; font-size: 12px; text-transform: uppercase; }
+    .HIGH { color: #aa2020; font-weight: 800; } .MEDIUM { color: #8a5b00; font-weight: 800; }
+    .empty { text-align: center; padding: 48px; color: #627078; }
+  </style>
+</head>
+<body>
+  <header><h1>AML Monitoring</h1><span class="live" id="connection">Live</span></header>
+  <main><table><thead><tr><th>Created</th><th>Severity</th><th>Score</th><th>Transaction</th><th>Rules</th><th>Status</th></tr></thead><tbody id="rows"><tr><td class="empty" colspan="6">No alerts</td></tr></tbody></table></main>
+  <script>
+    const rows = document.getElementById('rows');
+    const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[character]));
+    const render = (alerts) => { rows.innerHTML = alerts.length ? alerts.slice().reverse().map((alert) => `<tr><td>${escapeHtml(new Date(alert.createdAt).toLocaleString())}</td><td class="${escapeHtml(alert.severity)}">${escapeHtml(alert.severity)}</td><td>${escapeHtml(alert.score)}</td><td>${escapeHtml(alert.transactionId)}</td><td>${escapeHtml(alert.rules.map((rule) => rule.code).join(', '))}</td><td>${escapeHtml(alert.status)}</td></tr>`).join('') : '<tr><td class="empty" colspan="6">No alerts</td></tr>'; };
+    async function load() { const response = await fetch('/api/aml/alerts'); const payload = await response.json(); render(payload.data || []); }
+    const events = new EventSource('/api/aml/stream');
+    events.addEventListener('alert', load);
+    events.onerror = () => { document.getElementById('connection').textContent = 'Reconnecting'; };
+    events.onopen = () => { document.getElementById('connection').textContent = 'Live'; };
+    load();
+  </script>
+</body>
+</html>
