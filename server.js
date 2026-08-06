@@ -32,7 +32,12 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.json());
+app.use(express.json({
+  verify: (req, _res, buffer) => {
+    req.rawBody = buffer;
+  }
+}));
+
 app.use(limiter);
 
 // Import routes - UNA SOLA VOLTA
@@ -44,7 +49,7 @@ const contributorsRoutes = require('./routes/contributors');
 const sensorRoutes = require('./routes/sensors');
 const securityRoutes = require('./routes/security');
 const xmrRoutes = require('./routes/xmr');
-const xmrRoutes = require('./routes/xmr');
+const robotPaymentRoutes = require('./routes/robotPayments');
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -66,7 +71,7 @@ app.use('/api/contributors', contributorsRoutes);
 app.use('/api/sensors', sensorRoutes);
 app.use('/api/security', securityRoutes);
 app.use('/api/xmr', xmrRoutes);
-app.use('/api/xmr', xmrRoutes);
+app.use('/api/robot-payments', robotPaymentRoutes);
 
 // Robot routes
 try {

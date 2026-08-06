@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Robot Payments</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, system-ui, sans-serif; color: #17202a; background: #f5f7f8; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    header { background: #fff; border-bottom: 1px solid #dfe5e8; padding: 18px clamp(16px, 4vw, 48px); display: flex; align-items: center; justify-content: space-between; }
+    h1 { font-size: 20px; margin: 0; letter-spacing: 0; }
+    button { border: 1px solid #aeb9bf; background: #fff; width: 38px; height: 38px; cursor: pointer; font-size: 19px; }
+    main { padding: 24px clamp(16px, 4vw, 48px); overflow-x: auto; }
+    table { width: 100%; min-width: 760px; border-collapse: collapse; background: #fff; border: 1px solid #dfe5e8; }
+    th, td { padding: 12px 14px; border-bottom: 1px solid #e9edef; text-align: left; font-size: 14px; }
+    th { background: #eef2f3; font-size: 12px; text-transform: uppercase; color: #52616a; }
+    code { font-size: 12px; }
+    .empty { text-align: center; padding: 48px; color: #65747c; }
+    .status { font-weight: 700; }
+    .error { color: #a52828; }
+  </style>
+</head>
+<body>
+  <header><h1>Robot Payments</h1><button id="refresh" title="Refresh payments" aria-label="Refresh payments">↻</button></header>
+  <main><table><thead><tr><th>Created</th><th>Customer</th><th>Robot</th><th>Asset</th><th>Amount</th><th>Status</th><th>Transaction</th></tr></thead><tbody id="rows"><tr><td class="empty" colspan="7">Loading payments...</td></tr></tbody></table></main>
+  <script>
+    const rows = document.getElementById('rows');
+    const short = (value) => value ? `${value.slice(0, 10)}…${value.slice(-6)}` : '—';
+    const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
+    async function load() {
+      try {
+        const response = await fetch('/api/robot-payments');
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || 'Request failed');
+        rows.innerHTML = payload.data.length ? payload.data.map((payment) => `<tr><td>${escapeHtml(new Date(payment.createdAt).toLocaleString())}</td><td>${escapeHtml(payment.customerId)}</td><td>${escapeHtml(payment.robotId)}</td><td>${escapeHtml(payment.asset)}</td><td>${escapeHtml(payment.amount)}</td><td class="status">${escapeHtml(payment.status)}</td><td><code title="${escapeHtml(payment.transactionHash || '')}">${escapeHtml(short(payment.transactionHash))}</code></td></tr>`).join('') : '<tr><td class="empty" colspan="7">No payments yet</td></tr>';
+      } catch (error) {
+        rows.innerHTML = `<tr><td class="empty error" colspan="7">${escapeHtml(error.message)}</td></tr>`;
+      }
+    }
+    document.getElementById('refresh').addEventListener('click', load);
+    load();
+  </script>
+</body>
+</html>
