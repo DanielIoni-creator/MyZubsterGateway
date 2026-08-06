@@ -61,7 +61,7 @@ Prerequisites
 1️⃣ Start Monero Wallet RPC (on host)
 bash
 
-monero-wallet-rpc --wallet-file fee_wallet --password myzubster --rpc-bind-port 18083 --testnet --disable-rpc-login
+monero-wallet-rpc --wallet-file your_fee_wallet --password your_wallet_password --rpc-bind-port 18083 --testnet --disable-rpc-login
 
 2️⃣ Clone and start
 bash
@@ -310,7 +310,7 @@ curl -X POST http://localhost:3000/api/orders \
 3️⃣ Send testnet XMR to the generated subaddress
 bash
 
-monero-wallet-cli --testnet --wallet-file fee_wallet
+monero-wallet-cli --testnet --wallet-file your_fee_wallet
 transfer <subaddress> <amount>
 
 4️⃣ Wait 60 seconds for the monitor to detect the payment
