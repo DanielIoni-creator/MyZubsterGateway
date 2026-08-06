@@ -3,42 +3,72 @@ const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// CORS - Permetti richieste dal dominio myzubster.com
+// ---- GIN GUARDIAN SECURITY ----
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: '⚠️ Troppe richieste, riprova più tardi.',
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+// CORS
 app.use(cors({
   origin: ['https://myzubster.com', 'https://www.myzubster.com'],
   credentials: true
 }));
 
-// Middleware
-app.use(express.json());
+// Security headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
 
-// Import routes
+app.use(express.json());
+app.use(limiter);
+
+// Import routes - UNA SOLA VOLTA
 const swapRoutes = require('./routes/swap');
 const animalRoutes = require('./routes/animals');
 const plantRoutes = require('./routes/plants');
 const rewardRoutes = require('./routes/rewards');
 const contributorsRoutes = require('./routes/contributors');
 const marketingTemplateRoutes = require('./routes/marketingTemplates');
+const sensorRoutes = require('./routes/sensors');
+const securityRoutes = require('./routes/security');
+const xmrRoutes = require('./routes/xmr');
+const gl1BridgeRoutes = require('./routes/gl1Bridge');
 
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    rateLimit: '100 requests per 15 minutes'
   });
 });
 
-// Routes API
+// Routes API - UNA SOLA VOLTA
 app.use('/api/swap', swapRoutes);
 app.use('/api/animals', animalRoutes);
 app.use('/api/plants', plantRoutes);
 app.use('/api/rewards', rewardRoutes);
 app.use('/api/contributors', contributorsRoutes);
 app.use('/api/marketing-templates', marketingTemplateRoutes);
+app.use('/api/sensors', sensorRoutes);
+app.use('/api/security', securityRoutes);
+app.use('/api/xmr', xmrRoutes);
+app.use('/api/gl1', gl1BridgeRoutes);
 
 // Robot routes
 try {
@@ -58,9 +88,17 @@ try {
   console.error('❌ Errore caricamento logo:', err.message);
 }
 
-// ---- BOUNTY PAGE (DIRECT HTML) ----
+// ---- STATIC PAGES ----
 app.get('/bounty', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/dist/bounty.html'));
+});
+
+app.get('/garden', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/dist/garden.html'));
+});
+
+app.get('/hospital', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/dist/hospital.html'));
 });
 
 // Static frontend
@@ -87,6 +125,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myzubster
 
 const server = app.listen(PORT, () => {
   console.log(`🚀 Gateway running on http://localhost:${PORT}`);
+  console.log(`🔒 Security: Rate limiting (100 req/15min), Headers active`);
 });
 
 // Graceful shutdown
