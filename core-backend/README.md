@@ -61,7 +61,7 @@ Prerequisites
 1️⃣ Start Monero Wallet RPC (on host)
 bash
 
-monero-wallet-rpc --wallet-file your_fee_wallet --password your_wallet_password --rpc-bind-port 18083 --testnet --disable-rpc-login
+monero-wallet-rpc --wallet-file your_fee_wallet --password <YOUR_WALLET_PASSWORD> --rpc-bind-port 18083 --testnet --disable-rpc-login
 
 2️⃣ Clone and start
 bash
@@ -140,15 +140,15 @@ DATABASE_URL=postgresql://postgres:password@localhost:5432/myzubster
 MONERO_RPC_URL=http://localhost:18083
 MONERO_NETWORK=testnet
 MONERO_MIN_CONFIRMATIONS=10
-MONERO_WALLET_PASSWORD=your_password
+MONERO_WALLET_PASSWORD=<YOUR_PASSWORD>
 
 # Security
-JWT_SECRET=your_jwt_secret_key
+JWT_SECRET=<YOUR_JWT_SECRET>
 
 4️⃣ Start the Monero Wallet RPC
 bash
 
-monero-wallet-rpc --wallet-file your_wallet --password your_password --rpc-bind-port 18083 --testnet --disable-rpc-login
+monero-wallet-rpc --wallet-file your_wallet --password <YOUR_PASSWORD> --rpc-bind-port 18083 --testnet --disable-rpc-login
 
 5️⃣ Start the backend
 bash
@@ -252,7 +252,7 @@ MONERO_MIN_CONFIRMATIONS=10
 3️⃣ Start monero-wallet-rpc on mainnet:
 bash
 
-monero-wallet-rpc --wallet-file your_wallet --password your_password --rpc-bind-port 18083 --disable-rpc-login
+monero-wallet-rpc --wallet-file your_wallet --password <YOUR_PASSWORD> --rpc-bind-port 18083 --disable-rpc-login
 
 4️⃣ Restart the backend:
 bash

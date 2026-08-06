@@ -2,7 +2,7 @@ const express = require("express");
 const { exec } = require("child_process");
 const app = express();
 const PORT = 5000;
-const SECRET = process.env.CONTROL_API_SECRET || "myzubster_control_2026";
+const SECRET = process.env.CONTROL_API_SECRET || "changeme_use_env_var";
 
 app.use(express.json());
 
