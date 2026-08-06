@@ -61,7 +61,7 @@ Prerequisites
 1️⃣ Start Monero Wallet RPC (on host)
 bash
 
-monero-wallet-rpc --wallet-file fee_wallet --password myzubster --rpc-bind-port 18083 --testnet --disable-rpc-login
+monero-wallet-rpc --wallet-file fee_wallet --password YOUR_WALLET_PASSWORD --rpc-bind-port 18083 --testnet --disable-rpc-login
 
 2️⃣ Clone and start
 bash
