@@ -44,7 +44,11 @@ const contributorsRoutes = require('./routes/contributors');
 const sensorRoutes = require('./routes/sensors');
 const securityRoutes = require('./routes/security');
 const xmrRoutes = require('./routes/xmr');
+<<<<<<< HEAD
 const gl1BridgeRoutes = require('./routes/gl1Bridge');
+=======
+const amlRoutes = require('./routes/aml');
+>>>>>>> 177f84209 (feat: add AML transaction monitoring)
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -66,7 +70,11 @@ app.use('/api/contributors', contributorsRoutes);
 app.use('/api/sensors', sensorRoutes);
 app.use('/api/security', securityRoutes);
 app.use('/api/xmr', xmrRoutes);
+<<<<<<< HEAD
 app.use('/api/gl1', gl1BridgeRoutes);
+=======
+app.use('/api/aml', amlRoutes);
+>>>>>>> 177f84209 (feat: add AML transaction monitoring)
 
 // Robot routes
 try {
