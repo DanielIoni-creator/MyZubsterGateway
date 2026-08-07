@@ -72,6 +72,10 @@ app.use('/api/xmr', xmrRoutes);
 app.use('/api/gl1', gl1BridgeRoutes);
 app.use('/api/payments', paymentRoutes);
 
+// Escrow Gateway routes
+const escrowRoutes = require('./routes/escrow');
+app.use('/api/escrow', escrowRoutes);
+
 // Robot routes
 try {
   const robotRoutes = require('./routes/robot');
