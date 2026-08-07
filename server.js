@@ -45,6 +45,8 @@ const sensorRoutes = require('./routes/sensors');
 const securityRoutes = require('./routes/security');
 const xmrRoutes = require('./routes/xmr');
 const gl1BridgeRoutes = require('./routes/gl1Bridge');
+const realtimeRoutes = require('./routes/realtime');
+const { realtime } = require('./services/realtimeService');
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -67,6 +69,7 @@ app.use('/api/sensors', sensorRoutes);
 app.use('/api/security', securityRoutes);
 app.use('/api/xmr', xmrRoutes);
 app.use('/api/gl1', gl1BridgeRoutes);
+app.use('/api/realtime', realtimeRoutes);
 
 // Robot routes
 try {
@@ -124,7 +127,10 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myzubster
 const server = app.listen(PORT, () => {
   console.log(`🚀 Gateway running on http://localhost:${PORT}`);
   console.log(`🔒 Security: Rate limiting (100 req/15min), Headers active`);
+  console.log(`📡 Realtime: WebSocket listening on ws://localhost:${PORT}/ws`);
 });
+
+realtime.attach(server, { path: '/ws' });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
