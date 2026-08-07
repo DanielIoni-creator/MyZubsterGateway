@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Orti</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 font-sans p-6">
+    <div class="max-w-5xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-green-700">📊 Dashboard Orti Urbani</h1>
+            <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">🖨️ Export Report</button>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow text-center">
+                <h3 class="text-gray-500 text-sm font-semibold">Orti Attivi</h3>
+                <p id="stat-active" class="text-4xl font-bold text-green-600">-</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow text-center">
+                <h3 class="text-gray-500 text-sm font-semibold">Temp. Media (°C)</h3>
+                <p id="stat-temp" class="text-4xl font-bold text-orange-500">-</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow text-center">
+                <h3 class="text-gray-500 text-sm font-semibold">Umidità Media (%)</h3>
+                <p id="stat-hum" class="text-4xl font-bold text-blue-500">-</p>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-bold text-gray-700 mb-4">Storico Ultimi 7 Giorni</h2>
+            <canvas id="historyChart" width="400" height="150"></canvas>
+        </div>
+    </div>
+
+    <script>
+        fetch('/api/orti/stats')
+            .then(res => res.json())
+            .then(data => {
+                // Aggiorna metriche in tempo reale
+                document.getElementById('stat-active').innerText = data.realtime.activeGardens;
+                document.getElementById('stat-temp').innerText = data.realtime.temperature;
+                document.getElementById('stat-hum').innerText = data.realtime.humidity;
+
+                // Prepara dati per il grafico
+                const labels = data.history.map(d => d.day);
+                const tempData = data.history.map(d => d.temp);
+                const humData = data.history.map(d => d.hum);
+
+                const ctx = document.getElementById('historyChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Temperatura (°C)',
+                                data: tempData,
+                                borderColor: 'rgb(255, 159, 64)',
+                                tension: 0.1
+                            },
+                            {
+                                label: 'Umidità (%)',
+                                data: humData,
+                                borderColor: 'rgb(54, 162, 235)',
+                                tension: 0.1
+                            }
+                        ]
+                    },
+                    options: { responsive: true }
+                });
+            });
+    </script>
+</body>
+</html>
