@@ -95,6 +95,10 @@ app.get('/garden', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/dist/garden.html'));
 });
 
+app.get('/wallet-dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/dist/wallet-dashboard.html'));
+});
+
 app.get('/hospital', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/dist/hospital.html'));
 });
