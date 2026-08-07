@@ -45,6 +45,7 @@ const sensorRoutes = require('./routes/sensors');
 const securityRoutes = require('./routes/security');
 const xmrRoutes = require('./routes/xmr');
 const gl1BridgeRoutes = require('./routes/gl1Bridge');
+const walletRoutes = require('./routes/wallet');
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -67,6 +68,7 @@ app.use('/api/sensors', sensorRoutes);
 app.use('/api/security', securityRoutes);
 app.use('/api/xmr', xmrRoutes);
 app.use('/api/gl1', gl1BridgeRoutes);
+app.use('/api/wallet', walletRoutes);
 
 // Robot routes
 try {
