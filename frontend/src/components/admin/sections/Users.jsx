@@ -1,8 +1,15 @@
 import { users } from '../mockData';
 import { StatusBadge, Avatar } from '../ui';
 import { Icon } from '../Icons';
+import { downloadCSV } from '../csv';
 
 export default function Users() {
+  const handleExport = () => {
+    const headers = ['Name', 'Email', 'Role', 'Garden', 'Joined', 'Status'];
+    const data = users.map((u) => [u.name, u.email, u.role, u.garden, u.joined, u.status]);
+    downloadCSV(`users-export-${new Date().toISOString().slice(0, 10)}.csv`, headers, data);
+  };
+
   return (
     <div className="ad-section">
       <div className="glass-card">
@@ -13,6 +20,9 @@ export default function Users() {
               <Icon.Search width={15} height={15} />
               <input placeholder="Filter users…" />
             </div>
+            <button className="btn-primary magnetic" onClick={handleExport}>
+              Export CSV
+            </button>
             <button className="btn-primary magnetic">+ Invite</button>
           </div>
         </div>

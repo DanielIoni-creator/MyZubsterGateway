@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import UrbanGardenDashboard from './pages/UrbanGardenDashboard';
 import HospitalDashboard from './pages/HospitalDashboard';
 import TransactionHistory from './pages/TransactionHistory';
+import AdminDashboardPage from './pages/AdminDashboard';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/garden" element={<UrbanGardenDashboard />} />
         <Route path="/hospital" element={<HospitalDashboard />} />
         <Route path="/transactions" element={<TransactionHistory />} />
+        <Route path="/admin" element={<AdminDashboardPage />} />
       </Routes>
     </BrowserRouter>
   );
