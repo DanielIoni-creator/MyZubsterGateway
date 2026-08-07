@@ -44,6 +44,7 @@ app.use('/api/robot/escrow', require('./routes/robotEscrow'));
 app.use('/api/robot/logo', require('./routes/robotLogo'));
 app.use('/api/robot/code', require('./routes/robotCode'));
 app.use('/api/robot/animal', require('./routes/robotAnimal'));
+app.use('/api/seedMarket', require('./routes/seedMarket'));
 
 app.get('/health', (req, res) => {
   res.json({
