@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📦 Pagamenti Batch - MyZubster</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f5f7fa; padding: 20px; color: #2d3748; }
+    .dashboard { max-width: 1200px; margin: 0 auto; }
+    .header {
+      text-align: center; margin-bottom: 30px; padding: 24px;
+      background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 12px; color: white;
+    }
+    .header h1 { font-size: 2.2rem; margin: 0; }
+    .header p { margin: 10px 0 0; opacity: 0.9; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+    .kpi-card { display: flex; align-items: center; padding: 20px; border-radius: 12px; color: white; gap: 16px; }
+    .kpi-card.total { background: linear-gradient(135deg, #667eea, #5a67d8); }
+    .kpi-card.pending { background: linear-gradient(135deg, #ed8936, #dd6b20); }
+    .kpi-card.approved { background: linear-gradient(135deg, #48bb78, #38a169); }
+    .kpi-card.failed { background: linear-gradient(135deg, #fc8181, #f56565); }
+    .kpi-icon { font-size: 2.5rem; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.15); border-radius: 12px; }
+    .kpi-info h3 { margin: 0 0 4px; font-size: 0.85rem; opacity: 0.9; }
+    .kpi-value { font-size: 2rem; font-weight: bold; }
+    .card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .card h2 { color: #2d3748; margin-bottom: 16px; font-size: 1.3rem; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+    .card-header h2 { margin-bottom: 0; }
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #f7fafc; padding: 12px 14px; text-align: left; font-weight: 600; color: #2d3748; white-space: nowrap; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    td { padding: 10px 14px; border-bottom: 1px solid #e2e8f0; color: #4a5568; }
+    tr:hover { background: #f7fafc; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 500; }
+    .badge.pending { background: #fefcbf; color: #744210; }
+    .badge.approved { background: #c6f6d5; color: #22543d; }
+    .badge.completed { background: #bee3f8; color: #2a4365; }
+    .badge.failed { background: #fed7d7; color: #9b2c2c; }
+    .badge.processing { background: #e9d8fd; color: #44337a; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.2s; }
+    .btn-primary { background: #667eea; color: white; }
+    .btn-primary:hover { background: #5a67d8; }
+    .btn-success { background: #48bb78; color: white; }
+    .btn-success:hover { background: #38a169; }
+    .btn-danger { background: #fc8181; color: white; }
+    .btn-danger:hover { background: #f56565; }
+    .btn-warning { background: #ed8936; color: white; }
+    .btn-warning:hover { background: #dd6b20; }
+    .btn-ghost { background: transparent; color: #667eea; border: 1px solid #667eea; }
+    .btn-ghost:hover { background: #ebf4ff; }
+    .btn-export { background: #38b2ac; color: white; }
+    .btn-export:hover { background: #319795; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; background: #f7fafc; padding: 4px; border-radius: 10px; flex-wrap: wrap; }
+    .tab { padding: 10px 20px; border: none; background: transparent; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; color: #4a5568; transition: all 0.2s; }
+    .tab.active { background: white; color: #667eea; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .tab:hover:not(.active) { color: #2d3748; }
+    .search-input { padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; width: 250px; font-size: 0.9rem; }
+    .search-input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.15); }
+    .filter-select { padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; }
+    .upload-zone {
+      border: 2px dashed #cbd5e0; border-radius: 12px; padding: 40px; text-align: center;
+      cursor: pointer; transition: all 0.3s; margin-bottom: 20px;
+    }
+    .upload-zone:hover, .upload-zone.dragover { border-color: #667eea; background: #ebf4ff; }
+    .upload-zone.has-file { border-color: #48bb78; background: #f0fff4; }
+    .upload-zone svg { width: 48px; height: 48px; color: #a0aec0; margin-bottom: 12px; }
+    .upload-zone p { color: #718096; font-size: 0.95rem; }
+    .upload-zone .file-name { color: #48bb78; font-weight: 600; margin-top: 8px; }
+    .upload-preview { background: #f7fafc; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+    .upload-preview table { font-size: 0.85rem; }
+    .upload-preview th { background: #e2e8f0; }
+    .upload-preview td { font-size: 0.85rem; }
+    .upload-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px; }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: white; border-radius: 12px; padding: 30px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
+    .modal h3 { margin-bottom: 20px; color: #2d3748; }
+    .modal p { color: #4a5568; margin-bottom: 16px; line-height: 1.6; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-weight: 500; color: #4a5568; margin-bottom: 6px; font-size: 0.9rem; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.15); }
+    .form-row { display: flex; gap: 12px; }
+    .form-row .form-group { flex: 1; }
+    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+    .loading { text-align: center; font-size: 1.5rem; padding: 50px; color: #2d3748; }
+    .error { text-align: center; padding: 40px; color: #e53e3e; }
+    .empty { text-align: center; padding: 30px; color: #a0aec0; }
+    .last-update { text-align: right; color: #a0aec0; font-size: 0.85rem; margin-top: 8px; }
+    .action-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+    .action-buttons button { padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+    .btn-approve { background: #f0fff4; color: #38a169; }
+    .btn-approve:hover { background: #c6f6d5; }
+    .btn-reject { background: #fff5f5; color: #e53e3e; }
+    .btn-reject:hover { background: #fed7d7; }
+    .btn-view { background: #ebf4ff; color: #5a67d8; }
+    .btn-view:hover { background: #c3dafe; }
+    .checkbox-cell { width: 40px; text-align: center; }
+    .checkbox-cell input { width: 18px; height: 18px; cursor: pointer; }
+    .batch-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .pill { font-size: 12px; color: #718096; border: 1px solid #e2e8f0; border-radius: 999px; padding: 4px 10px; }
+    .pill.live::before { content: "●"; color: #48bb78; margin-right: 6px; }
+    .pill.demo::before { content: "●"; color: #ed8936; margin-right: 6px; }
+    .report-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .report-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; transition: all 0.2s; }
+    .report-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .report-card h3 { font-size: 1rem; color: #2d3748; margin-bottom: 8px; }
+    .report-card .stat { font-size: 1.5rem; font-weight: bold; color: #667eea; }
+    .report-card .stat-label { font-size: 0.85rem; color: #a0aec0; }
+    .report-card .stat-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f7fafc; }
+    .report-card .stat-row:last-child { border-bottom: none; }
+    .progress-bar { height: 8px; background: #e2e8f0; border-radius: 4px; margin: 8px 0; overflow: hidden; }
+    .progress-bar .fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+    .progress-bar .fill.approved { background: #48bb78; }
+    .progress-bar .fill.pending { background: #ed8936; }
+    .progress-bar .fill.failed { background: #fc8181; }
+    .toast { position: fixed; bottom: 20px; right: 20px; padding: 12px 20px; border-radius: 8px; color: white; z-index: 2000; opacity: 0; transition: opacity 0.3s; }
+    .toast.show { opacity: 1; }
+    .toast.success { background: #48bb78; }
+    .toast.error { background: #fc8181; }
+    .toast.info { background: #667eea; }
+    @media (max-width: 768px) {
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      .header h1 { font-size: 1.5rem; }
+      .kpi-value { font-size: 1.5rem; }
+      .search-input { width: 100%; }
+      .card-header { flex-direction: column; align-items: stretch; }
+      .batch-actions { flex-direction: column; align-items: stretch; }
+    }
+    @media (max-width: 480px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard" id="app">
+    <div class="loading">📦 Caricamento dashboard pagamenti batch...</div>
+  </div>
+  <div id="toast" class="toast"></div>
+  <script>
+    (function() {
+      'use strict';
+      const app = document.getElementById('app');
+      const toast = document.getElementById('toast');
+
+      // Demo data
+      const DEMO_BATCHES = [
+        { id: 'BCH-001', name: 'Pagamenti Stipendi Ottobre', totalPayments: 25, totalAmount: 15420.50, currency: 'MYZ', status: 'completed', createdAt: '2026-10-01T08:00:00Z', approvedBy: 'Admin', approvedAt: '2026-10-01T09:30:00Z', completedAt: '2026-10-01T10:00:00Z', notes: 'Stipendi mensili team sviluppo' },
+        { id: 'BCH-002', name: 'Rimborsi Fornitori Q3', totalPayments: 12, totalAmount: 8750.00, currency: 'MYZ', status: 'approved', createdAt: '2026-10-05T10:00:00Z', approvedBy: '', approvedAt: '', completedAt: '', notes: 'Fornitori esterni trimestre 3' },
+        { id: 'BCH-003', name: 'Bonus Performance Ottobre', totalPayments: 8, totalAmount: 3200.00, currency: 'MYZ', status: 'pending', createdAt: '2026-10-10T14:00:00Z', approvedBy: '', approvedAt: '', completedAt: '', notes: 'Bonus trimestrali' },
+        { id: 'BCH-004', name: 'Pagamenti Affitto Locali', totalPayments: 3, totalAmount: 4500.00, currency: 'XMR', status: 'pending', createdAt: '2026-10-12T09:00:00Z', approvedBy: '', approvedAt: '', completedAt: '', notes: 'Affitto trimestrale uffici' },
+        { id: 'BCH-005', name: 'Rimborsi Spese Viaggio', totalPayments: 7, totalAmount: 1890.00, currency: 'MYZ', status: 'failed', createdAt: '2026-10-08T11:00:00Z', approvedBy: 'Admin', approvedAt: '2026-10-08T11:30:00Z', completedAt: '', notes: 'Fondi insufficienti - ripetere' },
+        { id: 'BCH-006', name: 'Pagamenti Freelance Settembre', totalPayments: 15, totalAmount: 9800.00, currency: 'MYZ', status: 'completed', createdAt: '2026-09-28T08:00:00Z', approvedBy: 'Admin', approvedAt: '2026-09-28T09:00:00Z', completedAt: '2026-09-28T10:30:00Z', notes: 'Fatture freelance mese settembre' },
+        { id: 'BCH-007', name: 'Contributi Assicurativi', totalPayments: 5, totalAmount: 2150.00, currency: 'MYZ', status: 'processing', createdAt: '2026-10-11T15:00:00Z', approvedBy: 'Admin', approvedAt: '2026-10-11T15:30:00Z', completedAt: '', notes: 'In elaborazione' },
+      ];
+
+      const DEMO_PAYMENTS = [
+        // Batch 1 - Stipendi
+        { id: 'PAY-001', batchId: 'BCH-001', recipient: 'Mario Rossi', email: 'mario@myzubster.com', amount: 2500.00, currency: 'MYZ', status: 'completed', notes: 'Stipendio ottobre' },
+        { id: 'PAY-002', batchId: 'BCH-001', recipient: 'Laura Bianchi', email: 'laura@myzubster.com', amount: 2200.00, currency: 'MYZ', status: 'completed', notes: '' },
+        { id: 'PAY-003', batchId: 'BCH-001', recipient: 'Giuseppe Verdi', email: 'giuseppe@myzubster.com', amount: 1800.00, currency: 'MYZ', status: 'completed', notes: '' },
+        { id: 'PAY-004', batchId: 'BCH-001', recipient: 'Anna Neri', email: 'anna@myzubster.com', amount: 1500.00, currency: 'MYZ', status: 'completed', notes: '' },
+        { id: 'PAY-005', batchId: 'BCH-001', recipient: 'Marco Gialli', email: 'marco@myzubster.com', amount: 1950.00, currency: 'MYZ', status: 'completed', notes: '' },
+        { id: 'PAY-006', batchId: 'BCH-001', recipient: 'Sofia Marini', email: 'sofia@myzubster.com', amount: 2100.00, currency: 'MYZ', status: 'completed', notes: 'Bonus incluso' },
+        { id: 'PAY-007', batchId: 'BCH-001', recipient: 'Luca Ferrara', email: 'luca@myzubster.com', amount: 1650.00, currency: 'MYZ', status: 'completed', notes: '' },
+        { id: 'PAY-008', batchId: 'BCH-001', recipient: 'Elena Costa', email: 'elena@myzubster.com', amount: 1720.50, currency: 'MYZ', status: 'completed', notes: '' },
+        // Batch 2 - Fornitori
+        { id: 'PAY-009', batchId: 'BCH-002', recipient: 'TechSupply Srl', email: 'fatture@techsupply.it', amount: 3200.00, currency: 'MYZ', status: 'approved', notes: 'Fattura Q3 hardware' },
+        { id: 'PAY-010', batchId: 'BCH-002', recipient: 'CloudHosting SpA', email: 'billing@cloudhosting.it', amount: 1800.00, currency: 'MYZ', status: 'approved', notes: 'Servizi cloud trimestre' },
+        { id: 'PAY-011', batchId: 'BCH-002', recipient: 'NetServices SA', email: 'invoice@netservices.com', amount: 1250.00, currency: 'MYZ', status: 'approved', notes: 'Manutenzione rete' },
+        { id: 'PAY-012', batchId: 'BCH-002', recipient: 'SecurityPlus', email: 'billing@securityplus.com', amount: 2500.00, currency: 'MYZ', status: 'approved', notes: 'Licenze sicurezza annuali' },
+        // Batch 3 - Bonus
+        { id: 'PAY-013', batchId: 'BCH-003', recipient: 'Mario Rossi', email: 'mario@myzubster.com', amount: 500.00, currency: 'MYZ', status: 'pending', notes: 'Bonus Q3' },
+        { id: 'PAY-014', batchId: 'BCH-003', recipient: 'Laura Bianchi', email: 'laura@myzubster.com', amount: 400.00, currency: 'MYZ', status: 'pending', notes: 'Bonus Q3' },
+        { id: 'PAY-015', batchId: 'BCH-003', recipient: 'Sofia Marini', email: 'sofia@myzubster.com', amount: 600.00, currency: 'MYZ', status: 'pending', notes: 'Bonus Q3 eccellenza' },
+        { id: 'PAY-016', batchId: 'BCH-003', recipient: 'Luca Ferrara', email: 'luca@myzubster.com', amount: 350.00, currency: 'MYZ', status: 'pending', notes: '' },
+        { id: 'PAY-017', batchId: 'BCH-003', recipient: 'Elena Costa', email: 'elena@myzubster.com', amount: 450.00, currency: 'MYZ', status: 'pending', notes: '' },
+        { id: 'PAY-018', batchId: 'BCH-003', recipient: 'Marco Gialli', email: 'marco@myzubster.com', amount: 300.00, currency: 'MYZ', status: 'pending', notes: '' },
+        { id: 'PAY-019', batchId: 'BCH-003', recipient: 'Anna Neri', email: 'anna@myzubster.com', amount: 250.00, currency: 'MYZ', status: 'pending', notes: '' },
+        { id: 'PAY-020', batchId: 'BCH-003', recipient: 'Giuseppe Verdi', email: 'giuseppe@myzubster.com', amount: 350.00, currency: 'MYZ', status: 'pending', notes: '' },
+      ];
+
+      let batches = [...DEMO_BATCHES];
+      let payments = [...DEMO_PAYMENTS];
+      let currentTab = 'batches';
+      let selectedBatch = null;
+      let selectedPayments = new Set();
+      let csvData = null;
+      let searchQuery = '';
+      let statusFilter = 'all';
+
+      function showToast(message, type) {
+        toast.textContent = message;
+        toast.className = 'toast ' + type + ' show';
+        setTimeout(function() { toast.className = 'toast ' + type; }, 3000);
+      }
+
+      function formatCurrency(amount, currency) {
+        return amount.toFixed(2) + ' ' + currency;
+      }
+
+      function formatDate(iso) {
+        if (!iso) return '—';
+        return new Date(iso).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      }
+
+      function statusBadge(status) {
+        var labels = { pending: 'In Attesa', approved: 'Approvato', completed: 'Completato', failed: 'Fallito', processing: 'In Elaborazione' };
+        return '<span class="badge ' + status + '">' + (labels[status] || status) + '</span>';
+      }
+
+      function getStats() {
+        var total = batches.length;
+        var pending = batches.filter(function(b) { return b.status === 'pending' || b.status === 'processing'; }).length;
+        var approved = batches.filter(function(b) { return b.status === 'approved' || b.status === 'processing'; }).length;
+        var completed = batches.filter(function(b) { return b.status === 'completed'; }).length;
+        var failed = batches.filter(function(b) { return b.status === 'failed'; }).length;
+        var totalAmount = 0;
+        batches.forEach(function(b) { totalAmount += b.totalAmount; });
+        return { total: total, pending: pending, approved: approved, completed: completed, failed: failed, totalAmount: totalAmount };
+      }
+
+      function renderBatchesTab() {
+        var filtered = batches.filter(function(b) {
+          if (statusFilter !== 'all' && b.status !== statusFilter) return false;
+          if (searchQuery && b.name.toLowerCase().indexOf(searchQuery.toLowerCase()) === -1 && b.id.toLowerCase().indexOf(searchQuery.toLowerCase()) === -1) return false;
+          return true;
+        });
+
+        var html = '<div class="card-header">' +
+          '<h2>📋 Batch di Pagamento</h2>' +
+          '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+          '<input class="search-input" id="search-batches" placeholder="🔍 Cerca batch..." value="' + searchQuery.replace(/"/g, '&quot;') + '">' +
+          '<select class="filter-select" id="filter-status">' +
+          '<option value="all"' + (statusFilter === 'all' ? ' selected' : '') + '>Tutti</option>' +
+          '<option value="pending"' + (statusFilter === 'pending' ? ' selected' : '') + '>In Attesa</option>' +
+          '<option value="approved"' + (statusFilter === 'approved' ? ' selected' : '') + '>Approvati</option>' +
+          '<option value="processing"' + (statusFilter === 'processing' ? ' selected' : '') + '>In Elaborazione</option>' +
+          '<option value="completed"' + (statusFilter === 'completed' ? ' selected' : '') + '>Completati</option>' +
+          '<option value="failed"' + (statusFilter === 'failed' ? ' selected' : '') + '>Falliti</option>' +
+          '</select>' +
+          '</div>' +
+          '</div>' +
+          '<div class="table-container"><table>' +
+          '<thead><tr><th>Batch</th><th>Nome</th><th>Pagamenti</th><th>Importo Totale</th><th>Stato</th><th>Data Creazione</th><th>Azioni</th></tr></thead><tbody>';
+
+        if (filtered.length === 0) {
+          html += '<tr><td colspan="7" class="empty">Nessun batch trovato</td></tr>';
+        } else {
+          filtered.forEach(function(b) {
+            html += '<tr>' +
+              '<td><strong>' + b.id + '</strong></td>' +
+              '<td>' + b.name + '</td>' +
+              '<td>' + b.totalPayments + '</td>' +
+              '<td><strong>' + formatCurrency(b.totalAmount, b.currency) + '</strong></td>' +
+              '<td>' + statusBadge(b.status) + '</td>' +
+              '<td>' + formatDate(b.createdAt) + '</td>' +
+              '<td><div class="action-buttons">' +
+              '<button class="btn-view" onclick="viewBatch(\'' + b.id + '\')">👁️ Dettagli</button>' +
+              (b.status === 'pending' ? '<button class="btn-approve" onclick="approveBatch(\'' + b.id + '\')">✅ Approva</button>' : '') +
+              (b.status === 'pending' ? '<button class="btn-reject" onclick="rejectBatch(\'' + b.id + '\')">❌ Rifiuta</button>' : '') +
+              (b.status === 'failed' ? '<button class="btn-primary" onclick="retryBatch(\'' + b.id + '\')">🔄 Riprova</button>' : '') +
+              '</div></td></tr>';
+          });
+        }
+
+        html += '</tbody></table></div>' +
+          '<div class="batch-actions" style="margin-top:12px;">' +
+          '<button class="btn btn-primary" onclick="showCreateBatchModal()">➕ Nuovo Batch</button>' +
+          '<button class="btn btn-export" onclick="exportBatchesCSV()">📥 Esporta CSV</button>' +
+          '<span class="last-update" id="source-batches" style="flex:1;text-align:right;"></span>' +
+          '</div>';
+        return html;
+      }
+
+      function renderPaymentsTab() {
+        var filtered = payments.filter(function(p) {
+          if (statusFilter !== 'all' && p.status !== statusFilter) return false;
+          if (searchQuery && p.recipient.toLowerCase().indexOf(searchQuery.toLowerCase()) === -1 && p.id.toLowerCase().indexOf(searchQuery.toLowerCase()) === -1) return false;
+          return true;
+        });
+
+        var batchId = selectedBatch ? selectedBatch.id : '';
+        if (batchId) {
+          filtered = filtered.filter(function(p) { return p.batchId === batchId; });
+        }
+
+        var allSelected = filtered.length > 0 && filtered.every(function(p) { return selectedPayments.has(p.id); });
+        var hasPending = filtered.some(function(p) { return p.status === 'pending' || p.status === 'approved'; });
+
+        var html = '';
+        if (selectedBatch) {
+          html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap;">' +
+            '<span>📦 Batch: <strong>' + selectedBatch.id + '</strong> - ' + selectedBatch.name + '</span>' +
+            '<button class="btn btn-ghost" onclick="selectedBatch=null;render();">✕ Chiudi</button>' +
+            '</div>';
+        }
+
+        html += '<div class="card-header">' +
+          '<h2>' + (batchId ? '💳 Pagamenti Batch' : '💳 Tutti i Pagamenti') + '</h2>' +
+          '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+          '<input class="search-input" id="search-payments" placeholder="🔍 Cerca pagamento..." value="' + searchQuery.replace(/"/g, '&quot;') + '">' +
+          '<select class="filter-select" id="filter-payments-status">' +
+          '<option value="all"' + (statusFilter === 'all' ? ' selected' : '') + '>Tutti</option>' +
+          '<option value="pending"' + (statusFilter === 'pending' ? ' selected' : '') + '>In Attesa</option>' +
+          '<option value="approved"' + (statusFilter === 'approved' ? ' selected' : '') + '>Approvati</option>' +
+          '<option value="completed"' + (statusFilter === 'completed' ? ' selected' : '') + '>Completati</option>' +
+          '<option value="failed"' + (statusFilter === 'failed' ? ' selected' : '') + '>Falliti</option>' +
+          '</select>' +
+          '</div>' +
+          '</div>';
+
+        if (hasPending && !batchId) {
+          html += '<div class="batch-actions" style="margin-bottom:12px;">' +
+            '<label style="display:flex;align-items:center;gap:8px;"><input type="checkbox" id="select-all-payments" ' + (allSelected ? 'checked' : '') + ' onclick="toggleSelectAll(this)"> Seleziona tutti</label>' +
+            (selectedPayments.size > 0 ? '<button class="btn btn-success" onclick="approveSelected()">✅ Approva (' + selectedPayments.size + ')</button>' : '') +
+            (selectedPayments.size > 0 ? '<button class="btn btn-danger" onclick="rejectSelected()">❌ Rifiuta (' + selectedPayments.size + ')</button>' : '') +
+            '</div>';
+        }
+
+        html += '<div class="table-container"><table>' +
+          '<thead><tr>' +
+          (hasPending && !batchId ? '<th class="checkbox-cell"></th>' : '') +
+          '<th>ID</th><th>Destinatario</th><th>Email</th><th>Importo</th><th>Stato</th><th>Batch</th><th>Note</th><th>Azioni</th>' +
+          '</tr></thead><tbody>';
+
+        if (filtered.length === 0) {
+          html += '<tr><td colspan="' + (hasPending && !batchId ? 9 : 8) + '" class="empty">Nessun pagamento trovato</td></tr>';
+        } else {
+          filtered.forEach(function(p) {
+            var batch = batches.find(function(b) { return b.id === p.batchId; });
+            html += '<tr>' +
+              (hasPending && !batchId ? '<td class="checkbox-cell"><input type="checkbox" ' + (selectedPayments.has(p.id) ? 'checked' : '') + ' onclick="togglePayment(\'' + p.id + '\')"></td>' : '') +
+              '<td><strong>' + p.id + '</strong></td>' +
+              '<td>' + p.recipient + '</td>' +
+              '<td>' + p.email + '</td>' +
+              '<td><strong>' + formatCurrency(p.amount, p.currency) + '</strong></td>' +
+              '<td>' + statusBadge(p.status) + '</td>' +
+              '<td>' + (batch ? batch.name : p.batchId) + '</td>' +
+              '<td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (p.notes || '—') + '</td>' +
+              '<td><div class="action-buttons">' +
+              (p.status === 'pending' ? '<button class="btn-approve" onclick="approvePayment(\'' + p.id + '\')">✅</button>' : '') +
+              (p.status === 'pending' ? '<button class="btn-reject" onclick="rejectPayment(\'' + p.id + '\')">❌</button>' : '') +
+              '<button class="btn-view" onclick="viewPayment(\'' + p.id + '\')">👁️</button>' +
+              '</div></td></tr>';
+          });
+        }
+
+        html += '</tbody></table></div>' +
+          '<div class="batch-actions" style="margin-top:12px;">' +
+          '<button class="btn btn-export" onclick="exportPaymentsCSV()">📥 Esporta CSV</button>' +
+          '<span class="last-update" id="source-payments" style="flex:1;text-align:right;"></span>' +
+          '</div>';
+        return html;
+      }
+
+      function renderUploadTab() {
+        var html = '<div class="card">' +
+          '<div class="card-header"><h2>📤 Carica CSV Pagamenti</h2></div>' +
+          '<p style="color:#718096;margin-bottom:16px;">Carica un file CSV con i pagamenti da elaborare in batch. Il formato richiesto: <code>destinatario, email, importo, valuta, note</code></p>' +
+          '<div class="upload-zone" id="upload-zone" onclick="document.getElementById(\'csv-file\').click()">' +
+          '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display:block;margin:0 auto 12px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>' +
+          (csvData ? '<p class="file-name">✅ ' + csvData.fileName + ' (' + csvData.rows.length + ' pagamenti)</p>' : '<p>Clicca per selezionare un file CSV o trascina il file qui</p>') +
+          '</div>' +
+          '<input type="file" id="csv-file" accept=".csv" style="display:none" onchange="handleCSVUpload(event)">' +
+          '<div class="upload-zone" style="border-style:solid;padding:16px;" ondrop="handleDrop(event)" ondragover="event.preventDefault();this.classList.add(\'dragover\')" ondragleave="this.classList.remove(\'dragover\')">' +
+          '<p>📄 Trascina il file CSV qui sopra</p>' +
+          '</div>';
+
+        if (csvData && csvData.rows.length > 0) {
+          html += '<div class="upload-preview">' +
+            '<h3 style="margin-bottom:10px;">📋 Anteprima (' + csvData.rows.length + ' pagamenti)</h3>' +
+            '<div class="table-container"><table>' +
+            '<thead><tr><th>#</th><th>Destinatario</th><th>Email</th><th>Importo</th><th>Valuta</th><th>Note</th></tr></thead><tbody>';
+
+          var preview = csvData.rows.slice(0, 10);
+          preview.forEach(function(r, i) {
+            html += '<tr><td>' + (i + 1) + '</td><td>' + r.recipient + '</td><td>' + r.email + '</td><td>' + r.amount + '</td><td>' + (r.currency || 'MYZ') + '</td><td>' + (r.notes || '—') + '</td></tr>';
+          });
+          if (csvData.rows.length > 10) {
+            html += '<tr><td colspan="6" class="empty">... e altri ' + (csvData.rows.length - 10) + ' pagamenti</td></tr>';
+          }
+
+          html += '</tbody></table></div></div>' +
+            '<div class="upload-actions">' +
+            '<button class="btn btn-ghost" onclick="csvData=null;render()">🗑️ Annulla</button>' +
+            '<button class="btn btn-primary" onclick="processCSV()">📦 Crea Batch da CSV</button>' +
+            '</div>';
+        }
+
+        html += '</div>' +
+          '<div class="card">' +
+          '<div class="card-header"><h2>📝 Crea Pagamento Singolo</h2></div>' +
+          '<div class="form-row">' +
+          '<div class="form-group"><label>Destinatario</label><input id="new-pay-recipient" placeholder="Nome destinatario"></div>' +
+          '<div class="form-group"><label>Email</label><input id="new-pay-email" placeholder="email@example.com"></div>' +
+          '</div>' +
+          '<div class="form-row">' +
+          '<div class="form-group"><label>Importo</label><input id="new-pay-amount" type="number" step="0.01" placeholder="0.00"></div>' +
+          '<div class="form-group"><label>Valuta</label><select id="new-pay-currency"><option value="MYZ">MYZ</option><option value="XMR">XMR</option></select></div>' +
+          '</div>' +
+          '<div class="form-group"><label>Note</label><input id="new-pay-notes" placeholder="Note opzionali"></div>' +
+          '<div class="modal-actions"><button class="btn btn-primary" onclick="createSinglePayment()">➕ Aggiungi Pagamento</button></div>' +
+          '</div>';
+        return html;
+      }
+
+      function renderReportsTab() {
+        var stats = getStats();
+        var completedBatches = batches.filter(function(b) { return b.status === 'completed'; });
+        var totalCompletedAmount = 0;
+        completedBatches.forEach(function(b) { totalCompletedAmount += b.totalAmount; });
+        var pendingBatches = batches.filter(function(b) { return b.status === 'pending' || b.status === 'processing'; });
+        var totalPendingAmount = 0;
+        pendingBatches.forEach(function(b) { totalPendingAmount += b.totalAmount; });
+
+        var approvalRate = stats.total > 0 ? Math.round((stats.completed + (stats.approved)) / stats.total * 100) : 0;
+        var successRate = (stats.completed + stats.failed) > 0 ? Math.round(stats.completed / (stats.completed + stats.failed) * 100) : 0;
+
+        var html = '<div class="report-grid">' +
+          '<div class="report-card"><h3>📊 Panoramica Generale</h3>' +
+          '<div class="stat">' + stats.total + '</div><div class="stat-label">Batch Totali</div>' +
+          '<div class="stat-row"><span>Approvati</span><span>' + stats.approved + '</span></div>' +
+          '<div class="stat-row"><span>Completati</span><span>' + stats.completed + '</span></div>' +
+          '<div class="stat-row"><span>Falliti</span><span style="color:#e53e3e;">' + stats.failed + '</span></div>' +
+          '<div class="progress-bar"><div class="fill approved" style="width:' + approvalRate + '%;"></div></div>' +
+          '</div>' +
+          '<div class="report-card"><h3>💰 Importi Totali</h3>' +
+          '<div class="stat">' + formatCurrency(stats.totalAmount, 'MYZ') + '</div><div class="stat-label">Volume Totale</div>' +
+          '<div class="stat-row"><span>Completati</span><span>' + formatCurrency(totalCompletedAmount, 'MYZ') + '</span></div>' +
+          '<div class="stat-row"><span>In Attesa</span><span style="color:#ed8936;">' + formatCurrency(totalPendingAmount, 'MYZ') + '</span></div>' +
+          '</div>' +
+          '<div class="report-card"><h3>✅ Tasso di Successo</h3>' +
+          '<div class="stat">' + successRate + '%</div><div class="stat-label">Completati / Totali</div>' +
+          '<div class="progress-bar"><div class="fill approved" style="width:' + successRate + '%;"></div></div>' +
+          '</div>' +
+          '</div>';
+
+        html += '<div class="card">' +
+          '<div class="card-header"><h2>📈 Storico Batch</h2><button class="btn btn-export" onclick="exportReportCSV()">📥 Esporta Report</button></div>' +
+          '<div class="table-container"><table>' +
+          '<thead><tr><th>Batch</th><th>Nome</th><th>Pagamenti</th><th>Importo</th><th>Stato</th><th>Data Creazione</th><th>Approvato Il</th><th>Completato Il</th></tr></thead><tbody>';
+
+        if (batches.length === 0) {
+          html += '<tr><td colspan="8" class="empty">Nessun dato disponibile</td></tr>';
+        } else {
+          batches.forEach(function(b) {
+            html += '<tr>' +
+              '<td><strong>' + b.id + '</strong></td>' +
+              '<td>' + b.name + '</td>' +
+              '<td>' + b.totalPayments + '</td>' +
+              '<td>' + formatCurrency(b.totalAmount, b.currency) + '</td>' +
+              '<td>' + statusBadge(b.status) + '</td>' +
+              '<td>' + formatDate(b.createdAt) + '</td>' +
+              '<td>' + (b.approvedAt ? formatDate(b.approvedAt) : '—') + '</td>' +
+              '<td>' + (b.completedAt ? formatDate(b.completedAt) : '—') + '</td></tr>';
+          });
+        }
+
+        html += '</tbody></table></div></div>';
+        return html;
+      }
+
+      function render() {
+        var stats = getStats();
+        var html = '<div class="header">' +
+          '<h1>📦 Pagamenti Batch</h1>' +
+          '<p>Gestisci pagamenti multipli, carica CSV, approva batch e genera report</p>' +
+          '</div>' +
+          '<div class="kpi-grid">' +
+          '<div class="kpi-card total"><div class="kpi-icon">📦</div><div class="kpi-info"><h3>Batch Totali</h3><div class="kpi-value">' + stats.total + '</div></div></div>' +
+          '<div class="kpi-card pending"><div class="kpi-icon">⏳</div><div class="kpi-info"><h3>In Attesa</h3><div class="kpi-value">' + stats.pending + '</div></div></div>' +
+          '<div class="kpi-card approved"><div class="kpi-icon">✅</div><div class="kpi-info"><h3>Approvati</h3><div class="kpi-value">' + stats.approved + '</div></div></div>' +
+          '<div class="kpi-card failed"><div class="kpi-icon">❌</div><div class="kpi-info"><h3>Falliti</h3><div class="kpi-value">' + stats.failed + '</div></div></div>' +
+          '</div>' +
+          '<div class="tabs">' +
+          '<button class="tab' + (currentTab === 'batches' ? ' active' : '') + '" onclick="switchTab(\'batches\')">📋 Batch</button>' +
+          '<button class="tab' + (currentTab === 'payments' ? ' active' : '') + '" onclick="switchTab(\'payments\')">💳 Pagamenti</button>' +
+          '<button class="tab' + (currentTab === 'upload' ? ' active' : '') + '" onclick="switchTab(\'upload\')">📤 Carica CSV</button>' +
+          '<button class="tab' + (currentTab === 'reports' ? ' active' : '') + '" onclick="switchTab(\'reports\')">📊 Report</button>' +
+          '</div>';
+
+        if (currentTab === 'batches') html += renderBatchesTab();
+        else if (currentTab === 'payments') html += renderPaymentsTab();
+        else if (currentTab === 'upload') html += renderUploadTab();
+        else if (currentTab === 'reports') html += renderReportsTab();
+
+        html += '<div style="text-align:center;margin-top:20px;color:#a0aec0;font-size:0.85rem;">' +
+          '<span class="pill" id="source-pill">⚙️ Dati dimostrativi</span>' +
+          ' <span id="updated-text"></span>' +
+          '</div>';
+
+        app.innerHTML = html;
+
+        // Bind search/filter events
+        var searchBatches = document.getElementById('search-batches');
+        if (searchBatches) searchBatches.addEventListener('input', function() { searchQuery = this.value; render(); });
+        var searchPayments = document.getElementById('search-payments');
+        if (searchPayments) searchPayments.addEventListener('input', function() { searchQuery = this.value; render(); });
+        var filterStatus = document.getElementById('filter-status');
+        if (filterStatus) filterStatus.addEventListener('change', function() { statusFilter = this.value; render(); });
+        var filterPayments = document.getElementById('filter-payments-status');
+        if (filterPayments) filterPayments.addEventListener('change', function() { statusFilter = this.value; render(); });
+      }
+
+      // Tab switching
+      window.switchTab = function(tab) {
+        currentTab = tab;
+        searchQuery = '';
+        statusFilter = 'all';
+        render();
+      };
+
+      // Batch actions
+      window.viewBatch = function(id) {
+        var batch = batches.find(function(b) { return b.id === id; });
+        if (!batch) return;
+        selectedBatch = batch;
+        currentTab = 'payments';
+        render();
+      };
+
+      window.approveBatch = function(id) {
+        var batch = batches.find(function(b) { return b.id === id; });
+        if (!batch) return;
+        if (!confirm('Approvare il batch ' + batch.id + ' (' + batch.name + ')?')) return;
+        batch.status = 'approved';
+        batch.approvedBy = 'Admin';
+        batch.approvedAt = new Date().toISOString();
+        // Auto-process after approval
+        setTimeout(function() {
+          batch.status = 'processing';
+          render();
+          showToast('Batch ' + batch.id + ' in elaborazione...', 'info');
+          setTimeout(function() {
+            batch.status = 'completed';
+            batch.completedAt = new Date().toISOString();
+            // Update all payments
+            payments.forEach(function(p) {
+              if (p.batchId === id && p.status === 'pending') { p.status = 'completed'; }
+              if (p.batchId === id && p.status === 'approved') { p.status = 'completed'; }
+            });
+            render();
+            showToast('✅ Batch ' + batch.id + ' completato con successo!', 'success');
+          }, 2000);
+        }, 1000);
+        render();
+        showToast('✅ Batch ' + batch.id + ' approvato!', 'success');
+      };
+
+      window.rejectBatch = function(id) {
+        var batch = batches.find(function(b) { return b.id === id; });
+        if (!batch) return;
+        if (!confirm('Rifiutare il batch ' + batch.id + ' (' + batch.name + ')?')) return;
+        batch.status = 'failed';
+        payments.forEach(function(p) {
+          if (p.batchId === id) p.status = 'failed';
+        });
+        render();
+        showToast('❌ Batch ' + batch.id + ' rifiutato', 'error');
+      };
+
+      window.retryBatch = function(id) {
+        var batch = batches.find(function(b) { return b.id === id; });
+        if (!batch) return;
+        batch.status = 'pending';
+        batch.approvedBy = '';
+        batch.approvedAt = '';
+        batch.completedAt = '';
+        payments.forEach(function(p) {
+          if (p.batchId === id) p.status = 'pending';
+        });
+        render();
+        showToast('🔄 Batch ' + batch.id + ' ripristinato per nuova approvazione', 'info');
+      };
+
+      // Payment actions
+      window.togglePayment = function(id) {
+        if (selectedPayments.has(id)) selectedPayments.delete(id);
+        else selectedPayments.add(id);
+        render();
+      };
+
+      window.toggleSelectAll = function(el) {
+        var filtered = payments.filter(function(p) {
+          if (statusFilter !== 'all' && p.status !== statusFilter) return false;
+          if (searchQuery && p.recipient.toLowerCase().indexOf(searchQuery.toLowerCase()) === -1 && p.id.toLowerCase().indexOf(searchQuery.toLowerCase()) === -1) return false;
+          if (selectedBatch && p.batchId !== selectedBatch.id) return false;
+          return true;
+        });
+        if (el.checked) {
+          filtered.forEach(function(p) { selectedPayments.add(p.id); });
+        } else {
+          filtered.forEach(function(p) { selectedPayments.delete(p.id); });
+        }
+        render();
+      };
+
+      window.approveSelected = function() {
+        var count = selectedPayments.size;
+        if (count === 0) return;
+        selectedPayments.forEach(function(id) {
+          var p = payments.find(function(pay) { return pay.id === id; });
+          if (p && p.status === 'pending') p.status = 'approved';
+        });
+        selectedPayments.clear();
+        render();
+        showToast('✅ ' + count + ' pagamenti approvati!', 'success');
+      };
+
+      window.rejectSelected = function() {
+        var count = selectedPayments.size;
+        if (count === 0) return;
+        selectedPayments.forEach(function(id) {
+          var p = payments.find(function(pay) { return pay.id === id; });
+          if (p && (p.status === 'pending' || p.status === 'approved')) p.status = 'failed';
+        });
+        selectedPayments.clear();
+        render();
+        showToast('❌ ' + count + ' pagamenti rifiutati', 'error');
+      };
+
+      window.approvePayment = function(id) {
+        var p = payments.find(function(pay) { return pay.id === id; });
+        if (!p) return;
+        p.status = 'approved';
+        render();
+        showToast('✅ Pagamento ' + p.id + ' approvato', 'success');
+      };
+
+      window.rejectPayment = function(id) {
+        var p = payments.find(function(pay) { return pay.id === id; });
+        if (!p) return;
+        p.status = 'failed';
+        render();
+        showToast('❌ Pagamento ' + p.id + ' rifiutato', 'error');
+      };
+
+      window.viewPayment = function(id) {
+        var p = payments.find(function(pay) { return pay.id === id; });
+        if (!p) return;
+        var batch = batches.find(function(b) { return b.id === p.batchId; });
+        var html = '<div class="modal-overlay open" id="payment-modal">' +
+          '<div class="modal">' +
+          '<h3>💳 Dettaglio Pagamento ' + p.id + '</h3>' +
+          '<div class="form-row"><div class="form-group"><label>Destinatario</label><p>' + p.recipient + '</p></div>' +
+          '<div class="form-group"><label>Email</label><p>' + p.email + '</p></div></div>' +
+          '<div class="form-row"><div class="form-group"><label>Importo</label><p><strong>' + formatCurrency(p.amount, p.currency) + '</strong></p></div>' +
+          '<div class="form-group"><label>Stato</label><p>' + statusBadge(p.status) + '</p></div></div>' +
+          '<div class="form-group"><label>Batch</label><p>' + (batch ? batch.name + ' (' + p.batchId + ')' : p.batchId) + '</p></div>' +
+          '<div class="form-group"><label>Note</label><p>' + (p.notes || 'Nessuna nota') + '</p></div>' +
+          '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal(\'payment-modal\')">Chiudi</button></div>' +
+          '</div></div>';
+        app.insertAdjacentHTML('beforeend', html);
+      };
+
+      // CSV Upload
+      window.handleCSVUpload = function(event) {
+        var file = event.target.files[0];
+        if (!file) return;
+        parseCSVFile(file);
+      };
+
+      window.handleDrop = function(event) {
+        event.preventDefault();
+        event.currentTarget.classList.remove('dragover');
+        var file = event.dataTransfer.files[0];
+        if (file) parseCSVFile(file);
+      };
+
+      function parseCSVFile(file) {
+        if (!file.name.endsWith('.csv')) {
+          showToast('❌ Per favore carica un file CSV', 'error');
+          return;
+        }
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            var text = e.target.result;
+            var lines = text.split('\n').filter(function(l) { return l.trim(); });
+            if (lines.length < 2) {
+              showToast('❌ Il file CSV deve avere almeno un\'intestazione e una riga dati', 'error');
+              return;
+            }
+            var headers = lines[0].split(',').map(function(h) { return h.trim().toLowerCase(); });
+            var rows = [];
+            for (var i = 1; i < lines.length; i++) {
+              var cols = lines[i].split(',').map(function(c) { return c.trim().replace(/^"(.*)"$/, '$1'); });
+              var row = {};
+              headers.forEach(function(h, idx) {
+                if (h === 'destinatario' || h === 'recipient') row.recipient = cols[idx] || '';
+                else if (h === 'email') row.email = cols[idx] || '';
+                else if (h === 'importo' || h === 'amount') row.amount = parseFloat(cols[idx]) || 0;
+                else if (h === 'valuta' || h === 'currency') row.currency = cols[idx] || 'MYZ';
+                else if (h === 'note' || h === 'notes') row.notes = cols[idx] || '';
+              });
+              if (row.recipient && row.amount > 0) {
+                row.currency = row.currency || 'MYZ';
+                rows.push(row);
+              }
+            }
+            if (rows.length === 0) {
+              showToast('❌ Nessun pagamento valido trovato nel CSV', 'error');
+              return;
+            }
+            csvData = { fileName: file.name, rows: rows };
+            render();
+            showToast('✅ Caricati ' + rows.length + ' pagamenti da CSV', 'success');
+          } catch(err) {
+            showToast('❌ Errore nel leggere il CSV: ' + err.message, 'error');
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      window.processCSV = function() {
+        if (!csvData || csvData.rows.length === 0) {
+          showToast('❌ Nessun dato CSV da elaborare', 'error');
+          return;
+        }
+        var now = new Date().toISOString();
+        var batchId = 'BCH-' + String(batches.length + 1).padStart(3, '0');
+        var totalAmount = 0;
+        csvData.rows.forEach(function(r) { totalAmount += r.amount; });
+        var batch = {
+          id: batchId,
+          name: 'Caricamento CSV ' + new Date().toLocaleDateString('it-IT'),
+          totalPayments: csvData.rows.length,
+          totalAmount: totalAmount,
+          currency: 'MYZ',
+          status: 'pending',
+          createdAt: now,
+          approvedBy: '',
+          approvedAt: '',
+          completedAt: '',
+          notes: 'Importato da ' + csvData.fileName
+        };
+        batches.push(batch);
+        csvData.rows.forEach(function(r, i) {
+          payments.push({
+            id: 'PAY-' + String(payments.length + 1 + i).padStart(3, '0'),
+            batchId: batchId,
+            recipient: r.recipient,
+            email: r.email,
+            amount: r.amount,
+            currency: r.currency || 'MYZ',
+            status: 'pending',
+            notes: r.notes || ''
+          });
+        });
+        csvData = null;
+        currentTab = 'batches';
+        render();
+        showToast('✅ Batch ' + batchId + ' creato con ' + batch.totalPayments + ' pagamenti!', 'success');
+      };
+
+      // Create batch modal
+      window.showCreateBatchModal = function() {
+        var html = '<div class="modal-overlay open" id="create-batch-modal">' +
+          '<div class="modal">' +
+          '<h3>➕ Nuovo Batch di Pagamento</h3>' +
+          '<div class="form-group"><label>Nome Batch</label><input id="new-batch-name" placeholder="es. Pagamenti Stipendi Novembre"></div>' +
+          '<div class="form-group"><label>Valuta</label><select id="new-batch-currency"><option value="MYZ">MYZ</option><option value="XMR">XMR</option></select></div>' +
+          '<div class="form-group"><label>Note</label><textarea id="new-batch-notes" rows="3" placeholder="Note opzionali"></textarea></div>' +
+          '<div class="modal-actions">' +
+          '<button class="btn btn-ghost" onclick="closeModal(\'create-batch-modal\')">Annulla</button>' +
+          '<button class="btn btn-primary" onclick="createBatch()">➕ Crea Batch</button>' +
+          '</div></div></div>';
+        app.insertAdjacentHTML('beforeend', html);
+      };
+
+      window.createBatch = function() {
+        var name = document.getElementById('new-batch-name').value.trim();
+        var currency = document.getElementById('new-batch-currency').value;
+        var notes = document.getElementById('new-batch-notes').value.trim();
+        if (!name) { showToast('❌ Inserisci un nome per il batch', 'error'); return; }
+        var now = new Date().toISOString();
+        var batchId = 'BCH-' + String(batches.length + 1).padStart(3, '0');
+        batches.push({
+          id: batchId,
+          name: name,
+          totalPayments: 0,
+          totalAmount: 0,
+          currency: currency,
+          status: 'pending',
+          createdAt: now,
+          approvedBy: '',
+          approvedAt: '',
+          completedAt: '',
+          notes: notes + ' (creato manualmente)'
+        });
+        closeModal('create-batch-modal');
+        selectedBatch = batches[batches.length - 1];
+        currentTab = 'payments';
+        render();
+        showToast('✅ Batch ' + batchId + ' creato! Aggiungi pagamenti.', 'success');
+      };
+
+      window.createSinglePayment = function() {
+        var recipient = document.getElementById('new-pay-recipient').value.trim();
+        var email = document.getElementById('new-pay-email').value.trim();
+        var amount = parseFloat(document.getElementById('new-pay-amount').value);
+        var currency = document.getElementById('new-pay-currency').value;
+        var notes = document.getElementById('new-pay-notes').value.trim();
+        if (!recipient || isNaN(amount) || amount <= 0) {
+          showToast('❌ Inserisci destinatario e importo valido', 'error');
+          return;
+        }
+        // Find a pending batch or create one
+        var pendingBatch = batches.find(function(b) { return b.status === 'pending' && b.currency === currency; });
+        if (!pendingBatch) {
+          var now = new Date().toISOString();
+          var batchId = 'BCH-' + String(batches.length + 1).padStart(3, '0');
+          pendingBatch = {
+            id: batchId,
+            name: 'Pagamenti Vari ' + new Date().toLocaleDateString('it-IT'),
+            totalPayments: 0,
+            totalAmount: 0,
+            currency: currency,
+            status: 'pending',
+            createdAt: now,
+            approvedBy: '',
+            approvedAt: '',
+            completedAt: '',
+            notes: 'Creato automaticamente'
+          };
+          batches.push(pendingBatch);
+        }
+        var payId = 'PAY-' + String(payments.length + 1).padStart(3, '0');
+        payments.push({
+          id: payId,
+          batchId: pendingBatch.id,
+          recipient: recipient,
+          email: email,
+          amount: amount,
+          currency: currency,
+          status: 'pending',
+          notes: notes
+        });
+        pendingBatch.totalPayments++;
+        pendingBatch.totalAmount += amount;
+        document.getElementById('new-pay-recipient').value = '';
+        document.getElementById('new-pay-email').value = '';
+        document.getElementById('new-pay-amount').value = '';
+        document.getElementById('new-pay-notes').value = '';
+        render();
+        showToast('✅ Pagamento ' + payId + ' aggiunto al batch ' + pendingBatch.id, 'success');
+      };
+
+      // Close modal
+      window.closeModal = function(id) {
+        var el = document.getElementById(id);
+        if (el) el.remove();
+      };
+
+      // Exports
+      window.exportBatchesCSV = function() {
+        var csv = 'ID,Nome,Pagamenti,Importo,Valuta,Stato,Data Creazione,Approvato Il,Completato Il,Note\n';
+        batches.forEach(function(b) {
+          csv += '"' + b.id + '","' + b.name.replace(/"/g, '""') + '",' + b.totalPayments + ',' + b.totalAmount + ',"' + b.currency + '","' + b.status + '","' + b.createdAt + '","' + (b.approvedAt || '') + '","' + (b.completedAt || '') + '","' + (b.notes || '').replace(/"/g, '""') + '"\n';
+        });
+        downloadCSV(csv, 'batch-pagamenti-' + new Date().toISOString().slice(0,10) + '.csv');
+      };
+
+      window.exportPaymentsCSV = function() {
+        var csv = 'ID,Batch,Destinatario,Email,Importo,Valuta,Stato,Note\n';
+        payments.forEach(function(p) {
+          csv += '"' + p.id + '","' + p.batchId + '","' + p.recipient.replace(/"/g, '""') + '","' + p.email + '",' + p.amount + ',"' + p.currency + '","' + p.status + '","' + (p.notes || '').replace(/"/g, '""') + '"\n';
+        });
+        downloadCSV(csv, 'pagamenti-' + new Date().toISOString().slice(0,10) + '.csv');
+      };
+
+      window.exportReportCSV = function() {
+        var csv = 'ID,Nome,Pagamenti,Importo,Valuta,Stato,Data Creazione,Approvato Il,Completato Il,Note\n';
+        batches.forEach(function(b) {
+          csv += '"' + b.id + '","' + b.name.replace(/"/g, '""') + '",' + b.totalPayments + ',' + b.totalAmount + ',"' + b.currency + '","' + b.status + '","' + b.createdAt + '","' + (b.approvedAt || '') + '","' + (b.completedAt || '') + '","' + (b.notes || '').replace(/"/g, '""') + '"\n';
+        });
+        downloadCSV(csv, 'report-batch-' + new Date().toISOString().slice(0,10) + '.csv');
+      };
+
+      function downloadCSV(csv, filename) {
+        var blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      // Data loading from API
+      function loadData() {
+        var el = document.getElementById('source-pill');
+        var updated = document.getElementById('updated-text');
+        fetch('/api/payments?limit=200', { headers: { Accept: 'application/json' } })
+          .then(function(r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+          .then(function(body) {
+            var items = (body && body.items) || [];
+            if (items.length > 0) {
+              // Map API payments to batch dashboard format
+              var newBatches = [];
+              var newPayments = [];
+              var batchMap = {};
+              items.forEach(function(p, i) {
+                var batchKey = p.currency || 'MYZ';
+                if (!batchMap[batchKey]) {
+                  var batchId = 'BCH-API-' + Object.keys(batchMap).length;
+                  batchMap[batchKey] = { id: batchId, name: 'Batch ' + batchKey, totalPayments: 0, totalAmount: 0, currency: batchKey, status: 'completed', createdAt: p.createdAt || new Date().toISOString(), approvedBy: 'System', approvedAt: p.createdAt, completedAt: p.updatedAt, notes: 'Dati live da API' };
+                }
+                batchMap[batchKey].totalPayments++;
+                batchMap[batchKey].totalAmount += parseFloat(p.amount) || 0;
+                newPayments.push({
+                  id: p.id || 'API-PAY-' + i,
+                  batchId: batchMap[batchKey].id,
+                  recipient: p.userId || 'Utente',
+                  email: '',
+                  amount: parseFloat(p.amount) || 0,
+                  currency: p.currency || 'MYZ',
+                  status: p.status === 'COMPLETED' ? 'completed' : (p.status === 'PENDING' ? 'pending' : 'approved'),
+                  notes: ''
+                });
+              });
+              batches = Object.values(batchMap);
+              payments = newPayments;
+              if (el) { el.className = 'pill live'; el.textContent = '⚡ Dati live'; }
+              render();
+            }
+          })
+          .catch(function() {
+            if (el) { el.className = 'pill demo'; el.textContent = '⚙️ Dati dimostrativi'; }
+          });
+        if (updated) updated.textContent = 'Aggiornato ' + new Date().toISOString().slice(11, 19) + ' UTC';
+      }
+
+      // Initial render
+      render();
+      loadData();
+      setInterval(loadData, 60000);
+    })();
+  </script>
+</body>
+</html>
