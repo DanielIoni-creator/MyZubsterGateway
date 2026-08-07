@@ -1,0 +1,256 @@
+/**
+ * EVA IONI - Monero Payment Gateway
+ * Gestisce pagamenti in XMR per robot EVA IONI
+ */
+
+const express = require('express');
+const cors = require('cors');
+const { v4: uuidv4 } = require('uuid');
+
+const app = express();
+const PORT = process.env.PORT || 3004;
+
+app.use(cors());
+app.use(express.json());
+
+// Database in memoria per i pagamenti
+const payments = new Map();
+
+// ============================================================
+// API ENDPOINTS
+// ============================================================
+
+// Health check
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'OK',
+    service: 'EVA IONI Monero Gateway',
+    version: '1.0.0',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Saldo wallet (simulato)
+app.get('/api/wallet/balance', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      balance: 0.5,
+      unlocked_balance: 0.5,
+      currency: 'XMR'
+    }
+  });
+});
+
+// Crea un pagamento
+app.post('/api/payments', (req, res) => {
+  try {
+    const { amount, description, metadata } = req.body;
+    
+    if (!amount || amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Amount is required and must be > 0'
+      });
+    }
+
+    const paymentId = uuidv4();
+    const payment = {
+      id: paymentId,
+      paymentId: paymentId.substring(0, 16),
+      address: '83vZt8bKc5qXyHZKwj2Qq3Yp',
+      amount: amount,
+      description: description || 'EVA IONI Robot',
+      metadata: metadata || {},
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+    };
+
+    payments.set(paymentId, payment);
+    
+    res.json({
+      success: true,
+      data: payment
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Ottieni stato pagamento
+app.get('/api/payments/:id', (req, res) => {
+  const payment = payments.get(req.params.id);
+  if (!payment) {
+    return res.status(404).json({
+      success: false,
+      error: 'Payment not found'
+    });
+  }
+  res.json({
+    success: true,
+    data: payment
+  });
+});
+
+// Verifica pagamento
+app.post('/api/payments/:id/verify', (req, res) => {
+  const payment = payments.get(req.params.id);
+  if (!payment) {
+    return res.status(404).json({
+      success: false,
+      error: 'Payment not found'
+    });
+  }
+
+  // Simula verifica (in produzione verifica su blockchain)
+  payment.status = 'confirmed';
+  payment.confirmedAt = new Date().toISOString();
+  payment.transactionId = 'tx_' + uuidv4().substring(0, 16);
+  payments.set(req.params.id, payment);
+
+  res.json({
+    success: true,
+    data: {
+      payment,
+      verification: {
+        verified: true,
+        transactionId: payment.transactionId,
+        amount: payment.amount,
+        confirmed: true
+      }
+    }
+  });
+});
+
+// Statistiche pagamenti
+app.get('/api/payments/stats', (req, res) => {
+  const total = payments.size;
+  const pending = Array.from(payments.values()).filter(p => p.status === 'pending').length;
+  const confirmed = Array.from(payments.values()).filter(p => p.status === 'confirmed').length;
+  const totalAmount = Array.from(payments.values())
+    .filter(p => p.status === 'confirmed')
+    .reduce((sum, p) => sum + p.amount, 0);
+
+  res.json({
+    success: true,
+    data: {
+      total,
+      pending,
+      confirmed,
+      totalAmount,
+      currency: 'XMR'
+    }
+  });
+});
+
+// ============================================================
+// AVVIA IL SERVER
+// ============================================================
+
+app.listen(PORT, () => {
+  console.log(`
+╔═══════════════════════════════════════════════════════╗
+║  💰 EVA IONI - Monero Payment Gateway               ║
+║  🚀 Version: 1.0.0                                  ║
+║  📡 Port: ${PORT}                                     ║
+║  🌐 API: http://localhost:${PORT}/api                ║
+╚═══════════════════════════════════════════════════════╝
+  `);
+  console.log('📡 Endpoints:');
+  console.log('  🔍 GET  /health');
+  console.log('  💰 GET  /api/wallet/balance');
+  console.log('  💳 POST /api/payments');
+  console.log('  📊 GET  /api/payments/:id');
+  console.log('  ✅ POST /api/payments/:id/verify');
+  console.log('  📈 GET  /api/payments/stats');
+});
+
+module.exports = app;
+
+// Fix: Statistiche pagamenti
+app.get('/api/payments/stats', (req, res) => {
+  try {
+    const total = payments.size;
+    const pending = Array.from(payments.values()).filter(p => p.status === 'pending').length;
+    const confirmed = Array.from(payments.values()).filter(p => p.status === 'confirmed').length;
+    const totalAmount = Array.from(payments.values())
+      .filter(p => p.status === 'confirmed')
+      .reduce((sum, p) => sum + p.amount, 0);
+
+    res.json({
+      success: true,
+      data: {
+        total,
+        pending,
+        confirmed,
+        totalAmount,
+        currency: 'XMR'
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Fix: Statistiche pagamenti
+app.get('/api/payments/stats', (req, res) => {
+  try {
+    const total = payments.size;
+    const pending = Array.from(payments.values()).filter(p => p.status === 'pending').length;
+    const confirmed = Array.from(payments.values()).filter(p => p.status === 'confirmed').length;
+    const totalAmount = Array.from(payments.values())
+      .filter(p => p.status === 'confirmed')
+      .reduce((sum, p) => sum + p.amount, 0);
+
+    res.json({
+      success: true,
+      data: {
+        total,
+        pending,
+        confirmed,
+        totalAmount,
+        currency: 'XMR'
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Statistiche pagamenti
+app.get('/api/payments/stats', (req, res) => {
+  try {
+    const total = payments.size;
+    const pending = Array.from(payments.values()).filter(p => p.status === 'pending').length;
+    const confirmed = Array.from(payments.values()).filter(p => p.status === 'confirmed').length;
+    const totalAmount = Array.from(payments.values())
+      .filter(p => p.status === 'confirmed')
+      .reduce((sum, p) => sum + p.amount, 0);
+
+    res.json({
+      success: true,
+      data: {
+        total,
+        pending,
+        confirmed,
+        totalAmount,
+        currency: 'XMR'
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});

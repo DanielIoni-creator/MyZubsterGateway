@@ -1,0 +1,16 @@
+{
+  "name": "eva-ioni-monero-gateway",
+  "version": "1.0.0",
+  "description": "Monero payment gateway for EVA IONI",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.0.0",
+    "cors": "^2.8.5",
+    "uuid": "^9.0.0"
+  }
+}
