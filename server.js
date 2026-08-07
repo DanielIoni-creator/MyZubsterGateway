@@ -90,6 +90,15 @@ try {
   console.error('❌ Errore caricamento logo:', err.message);
 }
 
+// Robot Escrow routes
+try {
+  const robotEscrowRoutes = require('./routes/robotEscrow');
+  app.use('/api/robot/escrow', robotEscrowRoutes);
+  console.log('✅ Caricamento routes robot escrow...');
+} catch (err) {
+  console.error('❌ Errore caricamento robot escrow:', err.message);
+}
+
 // ---- STATIC PAGES ----
 app.get('/bounty', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/dist/bounty.html'));
@@ -105,6 +114,10 @@ app.get('/wallet-dashboard', (req, res) => {
 
 app.get('/hospital', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/dist/hospital.html'));
+});
+
+app.get('/escrow', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/dist/escrow-dashboard.html'));
 });
 
 // Static frontend

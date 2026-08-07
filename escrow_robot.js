@@ -55,4 +55,23 @@ async function openDispute({ jobId, reason }) {
 
 function getEscrow(jobId) { return escrows.get(jobId) || null; }
 
-module.exports = { createEscrow, markDelivered, openDispute, getEscrow, autoRelease };
+function listEscrows() {
+  return Array.from(escrows.values()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+}
+
+function getStats() {
+  const all = listEscrows();
+  const byStatus = (s) => all.filter((e) => e.status === s).length;
+  const totalAmount = all.reduce((sum, e) => sum + (e.amount || 0), 0);
+  return {
+    total: all.length,
+    locked: byStatus('LOCKED'),
+    delivered: byStatus('DELIVERED'),
+    contested: byStatus('CONTESTED'),
+    completed: byStatus('COMPLETED'),
+    totalAmount,
+    totalFee: all.reduce((sum, e) => sum + (e.fee || 0), 0),
+  };
+}
+
+module.exports = { createEscrow, markDelivered, openDispute, getEscrow, listEscrows, getStats, autoRelease };

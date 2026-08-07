@@ -46,6 +46,28 @@ router.post('/dispute', async (req, res) => {
   }
 });
 
+// GET /api/robot/escrow/list
+router.get('/list', (req, res) => {
+  try {
+    const escrows = escrowRobot.listEscrows();
+    res.json({ success: true, data: escrows });
+  } catch (err) {
+    console.error('❌ Error listing escrows:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/robot/escrow/stats
+router.get('/stats', (req, res) => {
+  try {
+    const stats = escrowRobot.getStats();
+    res.json({ success: true, data: stats });
+  } catch (err) {
+    console.error('❌ Error getting escrow stats:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/robot/escrow/:jobId
 router.get('/:jobId', (req, res) => {
   try {
