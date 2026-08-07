@@ -72,6 +72,9 @@ app.use('/api/xmr', xmrRoutes);
 app.use('/api/gl1', gl1BridgeRoutes);
 app.use('/api/payments', paymentRoutes);
 
+const seedExchangeRoutes = require('./routes/seedExchange');
+app.use('/api/seed-exchange', seedExchangeRoutes);
+
 // Robot routes
 try {
   const robotRoutes = require('./routes/robot');
