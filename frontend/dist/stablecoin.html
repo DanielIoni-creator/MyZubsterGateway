@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>💰 Stablecoin USDC/USDT - MyZubster</title>
+  <style>
+    :root {
+      --accent: #2775ca;
+      --accent-2: #26a17b;
+      --accent-3: #50af95;
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --surface-2: #eef1f6;
+      --text: #1f2733;
+      --text-soft: #5b6675;
+      --border: #e2e7ee;
+      --shadow: 0 10px 30px rgba(20, 30, 50, 0.08);
+      --radius: 14px;
+      --credit: #22a06b;
+      --debit: #d94f4f;
+      --warn: #d99000;
+    }
+    [data-theme="dark"] {
+      --bg: #10141b;
+      --surface: #171d27;
+      --surface-2: #1f2733;
+      --text: #e8edf4;
+      --text-soft: #94a1b2;
+      --border: #2a3444;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 28px 20px 48px;
+      font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg); color: var(--text);
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; }
+
+    header { display: flex; align-items: center; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+    h1 { font-size: 24px; margin: 0; }
+    .spacer { flex: 1; }
+    .btn {
+      background: var(--surface); color: var(--text); border: 1px solid var(--border);
+      border-radius: 10px; padding: 8px 14px; cursor: pointer; font-size: 14px;
+    }
+    .btn:hover { border-color: var(--accent); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+
+    .pill { font-size: 12px; color: var(--text-soft); border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; }
+    .pill.live::before { content: "●"; color: var(--accent-2); margin-right: 6px; }
+    .pill.demo::before { content: "●"; color: var(--warn); margin-right: 6px; }
+
+    .alerts { display: grid; gap: 8px; margin-bottom: 18px; }
+    .alert { border-radius: 10px; padding: 10px 14px; font-size: 14px; border: 1px solid var(--border); background: var(--surface); }
+    .alert.warning { border-left: 4px solid var(--warn); }
+    .alert.success { border-left: 4px solid var(--credit); }
+    .alert.info { border-left: 4px solid var(--accent); }
+
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 18px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; position: relative; overflow: hidden; }
+    .card .badge { position: absolute; top: 12px; right: 12px; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+    .badge-usdc { background: #2775ca; color: #fff; }
+    .badge-usdt { background: #26a17b; color: #fff; }
+    .badge-myz { background: var(--accent-2); color: #fff; }
+    .card h2 { margin: 0 0 4px; font-size: 14px; color: var(--text-soft); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+    .amount { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; word-break: break-all; }
+    .amount .decimal { font-size: 18px; color: var(--text-soft); }
+    .sub { display: flex; gap: 16px; margin-top: 10px; font-size: 13px; color: var(--text-soft); flex-wrap: wrap; }
+    .sub b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; margin-bottom: 16px; }
+    .panel-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+    .panel-head h2 { margin: 0; font-size: 16px; }
+    select, input { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 13px; }
+    input { width: 120px; }
+
+    .conv-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; max-width: 500px; margin: 0 auto; }
+    .conv-grid .arrow { font-size: 24px; color: var(--text-soft); text-align: center; }
+    .conv-grid .result { text-align: center; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; padding: 10px; background: var(--surface-2); border-radius: 10px; }
+    .conv-grid .rate { text-align: center; grid-column: 1 / -1; font-size: 12px; color: var(--text-soft); }
+
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; color: var(--text-soft); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    td { padding: 10px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+    tr:last-child td { border-bottom: none; }
+    .dir-CREDIT { color: var(--credit); font-weight: 600; }
+    .dir-DEBIT { color: var(--debit); font-weight: 600; }
+    .state { font-size: 11px; border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; color: var(--text-soft); }
+    .state.completed { border-color: var(--credit); color: var(--credit); }
+    .state.pending { border-color: var(--warn); color: var(--warn); }
+    .empty { color: var(--text-soft); padding: 24px 10px; text-align: center; }
+    .scroll { overflow-x: auto; }
+
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+    .tab { padding: 8px 16px; cursor: pointer; font-size: 14px; color: var(--text-soft); border-bottom: 2px solid transparent; }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+    .tab:hover { color: var(--text); }
+
+    .chart-wrap { width: 100%; height: 200px; position: relative; }
+    .chart-wrap canvas { width: 100% !important; height: 100% !important; }
+
+    footer { text-align: center; font-size: 12px; color: var(--text-soft); margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>💰 Stablecoin <span style="color:#2775ca">USDC</span> / <span style="color:#26a17b">USDT</span></h1>
+      <span id="source" class="pill demo">…</span>
+      <span class="spacer"></span>
+      <button id="export" class="btn primary">⬇ Esporta CSV</button>
+      <button id="theme" class="btn">☾ Tema</button>
+    </header>
+
+    <div id="alerts" class="alerts"></div>
+    <div id="cards" class="cards"></div>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>🔄 Convertitore automatico</h2>
+        <span class="spacer"></span>
+        <select id="conv-dir">
+          <option value="usdc_usdt">USDC → USDT</option>
+          <option value="usdt_usdc">USDT → USDC</option>
+          <option value="usdc_myz">USDC → MYZ</option>
+          <option value="usdt_myz">USDT → MYZ</option>
+          <option value="myz_usdc">MYZ → USDC</option>
+          <option value="myz_usdt">MYZ → USDT</option>
+        </select>
+      </div>
+      <div class="conv-grid">
+        <input id="conv-amount" type="number" value="100" min="0" step="0.01" />
+        <div class="arrow">→</div>
+        <div id="conv-result" class="result">0.00</div>
+        <div id="conv-rate" class="rate">Tasso: 1 USDC = 1 USDT</div>
+      </div>
+    </section>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="tx">📋 Transazioni</div>
+      <div class="tab" data-tab="pool">📊 Pool di liquidità</div>
+    </div>
+
+    <section id="pnl-tx" class="panel">
+      <div class="panel-head">
+        <h2>⚡ Transazioni recenti</h2>
+        <span class="spacer"></span>
+        <select id="tx-filter">
+          <option value="all">Tutte</option>
+          <option value="USDC">USDC</option>
+          <option value="USDT">USDT</option>
+        </select>
+        <span id="updated" class="pill">—</span>
+      </div>
+      <div class="scroll"><table>
+        <thead><tr><th>Data</th><th>Valuta</th><th>Direzione</th><th>Importo</th><th>Stato</th><th>Controparte</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table></div>
+    </section>
+
+    <section id="pnl-pool" class="panel" style="display:none">
+      <div class="panel-head">
+        <h2>💧 Pool di liquidità</h2>
+        <span class="spacer"></span>
+        <span id="pool-tvl" class="pill">TVL: —</span>
+      </div>
+      <div class="scroll"><table>
+        <thead><tr><th>Pool</th><th>Riserva USDC</th><th>Riserva USDT</th><th>Totale ($)</th><th>APY</th><th>Volume 24h</th></tr></thead>
+        <tbody id="pool-rows"></tbody>
+      </table></div>
+    </section>
+  </div>
+
+  <footer>
+    💰 Stablecoin Dashboard — MyZubster Gateway · Dati aggiornati in tempo reale
+  </footer>
+
+<script>
+(function () {
+  'use strict';
+
+  var USER = new URLSearchParams(location.search).get('userId') || 'demo-user';
+  var POLL_MS = 15000;
+
+  // ---- Exchange rates (demo) ----
+  var RATES = {
+    'usdc_usdt': 1.0002,
+    'usdt_usdc': 0.9998,
+    'usdc_myz': 42.5,
+    'usdt_myz': 42.48,
+    'myz_usdc': 0.0235,
+    'myz_usdt': 0.02354,
+  };
+
+  var state = {
+    transactions: [],
+    pools: [],
+    live: false,
+    balances: { USDC: { available: 0, pending: 0, inflow: 0, outflow: 0 }, USDT: { available: 0, pending: 0, inflow: 0, outflow: 0 } }
+  };
+
+  // ---- Demo data ----
+  function demoData() {
+    var out = [];
+    var now = Date.now();
+    var plan = [
+      [14, 'USDC', 'CREDIT', 2500.00, 'COMPLETED', 'swap-in'],
+      [12, 'USDT', 'CREDIT', 2499.50, 'COMPLETED', 'swap-in'],
+      [10, 'USDC', 'DEBIT', 500.00, 'COMPLETED', 'payment-order'],
+      [8,  'USDT', 'CREDIT', 1000.00, 'COMPLETED', 'deposit'],
+      [6,  'USDC', 'DEBIT', 1200.00, 'COMPLETED', 'withdrawal'],
+      [5,  'USDT', 'DEBIT', 300.75, 'COMPLETED', 'fee'],
+      [3,  'USDC', 'CREDIT', 800.00, 'COMPLETED', 'bounty-payout'],
+      [1,  'USDT', 'CREDIT', 150.00, 'PENDING', 'incoming-transfer'],
+      [0,  'USDC', 'DEBIT', 50.00, 'PENDING', 'pending-order'],
+    ];
+    plan.forEach(function (p, i) {
+      out.push({
+        createdAt: new Date(now - p[0] * 86400000).toISOString(),
+        currency: p[1], direction: p[2], amount: p[3], state: p[4],
+        counterparty: p[5], reference: 'demo-' + i,
+      });
+    });
+    return out;
+  }
+
+  function demoPools() {
+    return [
+      { name: 'USDC/USDT', reserveA: 125000, reserveB: 124975, total: 249975, apy: 3.42, volume24h: 45200 },
+      { name: 'USDC/MYZ', reserveA: 85000, reserveB: 3612500, total: 85000, apy: 5.18, volume24h: 12800 },
+      { name: 'USDT/MYZ', reserveB: 76300, reserveA: 3241500, total: 76300, apy: 4.87, volume24h: 10900 },
+    ];
+  }
+
+  function computeBalances(txs) {
+    var b = { USDC: { available: 0, pending: 0, inflow: 0, outflow: 0 }, USDT: { available: 0, pending: 0, inflow: 0, outflow: 0 } };
+    txs.forEach(function (tx) {
+      if (!b[tx.currency]) b[tx.currency] = { available: 0, pending: 0, inflow: 0, outflow: 0 };
+      var dir = tx.direction === 'CREDIT' ? 'inflow' : 'outflow';
+      b[tx.currency][dir] += tx.amount;
+      if (tx.state === 'COMPLETED') b[tx.currency].available += (tx.direction === 'CREDIT' ? 1 : -1) * tx.amount;
+      else b[tx.currency].pending += (tx.direction === 'CREDIT' ? 1 : -1) * tx.amount;
+    });
+    return b;
+  }
+
+  function formatUSD(v) {
+    return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function formatCrypto(v, cur) {
+    return v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }) + ' ' + cur;
+  }
+
+  function el(id) { return document.getElementById(id); }
+
+  // ---- Render functions ----
+  function renderCards() {
+    var b = state.balances;
+    var usdcUsd = b.USDC.available;
+    var usdtUsd = b.USDT.available;
+    var totalUsd = usdcUsd + usdtUsd;
+    var totalMyz = totalUsd * 42.5;
+
+    el('cards').innerHTML = [
+      '<div class="card"><span class="badge badge-usdc">USDC</span>'
+        + '<h2>Saldo USDC</h2>'
+        + '<div class="amount">' + formatUSD(usdcUsd) + '</div>'
+        + '<div class="sub">'
+        + '<span>In attesa <b>' + formatUSD(Math.abs(b.USDC.pending)) + '</b></span>'
+        + '<span>Entrate <b>' + formatUSD(b.USDC.inflow) + '</b></span>'
+        + '<span>Uscite <b>' + formatUSD(b.USDC.outflow) + '</b></span>'
+        + '</div></div>',
+      '<div class="card"><span class="badge badge-usdt">USDT</span>'
+        + '<h2>Saldo USDT</h2>'
+        + '<div class="amount">' + formatUSD(usdtUsd) + '</div>'
+        + '<div class="sub">'
+        + '<span>In attesa <b>' + formatUSD(Math.abs(b.USDT.pending)) + '</b></span>'
+        + '<span>Entrate <b>' + formatUSD(b.USDT.inflow) + '</b></span>'
+        + '<span>Uscite <b>' + formatUSD(b.USDT.outflow) + '</b></span>'
+        + '</div></div>',
+      '<div class="card"><span class="badge badge-myz">TOT</span>'
+        + '<h2>Valore totale (USD)</h2>'
+        + '<div class="amount">' + formatUSD(totalUsd) + '</div>'
+        + '<div class="sub">'
+        + '<span>In MYZ <b>' + totalMyz.toLocaleString('en-US', { minimumFractionDigits: 2 }) + ' MYZ</b></span>'
+        + '<span>USDC ' + (totalUsd > 0 ? (usdcUsd / totalUsd * 100).toFixed(1) : 0) + '%</span>'
+        + '<span>USDT ' + (totalUsd > 0 ? (usdtUsd / totalUsd * 100).toFixed(1) : 0) + '%</span>'
+        + '</div></div>',
+    ].join('');
+  }
+
+  function renderAlerts() {
+    var msgs = [];
+    var b = state.balances;
+    var total = b.USDC.available + b.USDT.available;
+    if (b.USDC.available < 100) msgs.push({ level: 'warning', msg: '⚠️ Saldo USDC basso: ' + formatUSD(b.USDC.available) });
+    if (b.USDT.available < 100) msgs.push({ level: 'warning', msg: '⚠️ Saldo USDT basso: ' + formatUSD(b.USDT.available) });
+    if (Math.abs(b.USDC.pending) > 500) msgs.push({ level: 'info', msg: '⏳ Transazioni USDC in sospeso: ' + formatUSD(Math.abs(b.USDC.pending)) });
+    el('alerts').innerHTML = msgs.map(function (a) {
+      return '<div class="alert ' + a.level + '">' + a.msg + '</div>';
+    }).join('');
+  }
+
+  function renderConverter() {
+    var dir = el('conv-dir').value;
+    var amount = parseFloat(el('conv-amount').value) || 0;
+    var rate = RATES[dir] || 1;
+    var result = amount * rate;
+    el('conv-result').textContent = result.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 });
+
+    var labels = {
+      'usdc_usdt': 'Tasso: 1 USDC = ' + rate + ' USDT',
+      'usdt_usdc': 'Tasso: 1 USDT = ' + rate + ' USDC',
+      'usdc_myz': 'Tasso: 1 USDC = ' + rate + ' MYZ',
+      'usdt_myz': 'Tasso: 1 USDT = ' + rate + ' MYZ',
+      'myz_usdc': 'Tasso: 1 MYZ = ' + rate + ' USDC',
+      'myz_usdt': 'Tasso: 1 MYZ = ' + rate + ' USDT',
+    };
+    el('conv-rate').textContent = labels[dir] || '';
+  }
+
+  function renderRows() {
+    var filter = el('tx-filter').value;
+    var rows = state.transactions.slice().sort(function (a, b) { return a.createdAt < b.createdAt ? 1 : -1; });
+    if (filter !== 'all') rows = rows.filter(function (t) { return t.currency === filter; });
+    rows = rows.slice(0, 30);
+
+    if (!rows.length) { el('rows').innerHTML = '<tr><td colspan="6" class="empty">Nessuna transazione</td></tr>'; return; }
+
+    el('rows').innerHTML = rows.map(function (t) {
+      return '<tr>'
+        + '<td>' + t.createdAt.slice(0, 16).replace('T', ' ') + '</td>'
+        + '<td>' + t.currency + '</td>'
+        + '<td class="dir-' + t.direction + '">' + (t.direction === 'CREDIT' ? '↓ Entrata' : '↑ Uscita') + '</td>'
+        + '<td>' + formatCrypto(t.amount, t.currency) + '</td>'
+        + '<td><span class="state ' + t.state.toLowerCase() + '">' + t.state + '</span></td>'
+        + '<td>' + (t.counterparty || '—') + '</td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  function renderPoolRows() {
+    if (!state.pools.length) { el('pool-rows').innerHTML = '<tr><td colspan="6" class="empty">Nessun pool disponibile</td></tr>'; return; }
+    el('pool-rows').innerHTML = state.pools.map(function (p) {
+      return '<tr>'
+        + '<td>' + p.name + '</td>'
+        + '<td>' + formatUSD(p.reserveA) + '</td>'
+        + '<td>' + formatUSD(p.reserveB) + '</td>'
+        + '<td>' + formatUSD(p.total) + '</td>'
+        + '<td>' + p.apy.toFixed(2) + '%</td>'
+        + '<td>' + formatUSD(p.volume24h) + '</td>'
+        + '</tr>';
+    }).join('');
+    var totalTvl = state.pools.reduce(function (s, p) { return s + p.total; }, 0);
+    el('pool-tvl').textContent = 'TVL: ' + formatUSD(totalTvl);
+  }
+
+  function renderAll() {
+    state.balances = computeBalances(state.transactions);
+    renderCards();
+    renderAlerts();
+    renderRows();
+    renderPoolRows();
+    el('source').className = 'pill ' + (state.live ? 'live' : 'demo');
+    el('source').textContent = state.live ? 'Dati live' : 'Dati dimostrativi';
+    el('updated').textContent = 'Aggiornato ' + new Date().toISOString().slice(11, 19) + ' UTC';
+  }
+
+  // ---- Data loading ----
+  function load() {
+    fetch('/api/payments?limit=200&currency=USDC,USDT', { headers: { Accept: 'application/json' } })
+      .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+      .then(function (body) {
+        var items = (body && body.items) || body || [];
+        state.transactions = items;
+        state.live = true;
+        renderAll();
+      })
+      .catch(function () {
+        if (!state.live && state.transactions.length === 0) { state.transactions = demoData(); state.pools = demoPools(); renderAll(); }
+      });
+  }
+
+  // ---- CSV export ----
+  function csvCell(v) {
+    var s = String(v == null ? '' : v);
+    return s.indexOf(',') >= 0 || s.indexOf('"') >= 0 || s.indexOf('\n') >= 0 ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
+  el('export').addEventListener('click', function () {
+    var cols = ['createdAt', 'currency', 'direction', 'amount', 'state', 'counterparty', 'reference'];
+    var lines = state.transactions.map(function (t) {
+      return cols.map(function (c) { return csvCell(t[c]); }).join(',');
+    });
+    lines.unshift(cols.map(csvCell).join(','));
+    var blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'stablecoin-' + USER + '-' + new Date().toISOString().slice(0, 10) + '.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+  });
+
+  // ---- Theme toggle ----
+  el('theme').addEventListener('click', function () {
+    var root = document.documentElement;
+    root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+  });
+
+  // ---- Converter events ----
+  el('conv-dir').addEventListener('change', renderConverter);
+  el('conv-amount').addEventListener('input', renderConverter);
+
+  // ---- Transaction filter ----
+  el('tx-filter').addEventListener('change', renderRows);
+
+  // ---- Tab switching ----
+  document.querySelectorAll('.tab').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      document.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      var target = tab.dataset.tab;
+      el('pnl-tx').style.display = target === 'tx' ? '' : 'none';
+      el('pnl-pool').style.display = target === 'pool' ? '' : 'none';
+    });
+  });
+
+  // ---- Init ----
+  state.transactions = demoData();
+  state.pools = demoPools();
+  renderAll();
+  renderConverter();
+  load();
+  setInterval(load, POLL_MS);
+})();
+</script>
+</body>
+</html>
