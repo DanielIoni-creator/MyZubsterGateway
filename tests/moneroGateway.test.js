@@ -1,5 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 
 const {
   MoneroPaymentGateway,
@@ -229,7 +230,10 @@ test('summarises the invoice book', async () => {
 });
 
 test('rpc errors never leak the wallet password', async () => {
-  const password = 'sup3r-s3cret-rpc-pw';
+  // Generated per run rather than hardcoded: a literal here trips secret
+  // scanners, and a random value also proves the redaction is not keyed to
+  // any particular string.
+  const password = `pw-${crypto.randomUUID()}`;
   const client = {
     create: () => ({
       async post() { throw new Error(`connect ECONNREFUSED with auth password=${password}`); },
