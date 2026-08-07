@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🛠 Dashboard amministrativa - MyZubster</title>
+  <style>
+    :root {
+      --accent: #4f8bd6; --ok: #22a06b; --warn: #d99000; --bad: #d94f4f;
+      --bg: #f5f7fa; --surface: #fff; --surface-2: #eef1f6;
+      --text: #1f2733; --text-soft: #5b6675; --border: #e2e7ee;
+      --shadow: 0 10px 30px rgba(20,30,50,.08); --radius: 14px;
+    }
+    [data-theme="dark"] {
+      --bg: #10141b; --surface: #171d27; --surface-2: #1f2733;
+      --text: #e8edf4; --text-soft: #94a1b2; --border: #2a3444;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; padding:28px 20px 48px; font-family:"Segoe UI",Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); }
+    .wrap { max-width:1180px; margin:0 auto; }
+    header { display:flex; align-items:center; gap:14px; margin-bottom:20px; flex-wrap:wrap; }
+    h1 { font-size:23px; margin:0; }
+    .spacer { flex:1; }
+    .btn { background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:10px; padding:8px 14px; cursor:pointer; font-size:14px; }
+    .btn.primary { background:var(--accent); border-color:var(--accent); color:#08131f; font-weight:600; }
+    .pill { font-size:12px; color:var(--text-soft); border:1px solid var(--border); border-radius:999px; padding:4px 10px; }
+    .pill.demo::before { content:"●"; color:var(--warn); margin-right:6px; }
+    .pill.live::before { content:"●"; color:var(--ok); margin-right:6px; }
+
+    .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:16px; }
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px; }
+    .card h2 { margin:0 0 6px; font-size:12px; color:var(--text-soft); text-transform:uppercase; letter-spacing:.05em; }
+    .card .v { font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; }
+    .card .v.bad { color:var(--bad); }
+
+    .panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px; margin-bottom:16px; }
+    .panel-head { display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+    .panel-head h2 { margin:0; font-size:16px; }
+    .filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+    input, select { background:var(--surface-2); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:7px 10px; font-size:13px; }
+    input { width:130px; }
+
+    table { width:100%; border-collapse:collapse; font-size:13.5px; }
+    th { text-align:left; color:var(--text-soft); font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; padding:8px 10px; border-bottom:1px solid var(--border); }
+    td { padding:9px 10px; border-bottom:1px solid var(--border); font-variant-numeric:tabular-nums; }
+    tr:last-child td { border-bottom:none; }
+    .tag { font-size:11px; border-radius:999px; padding:2px 9px; border:1px solid var(--border); color:var(--text-soft); }
+    .tag.COMPLETED,.tag.ACTIVE { color:var(--ok); border-color:var(--ok); }
+    .tag.FAILED,.tag.SUSPENDED { color:var(--bad); border-color:var(--bad); }
+    .tag.PENDING,.tag.CONFIRMING { color:var(--warn); border-color:var(--warn); }
+    .tag.admin { color:var(--accent); border-color:var(--accent); }
+    .scroll { overflow-x:auto; }
+    .mini { font-size:12px; padding:4px 9px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>🛠 Dashboard amministrativa</h1>
+      <span id="source" class="pill demo">…</span>
+      <span class="spacer"></span>
+      <span class="pill">Attore: <b id="actor">root</b></span>
+      <button id="export" class="btn primary">⬇ Esporta CSV</button>
+      <button id="theme" class="btn">☾</button>
+    </header>
+
+    <div id="cards" class="cards"></div>
+
+    <section class="panel">
+      <div class="panel-head"><h2>💳 Panoramica pagamenti</h2></div>
+      <div class="filters">
+        <input id="f-user" placeholder="Utente" />
+        <select id="f-status"><option value="">Tutti gli stati</option><option>COMPLETED</option><option>PENDING</option><option>FAILED</option></select>
+        <select id="f-currency"><option value="">Tutte le valute</option><option>MYZ</option><option>XMR</option></select>
+        <input id="f-min" type="number" step="any" placeholder="Importo min" />
+        <input id="f-max" type="number" step="any" placeholder="Importo max" />
+        <input id="f-ref" placeholder="Riferimento" />
+        <select id="f-sort"><option value="createdAt">Data</option><option value="amount">Importo</option><option value="status">Stato</option></select>
+        <button id="apply" class="btn">Filtra</button>
+        <button id="reset" class="btn">Azzera</button>
+      </div>
+      <div class="scroll"><table>
+        <thead><tr><th>Data</th><th>Utente</th><th>Valuta</th><th>Importo</th><th>Stato</th><th>Riferimento</th></tr></thead>
+        <tbody id="pay-rows"></tbody>
+      </table></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2>👥 Gestione utenti</h2><span class="spacer"></span><span id="ucount" class="pill">—</span></div>
+      <div class="scroll"><table>
+        <thead><tr><th>Utente</th><th>Email</th><th>Ruolo</th><th>Stato</th><th>Azioni</th></tr></thead>
+        <tbody id="user-rows"></tbody>
+      </table></div>
+    </section>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+  var ACTOR = new URLSearchParams(location.search).get('actorId') || 'root';
+  var state = { payments: [], users: [], live: false };
+
+  function el(id) { return document.getElementById(id); }
+  function api(path, options) {
+    return fetch('/api/admin' + path, Object.assign({ headers: { 'x-actor-id': ACTOR, 'Content-Type': 'application/json' } }, options || {}))
+      .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); });
+  }
+
+  // Sample data so the page is reviewable without a running gateway. The amber
+  // pill says so; nobody should read these as production figures.
+  function demo() {
+    var day = 86400000, now = Date.now();
+    state.payments = [
+      { id:'p1', createdAt:new Date(now-5*day).toISOString(), userId:'alice', currency:'MYZ', amount:600, status:'COMPLETED', reference:'bounty-721' },
+      { id:'p2', createdAt:new Date(now-4*day).toISOString(), userId:'bob',   currency:'XMR', amount:0.42, status:'COMPLETED', reference:'station-7' },
+      { id:'p3', createdAt:new Date(now-3*day).toISOString(), userId:'alice', currency:'XMR', amount:0.06, status:'FAILED',    reference:'retry' },
+      { id:'p4', createdAt:new Date(now-2*day).toISOString(), userId:'carol', currency:'MYZ', amount:120,  status:'PENDING',   reference:'robot-hire' },
+      { id:'p5', createdAt:new Date(now-1*day).toISOString(), userId:'bob',   currency:'MYZ', amount:45,   status:'COMPLETED', reference:'referral' }
+    ];
+    state.users = [
+      { userId:'root',  email:'root@myzubster.local', role:'admin',    state:'ACTIVE' },
+      { userId:'ops',   email:'ops@myzubster.local',  role:'operator', state:'ACTIVE' },
+      { userId:'alice', email:'alice@example.com',    role:'user',     state:'ACTIVE' },
+      { userId:'carol', email:'carol@example.com',    role:'user',     state:'SUSPENDED' }
+    ];
+  }
+
+  function overview() {
+    var byState = {}, volume = {}, failed = 0;
+    state.payments.forEach(function (p) {
+      byState[p.status] = (byState[p.status] || 0) + 1;
+      if (p.status === 'FAILED') failed += 1;
+      volume[p.currency] = Number(((volume[p.currency] || 0) + Number(p.amount)).toFixed(12));
+    });
+    var rate = state.payments.length ? failed / state.payments.length : 0;
+
+    el('cards').innerHTML =
+      card('Pagamenti totali', state.payments.length) +
+      card('Completati', byState.COMPLETED || 0) +
+      card('Falliti', byState.FAILED || 0, (byState.FAILED || 0) > 0) +
+      card('Tasso di errore', (rate * 100).toFixed(1) + '%', rate > 0.1) +
+      Object.keys(volume).map(function (c) { return card('Volume ' + c, volume[c]); }).join('');
+  }
+
+  function card(label, value, bad) {
+    return '<div class="card"><h2>' + label + '</h2><div class="v' + (bad ? ' bad' : '') + '">' + value + '</div></div>';
+  }
+
+  function filtered() {
+    var user = el('f-user').value.trim().toLowerCase();
+    var status = el('f-status').value, currency = el('f-currency').value;
+    var min = el('f-min').value, max = el('f-max').value;
+    var ref = el('f-ref').value.trim().toLowerCase();
+    var sort = el('f-sort').value;
+
+    var rows = state.payments
+      .filter(function (p) { return user ? p.userId.toLowerCase().indexOf(user) !== -1 : true; })
+      .filter(function (p) { return status ? p.status === status : true; })
+      .filter(function (p) { return currency ? p.currency === currency : true; })
+      .filter(function (p) { return min !== '' ? Number(p.amount) >= Number(min) : true; })
+      .filter(function (p) { return max !== '' ? Number(p.amount) <= Number(max) : true; })
+      .filter(function (p) { return ref ? String(p.reference || '').toLowerCase().indexOf(ref) !== -1 : true; });
+
+    rows.sort(function (a, b) {
+      if (sort === 'amount') return Number(b.amount) - Number(a.amount);
+      return a[sort] < b[sort] ? 1 : -1;
+    });
+    return rows;
+  }
+
+  function renderPayments() {
+    var rows = filtered();
+    el('pay-rows').innerHTML = rows.length ? rows.map(function (p) {
+      return '<tr><td>' + p.createdAt.slice(0,10) + '</td><td>' + p.userId + '</td><td>' + p.currency
+        + '</td><td>' + p.amount + '</td><td><span class="tag ' + p.status + '">' + p.status
+        + '</span></td><td>' + (p.reference || '—') + '</td></tr>';
+    }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-soft);padding:22px">Nessun risultato</td></tr>';
+  }
+
+  function renderUsers() {
+    el('ucount').textContent = state.users.length + ' utenti';
+    el('user-rows').innerHTML = state.users.map(function (u) {
+      var self = u.userId === ACTOR;
+      return '<tr><td><b>' + u.userId + '</b>' + (self ? ' <span class="tag">tu</span>' : '')
+        + '</td><td>' + (u.email || '—') + '</td>'
+        + '<td><span class="tag ' + u.role + '">' + u.role + '</span></td>'
+        + '<td><span class="tag ' + u.state + '">' + u.state + '</span></td>'
+        + '<td>' + (self
+            ? '<span style="color:var(--text-soft);font-size:12px">azioni su sé stessi disabilitate</span>'
+            : '<button class="btn mini" data-role="' + u.userId + '">Ruolo</button> '
+              + '<button class="btn mini" data-state="' + u.userId + '">'
+              + (u.state === 'ACTIVE' ? 'Sospendi' : 'Riattiva') + '</button>')
+        + '</td></tr>';
+    }).join('');
+  }
+
+  function renderAll() {
+    overview(); renderPayments(); renderUsers();
+    el('source').className = 'pill ' + (state.live ? 'live' : 'demo');
+    el('source').textContent = state.live ? 'Dati live' : 'Dati dimostrativi';
+  }
+
+  function load() {
+    Promise.all([api('/payments?limit=200'), api('/users?limit=200')])
+      .then(function (results) {
+        state.payments = results[0].items || [];
+        state.users = results[1].items || [];
+        state.live = true;
+        renderAll();
+      })
+      .catch(function () { if (!state.live) renderAll(); });
+  }
+
+  el('apply').addEventListener('click', renderPayments);
+  el('reset').addEventListener('click', function () {
+    ['f-user','f-status','f-currency','f-min','f-max','f-ref'].forEach(function (id) { el(id).value = ''; });
+    renderPayments();
+  });
+  el('theme').addEventListener('click', function () {
+    var root = document.documentElement;
+    root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+  });
+  el('export').addEventListener('click', function () { location.href = '/api/admin/payments/export?actorId=' + encodeURIComponent(ACTOR); });
+
+  el('user-rows').addEventListener('click', function (event) {
+    var role = event.target.getAttribute('data-role');
+    var toggle = event.target.getAttribute('data-state');
+    if (role) {
+      var next = prompt('Nuovo ruolo per ' + role + ' (user / operator / admin)');
+      if (next) api('/users/' + encodeURIComponent(role) + '/role', { method:'POST', body: JSON.stringify({ role: next }) }).then(load, alert);
+    }
+    if (toggle) {
+      var current = state.users.find(function (u) { return u.userId === toggle; });
+      var target = current && current.state === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
+      api('/users/' + encodeURIComponent(toggle) + '/state', { method:'POST', body: JSON.stringify({ state: target }) }).then(load, alert);
+    }
+  });
+
+  el('actor').textContent = ACTOR;
+  demo();
+  renderAll();
+  load();
+})();
+</script>
+</body>
+</html>

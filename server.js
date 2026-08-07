@@ -45,6 +45,7 @@ const sensorRoutes = require('./routes/sensors');
 const securityRoutes = require('./routes/security');
 const xmrRoutes = require('./routes/xmr');
 const gl1BridgeRoutes = require('./routes/gl1Bridge');
+const adminRoutes = require('./routes/admin');
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -67,6 +68,7 @@ app.use('/api/sensors', sensorRoutes);
 app.use('/api/security', securityRoutes);
 app.use('/api/xmr', xmrRoutes);
 app.use('/api/gl1', gl1BridgeRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Robot routes
 try {
@@ -93,6 +95,10 @@ app.get('/bounty', (req, res) => {
 
 app.get('/garden', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/dist/garden.html'));
+});
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/dist/admin.html'));
 });
 
 app.get('/hospital', (req, res) => {
