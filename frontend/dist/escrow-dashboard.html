@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔒 Gestione Escrow - MyZubster</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f5f7fa; padding: 20px; }
+    .dashboard { max-width: 1200px; margin: 0 auto; }
+    .header {
+      text-align: center; margin-bottom: 30px; padding: 24px;
+      background: linear-gradient(135deg, #2c3e50, #34495e); border-radius: 12px; color: white;
+    }
+    .header h1 { font-size: 2.2rem; margin: 0; }
+    .header p { margin: 10px 0 0; opacity: 0.9; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+    .kpi-card { display: flex; align-items: center; padding: 20px; border-radius: 12px; color: white; gap: 16px; }
+    .kpi-card.total { background: linear-gradient(135deg, #3498db, #2980b9); }
+    .kpi-card.locked { background: linear-gradient(135deg, #f39c12, #e67e22); }
+    .kpi-card.contested { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+    .kpi-card.completed { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+    .kpi-icon { font-size: 2.5rem; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.15); border-radius: 12px; }
+    .kpi-info h3 { margin: 0 0 4px; font-size: 0.85rem; opacity: 0.9; }
+    .kpi-value { font-size: 2rem; font-weight: bold; }
+    .card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .card h2 { color: #2c3e50; margin-bottom: 16px; }
+    .card h3 { color: #2c3e50; margin-bottom: 10px; }
+
+    .filters { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+    .filters select, .filters input {
+      padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem;
+    }
+    .filters select:focus, .filters input:focus { outline: none; border-color: #34495e; }
+
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #2c3e50; white-space: nowrap; }
+    td { padding: 10px 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
+    tr:hover { background: #f8f9fa; }
+    tr.clickable { cursor: pointer; }
+
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 500; }
+    .badge.LOCKED { background: #fff3cd; color: #856404; }
+    .badge.DELIVERED { background: #cce5ff; color: #004085; }
+    .badge.CONTESTED { background: #fdf2f2; color: #721c24; }
+    .badge.COMPLETED { background: #d4edda; color: #155724; }
+
+    .btn { padding: 6px 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; margin: 2px; }
+    .btn.primary { background: #3498db; color: white; }
+    .btn.primary:hover { background: #2980b9; }
+    .btn.danger { background: #e74c3c; color: white; }
+    .btn.danger:hover { background: #c0392b; }
+    .btn.success { background: #2ecc71; color: white; }
+    .btn.success:hover { background: #27ae60; }
+    .btn.dark { background: #2c3e50; color: white; }
+    .btn.dark:hover { background: #34495e; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; }
+    .status-item { padding: 16px; background: #f8f9fa; border-radius: 8px; text-align: center; }
+    .status-label { display: block; font-size: 0.85rem; color: #7f8c8d; margin-bottom: 8px; }
+    .status-value { font-size: 1.8rem; font-weight: bold; color: #2c3e50; }
+    .status-value.good { color: #27ae60; }
+    .status-value.warning { color: #e67e22; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label { font-size: 0.85rem; font-weight: 500; color: #2c3e50; }
+    .form-group input, .form-group select {
+      padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.95rem;
+    }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: #34495e; }
+    .form-group textarea {
+      width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.95rem;
+      resize: vertical; min-height: 80px; box-sizing: border-box;
+    }
+    .form-group textarea:focus { outline: none; border-color: #e74c3c; }
+    .btn-submit { grid-column: 1 / -1; padding: 12px; background: #2c3e50; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+    .btn-submit:hover { background: #34495e; }
+
+    .msg { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 500; }
+    .msg.success { background: #d4edda; color: #155724; }
+    .msg.error { background: #fdf2f2; color: #721c24; }
+
+    .export-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 16px; }
+    .export-card { display: flex; align-items: center; gap: 16px; padding: 20px; border: 1px solid #e0e0e0; border-radius: 12px; cursor: pointer; transition: all 0.2s; }
+    .export-card:hover { border-color: #34495e; box-shadow: 0 2px 8px rgba(52,73,94,0.1); }
+    .export-icon { font-size: 2rem; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border-radius: 12px; }
+    .export-info h3 { margin: 0 0 4px; color: #2c3e50; font-size: 1rem; }
+    .export-info p { margin: 0; font-size: 0.85rem; color: #7f8c8d; }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal { background: white; border-radius: 12px; padding: 28px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+    .modal h2 { margin: 0 0 20px; color: #2c3e50; }
+    .modal-close { float: right; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #95a5a6; }
+    .modal-close:hover { color: #2c3e50; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .detail-item { padding: 12px; background: #f8f9fa; border-radius: 8px; }
+    .detail-label { display: block; font-size: 0.8rem; color: #7f8c8d; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .detail-value { font-size: 1rem; font-weight: 600; color: #2c3e50; word-break: break-all; }
+
+    .tab-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .tab { padding: 12px 20px; border: 1px solid #e0e0e0; border-radius: 8px; background: white; cursor: pointer; font-size: 0.95rem; transition: all 0.2s; }
+    .tab:hover { background: #f8f9fa; border-color: #34495e; }
+    .tab.active { background: #34495e; color: white; border-color: #34495e; }
+
+    .loading { text-align: center; font-size: 1.5rem; padding: 50px; color: #2c3e50; }
+    .error { text-align: center; padding: 40px; color: #e74c3c; }
+    .empty { text-align: center; padding: 30px; color: #95a5a6; }
+    .last-update { text-align: right; color: #95a5a6; font-size: 0.85rem; margin-top: 8px; }
+
+    @media (max-width: 768px) {
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      .header h1 { font-size: 1.5rem; }
+      .kpi-value { font-size: 1.5rem; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .filters { flex-direction: column; }
+    }
+    @media (max-width: 480px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+      .header { padding: 16px; }
+      .export-options { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard" id="app">
+    <div class="loading">🔒 Caricamento dashboard escrow...</div>
+  </div>
+  <script>
+    const app = document.getElementById('app');
+    let escrows = [];
+    let stats = null;
+    let currentTab = 'overview';
+    let statusFilter = '';
+    let searchTerm = '';
+
+    const STATUS_LABELS = { LOCKED: 'Bloccato', DELIVERED: 'Consegnato', CONTESTED: 'In disputa', COMPLETED: 'Completato' };
+
+    function demoData() {
+      const now = Date.now();
+      const plans = [
+        { jobId: 'JOB-001', clientId: 'user-wallet-abc', robotId: 'ROBOT-01', amount: 150, currency: 'MYZ', status: 'LOCKED' },
+        { jobId: 'JOB-002', clientId: 'user-wallet-def', robotId: 'ROBOT-02', amount: 0.5, currency: 'XMR', status: 'DELIVERED' },
+        { jobId: 'JOB-003', clientId: 'user-wallet-ghi', robotId: 'ROBOT-03', amount: 200, currency: 'MYZ', status: 'COMPLETED' },
+        { jobId: 'JOB-004', clientId: 'user-wallet-jkl', robotId: 'ROBOT-01', amount: 0.25, currency: 'XMR', status: 'CONTESTED' },
+        { jobId: 'JOB-005', clientId: 'user-wallet-mno', robotId: 'ROBOT-04', amount: 80, currency: 'MYZ', status: 'LOCKED' },
+      ];
+      return plans.map(function(p, i) {
+        return {
+          jobId: p.jobId, clientId: p.clientId, robotId: p.robotId,
+          amount: p.amount, currency: p.currency, status: p.status,
+          fee: p.amount * 0.02, netAmount: p.amount * 0.98,
+          createdAt: new Date(now - (5 - i) * 86400000).toISOString(),
+          deadline: new Date(now + 86400000).toISOString(),
+          lockTx: 'tx-' + Math.random().toString(36).slice(2, 10),
+        };
+      });
+    }
+
+    function render() {
+      const filtered = escrows.filter(function(e) {
+        if (statusFilter && e.status !== statusFilter) return false;
+        if (searchTerm) {
+          var t = searchTerm.toLowerCase();
+          return (e.jobId || '').toLowerCase().indexOf(t) !== -1 ||
+                 (e.clientId || '').toLowerCase().indexOf(t) !== -1 ||
+                 (e.robotId || '').toLowerCase().indexOf(t) !== -1;
+        }
+        return true;
+      });
+
+      const totalLocked = escrows.filter(function(e) { return e.status === 'LOCKED'; }).reduce(function(s, e) { return s + (e.amount || 0); }, 0);
+      const totalCompleted = escrows.filter(function(e) { return e.status === 'COMPLETED'; }).reduce(function(s, e) { return s + (e.amount || 0); }, 0);
+      const completionRate = escrows.length > 0 ? Math.round(escrows.filter(function(e) { return e.status === 'COMPLETED'; }).length / escrows.length * 100) : 0;
+
+      app.innerHTML = `
+        <div class="header">
+          <h1>🔒 Gestione Escrow</h1>
+          <p>Dashboard per monitorare e gestire gli escrow dei robot</p>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card total">
+            <div class="kpi-icon">📦</div>
+            <div class="kpi-info"><h3>Escrow Totali</h3><div class="kpi-value">${stats ? stats.total : escrows.length}</div></div>
+          </div>
+          <div class="kpi-card locked">
+            <div class="kpi-icon">🔒</div>
+            <div class="kpi-info"><h3>Bloccati</h3><div class="kpi-value">${stats ? stats.locked : 0}</div></div>
+          </div>
+          <div class="kpi-card contested">
+            <div class="kpi-icon">⚠️</div>
+            <div class="kpi-info"><h3>In Disputa</h3><div class="kpi-value">${stats ? stats.contested : 0}</div></div>
+          </div>
+          <div class="kpi-card completed">
+            <div class="kpi-icon">✅</div>
+            <div class="kpi-info"><h3>Completati</h3><div class="kpi-value">${stats ? stats.completed : 0}</div></div>
+          </div>
+        </div>
+
+        <div class="tab-bar">
+          <div class="tab${currentTab === 'overview' ? ' active' : ''}" onclick="switchTab('overview')">📊 Panoramica</div>
+          <div class="tab${currentTab === 'list' ? ' active' : ''}" onclick="switchTab('list')">📋 Lista Escrow (${escrows.length})</div>
+          <div class="tab${currentTab === 'create' ? ' active' : ''}" onclick="switchTab('create')">➕ Nuovo Escrow</div>
+          <div class="tab${currentTab === 'export' ? ' active' : ''}" onclick="switchTab('export')">📤 Report</div>
+        </div>
+
+        <div class="card">
+          ${renderTabContent(filtered, totalLocked, totalCompleted, completionRate)}
+        </div>
+
+        <div class="last-update">Ultimo aggiornamento: ${new Date().toLocaleString('it-IT')}</div>
+      `;
+    }
+
+    function renderTabContent(filtered, totalLocked, totalCompleted, completionRate) {
+      if (currentTab === 'overview') {
+        return `
+          <h2>📊 Stato Generale Escrow</h2>
+          <div class="status-grid">
+            <div class="status-item"><span class="status-label">Importo bloccato</span><span class="status-value warning">${totalLocked.toFixed(2)}</span></div>
+            <div class="status-item"><span class="status-label">Importo completato</span><span class="status-value good">${totalCompleted.toFixed(2)}</span></div>
+            <div class="status-item"><span class="status-label">Fee totali</span><span class="status-value">${stats && stats.totalFee ? stats.totalFee.toFixed(2) : '0.00'}</span></div>
+            <div class="status-item"><span class="status-label">Consegnati in attesa</span><span class="status-value warning">${stats ? stats.delivered : 0}</span></div>
+          </div>
+          <div class="status-grid" style="margin-top:16px">
+            <div class="status-item"><span class="status-label">Tasso completamento</span><span class="status-value good">${completionRate}%</span></div>
+            <div class="status-item"><span class="status-label">Valute supportate</span><span class="status-value">MYZ / XMR</span></div>
+          </div>
+        `;
+      }
+
+      if (currentTab === 'list') {
+        var rowsHtml = '';
+        if (filtered.length > 0) {
+          rowsHtml = filtered.map(function(e) {
+            return '<tr class="clickable" onclick="showDetail(\'' + e.jobId + '\')">'
+              + '<td>' + (e.jobId || 'N/A') + '</td>'
+              + '<td>' + (e.clientId || 'N/A') + '</td>'
+              + '<td>' + (e.robotId || 'N/A') + '</td>'
+              + '<td>' + (typeof e.amount === 'number' ? e.amount.toFixed(4) : e.amount) + '</td>'
+              + '<td>' + (e.currency || 'MYZ') + '</td>'
+              + '<td><span class="badge ' + e.status + '">' + (STATUS_LABELS[e.status] || e.status) + '</span></td>'
+              + '<td>' + (e.status === 'LOCKED'
+                  ? '<button class="btn primary" onclick="event.stopPropagation();deliverEscrow(\'' + e.jobId + '\')">📦 Consegna</button><button class="btn danger" onclick="event.stopPropagation();openDispute(\'' + e.jobId + '\')">⚠️ Disputa</button>'
+                  : e.status === 'DELIVERED' ? '<span style="font-size:0.8rem;color:#7f8c8d">⏳ In attesa conferma</span>'
+                  : e.status === 'COMPLETED' ? '✅ Completato'
+                  : '⚠️ Contestato') + '</td>'
+              + '</tr>';
+          }).join('');
+        } else {
+          rowsHtml = '<tr><td colspan="7" class="empty">' + (escrows.length === 0 ? 'Nessun escrow registrato' : 'Nessun escrow corrisponde ai filtri') + '</td></tr>';
+        }
+
+        return `
+          <h2>📋 Lista Escrow</h2>
+          <div class="filters">
+            <select onchange="statusFilter=this.value;render()">
+              <option value="">Tutti gli stati</option>
+              <option value="LOCKED">Bloccato</option>
+              <option value="DELIVERED">Consegnato</option>
+              <option value="CONTESTED">In disputa</option>
+              <option value="COMPLETED">Completato</option>
+            </select>
+            <input type="text" placeholder="Cerca job / cliente / robot..." oninput="searchTerm=this.value;render()">
+          </div>
+          <div class="table-container">
+            <table>
+              <thead><tr><th>Job ID</th><th>Cliente</th><th>Robot</th><th>Importo</th><th>Valuta</th><th>Stato</th><th>Azioni</th></tr></thead>
+              <tbody>${rowsHtml}</tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      if (currentTab === 'create') {
+        return `
+          <h2>➕ Nuovo Escrow</h2>
+          <div id="create-msg"></div>
+          <form class="form-grid" onsubmit="createEscrow(event)">
+            <div class="form-group">
+              <label>Job ID *</label>
+              <input type="text" id="f-jobId" placeholder="es. JOB-001" required>
+            </div>
+            <div class="form-group">
+              <label>Client ID *</label>
+              <input type="text" id="f-clientId" placeholder="Wallet cliente o ID" required>
+            </div>
+            <div class="form-group">
+              <label>Robot ID *</label>
+              <input type="text" id="f-robotId" placeholder="es. ROBOT-01" required>
+            </div>
+            <div class="form-group">
+              <label>Importo *</label>
+              <input type="number" id="f-amount" step="0.0001" min="0" placeholder="es. 100" required>
+            </div>
+            <div class="form-group">
+              <label>Valuta *</label>
+              <select id="f-currency">
+                <option value="MYZ">MYZ</option>
+                <option value="XMR">XMR</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-submit">🔒 Crea Escrow</button>
+          </form>
+        `;
+      }
+
+      if (currentTab === 'export') {
+        return `
+          <h2>📤 Report Escrow</h2>
+          <div class="export-options">
+            <div class="export-card" onclick="exportCSV()">
+              <div class="export-icon">📊</div>
+              <div class="export-info"><h3>Export CSV</h3><p>Scarica tutti gli escrow in formato CSV</p></div>
+            </div>
+            <div class="export-card">
+              <div class="export-icon">📋</div>
+              <div class="export-info">
+                <h3>Riepilogo Rapido</h3>
+                <p>Totali: ${escrows.length} | Bloccati: ${stats ? stats.locked : 0} | Completati: ${stats ? stats.completed : 0} | In disputa: ${stats ? stats.contested : 0}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      return '';
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      render();
+    }
+
+    function showMessage(text, type) {
+      var el = document.getElementById('create-msg');
+      if (el) {
+        el.innerHTML = '<div class="msg ' + (type || 'success') + '">' + text + '</div>';
+        setTimeout(function() { el.innerHTML = ''; }, 5000);
+      }
+    }
+
+    function createEscrow(e) {
+      e.preventDefault();
+      var data = {
+        jobId: document.getElementById('f-jobId').value,
+        clientId: document.getElementById('f-clientId').value,
+        robotId: document.getElementById('f-robotId').value,
+        amount: parseFloat(document.getElementById('f-amount').value),
+        currency: document.getElementById('f-currency').value,
+      };
+      fetch('/api/robot/escrow/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      }).then(function(r) { return r.json(); }).then(function(res) {
+        if (res.success) {
+          showMessage('✅ Escrow creato per job ' + data.jobId);
+          document.getElementById('f-jobId').value = '';
+          document.getElementById('f-clientId').value = '';
+          document.getElementById('f-robotId').value = '';
+          document.getElementById('f-amount').value = '';
+          loadData();
+        } else {
+          showMessage('❌ Errore: ' + (res.error || 'Errore sconosciuto'), 'error');
+        }
+      }).catch(function(err) {
+        showMessage('❌ Errore: ' + err.message, 'error');
+      });
+    }
+
+    function deliverEscrow(jobId) {
+      if (!confirm('Confermi la consegna per job ' + jobId + '?')) return;
+      fetch('/api/robot/escrow/deliver', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId: jobId }),
+      }).then(function(r) { return r.json(); }).then(function(res) {
+        if (res.success) {
+          showMessage('✅ Job ' + jobId + ' marcato come consegnato', 'success');
+          loadData();
+        } else {
+          alert('❌ Errore: ' + (res.error || 'Errore sconosciuto'));
+        }
+      }).catch(function(err) {
+        alert('❌ Errore: ' + err.message);
+      });
+    }
+
+    function openDispute(jobId) {
+      var reason = prompt('Motivo della disputa per job ' + jobId + ':');
+      if (!reason || reason.trim() === '') return;
+      fetch('/api/robot/escrow/dispute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId: jobId, reason: reason }),
+      }).then(function(r) { return r.json(); }).then(function(res) {
+        if (res.success) {
+          showMessage('⚠️ Disputa aperta per job ' + jobId, 'success');
+          loadData();
+        } else {
+          alert('❌ Errore: ' + (res.error || 'Errore sconosciuto'));
+        }
+      }).catch(function(err) {
+        alert('❌ Errore: ' + err.message);
+      });
+    }
+
+    function showDetail(jobId) {
+      var escrow = escrows.find(function(e) { return e.jobId === jobId; });
+      if (!escrow) return;
+
+      var overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.onclick = function() { document.body.removeChild(overlay); };
+
+      overlay.innerHTML = '<div class="modal" onclick="event.stopPropagation()">'
+        + '<button class="modal-close" onclick="document.body.removeChild(this.parentNode.parentNode)">✕</button>'
+        + '<h2>🔒 Dettaglio Escrow</h2>'
+        + '<div class="detail-grid">'
+        + '<div class="detail-item"><span class="detail-label">Job ID</span><span class="detail-value">' + (escrow.jobId || 'N/A') + '</span></div>'
+        + '<div class="detail-item"><span class="detail-label">Stato</span><span class="detail-value"><span class="badge ' + escrow.status + '">' + (STATUS_LABELS[escrow.status] || escrow.status) + '</span></span></div>'
+        + '<div class="detail-item"><span class="detail-label">Cliente</span><span class="detail-value">' + (escrow.clientId || 'N/A') + '</span></div>'
+        + '<div class="detail-item"><span class="detail-label">Robot</span><span class="detail-value">' + (escrow.robotId || 'N/A') + '</span></div>'
+        + '<div class="detail-item"><span class="detail-label">Importo</span><span class="detail-value">' + (typeof escrow.amount === 'number' ? escrow.amount.toFixed(4) : escrow.amount) + ' ' + (escrow.currency || 'MYZ') + '</span></div>'
+        + '<div class="detail-item"><span class="detail-label">Fee (2%)</span><span class="detail-value">' + (typeof escrow.fee === 'number' ? escrow.fee.toFixed(4) : escrow.fee) + ' ' + (escrow.currency || 'MYZ') + '</span></div>'
+        + '<div class="detail-item"><span class="detail-label">Netto</span><span class="detail-value">' + (typeof escrow.netAmount === 'number' ? escrow.netAmount.toFixed(4) : escrow.netAmount) + ' ' + (escrow.currency || 'MYZ') + '</span></div>'
+        + '<div class="detail-item"><span class="detail-label">Transazione Lock</span><span class="detail-value">' + (escrow.lockTx || 'N/A') + '</span></div>'
+        + '<div class="detail-item"><span class="detail-label">Data creazione</span><span class="detail-value">' + (escrow.createdAt ? new Date(escrow.createdAt).toLocaleString() : 'N/A') + '</span></div>'
+        + '<div class="detail-item"><span class="detail-label">Scadenza</span><span class="detail-value">' + (escrow.deadline ? new Date(escrow.deadline).toLocaleString() : 'N/A') + '</span></div>'
+        + '</div>'
+        + (escrow.status === 'LOCKED'
+          ? '<div style="display:flex;gap:8px"><button class="btn primary" onclick="deliverEscrow(\'' + escrow.jobId + '\');document.body.removeChild(this.parentNode.parentNode.parentNode)">📦 Segna consegnato</button><button class="btn danger" onclick="document.body.removeChild(this.parentNode.parentNode.parentNode);openDispute(\'' + escrow.jobId + '\')">⚠️ Apri disputa</button></div>'
+          : '') + '</div>';
+
+      document.body.appendChild(overlay);
+    }
+
+    function exportCSV() {
+      var headers = 'Job ID,Cliente,Robot,Importo,Valuta,Stato,Fee,Data creazione\\n';
+      var rows = escrows.map(function(e) {
+        return '"' + (e.jobId || 'N/A') + '","' + (e.clientId || 'N/A') + '","' + (e.robotId || 'N/A') + '",'
+          + '"' + (typeof e.amount === 'number' ? e.amount.toFixed(4) : e.amount) + '","' + (e.currency || 'MYZ') + '",'
+          + '"' + (STATUS_LABELS[e.status] || e.status) + '","' + (typeof e.fee === 'number' ? e.fee.toFixed(4) : e.fee) + '",'
+          + '"' + (e.createdAt ? new Date(e.createdAt).toLocaleString() : 'N/A') + '"';
+      }).join('\\n');
+      var csv = headers + rows;
+      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'report-escrow-' + new Date().toISOString().slice(0,10) + '.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      alert('📤 Report CSV esportato');
+    }
+
+    async function loadData() {
+      try {
+        const [listRes, statsRes] = await Promise.all([
+          fetch('/api/robot/escrow/list').then(function(r) { return r.json(); }).catch(function() { return { data: [] }; }),
+          fetch('/api/robot/escrow/stats').then(function(r) { return r.json(); }).catch(function() { return { data: null }; }),
+        ]);
+        escrows = listRes.data || [];
+        stats = statsRes.data || null;
+        render();
+      } catch(e) {
+        if (escrows.length === 0) {
+          escrows = demoData();
+          stats = {
+            total: escrows.length,
+            locked: escrows.filter(function(e) { return e.status === 'LOCKED'; }).length,
+            delivered: escrows.filter(function(e) { return e.status === 'DELIVERED'; }).length,
+            contested: escrows.filter(function(e) { return e.status === 'CONTESTED'; }).length,
+            completed: escrows.filter(function(e) { return e.status === 'COMPLETED'; }).length,
+            totalAmount: escrows.reduce(function(s, e) { return s + (e.amount || 0); }, 0),
+            totalFee: escrows.reduce(function(s, e) { return s + (e.fee || 0); }, 0),
+          };
+          render();
+        }
+      }
+    }
+
+    loadData();
+    setInterval(loadData, 30000);
+  </script>
+</body>
+</html>
