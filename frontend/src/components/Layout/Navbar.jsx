@@ -19,6 +19,7 @@ const Navbar = () => {
               <Link to="/requests" className="hover:text-gray-300">Richieste</Link>
               <Link to="/transactions" className="hover:text-gray-300">📊 Transazioni</Link>
               <Link to="/dashboard" className="hover:text-gray-300">Dashboard</Link>
+              <Link to="/admin" className="hover:text-gray-300">🛡️ Admin</Link>
               <button onClick={logout} className="hover:text-gray-300">Logout</button>
             </>
           ) : (
