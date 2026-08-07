@@ -4,6 +4,7 @@ import Bounty from './pages/Bounty';
 import Home from './pages/Home';
 import UrbanGardenDashboard from './pages/UrbanGardenDashboard';
 import HospitalDashboard from './pages/HospitalDashboard';
+import PaymentDashboard from './pages/PaymentDashboard';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Route path="/bounty" element={<Bounty />} />
         <Route path="/garden" element={<UrbanGardenDashboard />} />
         <Route path="/hospital" element={<HospitalDashboard />} />
+        <Route path="/payments" element={<PaymentDashboard />} />
       </Routes>
     </BrowserRouter>
   );
