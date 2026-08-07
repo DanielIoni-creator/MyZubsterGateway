@@ -87,6 +87,16 @@ try {
 }
 
 // ---- STATIC PAGES ----
+// Interactive API documentation. The OpenAPI document is served from the
+// repository root so the Swagger UI "Try it out" requests use the same origin.
+app.get('/docs', (req, res) => {
+  res.sendFile(path.join(__dirname, 'docs', 'swagger.html'));
+});
+
+app.get('/openapi.yaml', (req, res) => {
+  res.type('application/yaml').sendFile(path.join(__dirname, 'openapi.yaml'));
+});
+
 app.get('/bounty', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/dist/bounty.html'));
 });

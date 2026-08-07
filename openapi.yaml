@@ -1,224 +1,594 @@
-openapi: "3.0.3"
+openapi: 3.0.3
 info:
   title: MyZubster Gateway API
-  version: "1.1.0"
+  version: 1.2.0
   description: |
-    API completa del gateway MyZubster per gestione bounty, escrow, rewards,
-    robot, stake, e wallet integration.
+    The mounted REST API for sensor telemetry, urban-garden records, robot
+    jobs, rewards, currency exchange and Monero payment verification.
+    Authentication is not currently applied by server.js; deploy behind an
+    authenticated gateway before exposing state-changing operations publicly.
   contact:
     name: MyZubster Team
     url: https://github.com/MyZubster-Ecosystem/MyZubsterGateway
-
 servers:
-  - url: http://localhost:3001
-    description: Development server
-  - url: https://api.myzubster.io
-    description: Production server
-
+  - url: http://localhost:{port}
+    description: Local development server
+    variables:
+      port:
+        default: '10000'
+        description: Value of the PORT environment variable
 tags:
   - name: Health
-  - name: Buy
-  - name: Escrow
+  - name: Swap
+  - name: Animals
+  - name: Plants
   - name: Rewards
-  - name: Robot
-  - name: Robot Escrow
-  - name: Bounty
-  - name: Stake
-  - name: Escrow House
-  - name: Webhooks
-
+  - name: Contributors
+  - name: Sensors
+  - name: Security
+  - name: Monero
+  - name: GL1 bridge
+  - name: Robots
+  - name: Robot logos
 paths:
-  /health:
+  /api/health:
     get:
       tags: [Health]
-      summary: Health check del gateway
+      summary: Check gateway health
+      operationId: getHealth
       responses:
-        "200":
-          description: Gateway attivo
+        '200':
+          description: Gateway status and process information
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: OK
-                  message:
-                    type: string
-                  timestamp:
-                    type: string
-                    format: date-time
-                  version:
-                    type: string
-
-  /buy-myz:
+                $ref: '#/components/schemas/HealthResponse'
+  /api/swap/rate:
+    get:
+      tags: [Swap]
+      summary: Get the XMR/MYZ reference rate
+      operationId: getSwapRate
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /api/swap/execute:
     post:
-      tags: [Buy]
-      summary: Acquista MYZ con XMR
+      tags: [Swap]
+      summary: Calculate a supported XMR/MYZ swap
+      operationId: executeSwap
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required: [userTariWallet, amountMYZ]
-              properties:
-                userTariWallet:
-                  type: string
-                amountMYZ:
-                  type: number
+            schema: {$ref: '#/components/schemas/SwapRequest'}
+            example: {from: XMR, to: MYZ, amount: 0.05, userId: demo-user}
       responses:
-        "200":
-          description: Ordine creato
-
-  /escrow/create:
+        '200': {$ref: '#/components/responses/Success'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '500': {$ref: '#/components/responses/ServerError'}
+  /api/animals:
+    get:
+      tags: [Animals]
+      summary: List registered animals
+      operationId: listAnimals
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '500': {$ref: '#/components/responses/ServerError'}
+  /api/animals/register:
     post:
-      tags: [Escrow]
-      summary: Crea un nuovo escrow
+      tags: [Animals]
+      summary: Register an animal and issue the configured MYZ reward
+      operationId: registerAnimal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RegistryRequest'}
+            example: {species: Gallus gallus, place: garden-demo, userId: demo-user, description: Backyard hen}
       responses:
-        "200":
-          description: Escrow creato
-
+        '200': {$ref: '#/components/responses/Success'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '500': {$ref: '#/components/responses/ServerError'}
+  /api/animals/{id}:
+    parameters:
+      - {$ref: '#/components/parameters/Id'}
+    get:
+      tags: [Animals]
+      summary: Read one animal
+      operationId: getAnimal
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    put:
+      tags: [Animals]
+      summary: Update an animal
+      operationId: updateAnimal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/JsonObject'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    delete:
+      tags: [Animals]
+      summary: Delete an animal
+      operationId: deleteAnimal
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /api/plants:
+    get:
+      tags: [Plants]
+      summary: List registered plants
+      operationId: listPlants
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '500': {$ref: '#/components/responses/ServerError'}
+  /api/plants/register:
+    post:
+      tags: [Plants]
+      summary: Register a plant and issue the configured MYZ reward
+      operationId: registerPlant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RegistryRequest'}
+            example: {species: Ocimum basilicum, place: garden-demo, userId: demo-user, description: Basil}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '500': {$ref: '#/components/responses/ServerError'}
   /api/rewards:
     get:
       tags: [Rewards]
-      summary: Lista rewards per utente
+      summary: List rewards for a user
+      operationId: listRewards
       parameters:
-        - name: userId
-          in: query
-          required: true
-          schema:
-            type: string
+        - {name: userId, in: query, required: true, schema: {type: string}}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, default: 50}}
+        - {name: page, in: query, schema: {type: integer, minimum: 1, default: 1}}
       responses:
-        "200":
-          description: Lista rewards utente
-
+        '200': {$ref: '#/components/responses/Success'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /api/rewards/trigger:
+    post:
+      tags: [Rewards]
+      summary: Trigger a reward record and MYZ mint
+      operationId: triggerRewardExplicit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RewardRequest'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '500': {$ref: '#/components/responses/ServerError'}
+  /api/contributors/stats:
+    get:
+      tags: [Contributors]
+      summary: Read aggregate contributor rewards
+      operationId: getContributorStats
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '500': {$ref: '#/components/responses/ServerError'}
+  /api/sensors/data:
+    post:
+      tags: [Sensors]
+      summary: Store an Arduino sensor reading
+      operationId: recordSensorData
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/SensorReading'}
+            example: {gardenId: garden-demo, ph: 6.4, ec: 1.2, temperature: 24.1, humidity: 58}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /api/sensors/garden/{gardenId}:
+    parameters:
+      - {$ref: '#/components/parameters/GardenId'}
+    get:
+      tags: [Sensors]
+      summary: Get sensor history for a garden
+      operationId: getGardenSensorHistory
+      parameters:
+        - {name: days, in: query, schema: {type: integer, minimum: 1, default: 7}}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '500': {$ref: '#/components/responses/ServerError'}
+  /api/sensors/garden/{gardenId}/latest:
+    parameters:
+      - {$ref: '#/components/parameters/GardenId'}
+    get:
+      tags: [Sensors]
+      summary: Get the latest sensor reading
+      operationId: getLatestSensorReading
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '500': {$ref: '#/components/responses/ServerError'}
+  /api/sensors/garden/{gardenId}/stats:
+    parameters:
+      - {$ref: '#/components/parameters/GardenId'}
+    get:
+      tags: [Sensors]
+      summary: Calculate pH, EC and temperature statistics
+      operationId: getGardenSensorStats
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '500': {$ref: '#/components/responses/ServerError'}
+  /api/security/status:
+    get:
+      tags: [Security]
+      summary: Read process security status
+      operationId: getSecurityStatus
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /api/security/metrics:
+    get:
+      tags: [Security]
+      summary: Read rate-limit and security-header configuration
+      operationId: getSecurityMetrics
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /api/xmr/rate:
+    get:
+      tags: [Monero]
+      summary: Get the configured XMR/MYZ rate
+      operationId: getXmrRate
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '500': {$ref: '#/components/responses/ServerError'}
+  /api/xmr/address:
+    get:
+      tags: [Monero]
+      summary: Return the configured public Monero receiving address
+      operationId: getXmrAddress
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '500': {$ref: '#/components/responses/ServerError'}
+  /api/xmr/verify:
+    post:
+      tags: [Monero]
+      summary: Verify a transaction amount through the Monero RPC node
+      operationId: verifyXmrPayment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/XmrVerificationRequest'}
+            example: {txId: '<transaction-id>', expectedAmount: 0.05}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '500': {$ref: '#/components/responses/ServerError'}
+  /api/gl1/quotes:
+    post:
+      tags: [GL1 bridge]
+      summary: Create a GL1 quote
+      operationId: createGl1Quote
+      requestBody:
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/JsonObject'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /api/gl1/transfers:
+    post:
+      tags: [GL1 bridge]
+      summary: Create a GL1 transfer
+      operationId: createGl1Transfer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/JsonObject'}
+      responses:
+        '201': {$ref: '#/components/responses/Success'}
+        '502': {$ref: '#/components/responses/UpstreamError'}
+    get:
+      tags: [GL1 bridge]
+      summary: List in-memory GL1 transfers
+      operationId: listGl1Transfers
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /api/gl1/transfers/{id}:
+    parameters:
+      - {$ref: '#/components/parameters/Id'}
+    get:
+      tags: [GL1 bridge]
+      summary: Read one GL1 transfer
+      operationId: getGl1Transfer
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /api/robot/create:
+    post:
+      tags: [Robots]
+      summary: Create a robot
+      operationId: createRobot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RobotRequest'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /api/robot/assign:
+    post:
+      tags: [Robots]
+      summary: Assign a job to a robot
+      operationId: assignRobotJob
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RobotAssignmentRequest'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /api/robot/execute:
+    post:
+      tags: [Robots]
+      summary: Execute the current robot job
+      operationId: executeRobotJob
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/RobotIdRequest'}}}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /api/robot/deliver:
+    post:
+      tags: [Robots]
+      summary: Deliver the current robot job
+      operationId: deliverRobotJob
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/RobotIdRequest'}}}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /api/robot/job/complete:
+    post:
+      tags: [Robots]
+      summary: Execute and deliver a robot job
+      operationId: completeRobotJob
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/RobotJobRequest'}}}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /api/robot/dispute:
+    post:
+      tags: [Robots]
+      summary: Open a robot-job dispute
+      operationId: disputeRobotJob
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/RobotDisputeRequest'}}}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+  /api/robot/stats:
+    get:
+      tags: [Robots]
+      summary: Get aggregate robot statistics
+      operationId: getRobotStats
+      parameters:
+        - {name: refresh, in: query, schema: {type: boolean, default: false}}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '500': {$ref: '#/components/responses/ServerError'}
   /api/robot/status/{robotId}:
+    parameters:
+      - {name: robotId, in: path, required: true, schema: {type: string}}
     get:
-      tags: [Robot]
-      summary: Stato di un robot
-      parameters:
-        - name: robotId
-          in: path
-          required: true
-          schema:
-            type: string
+      tags: [Robots]
+      summary: Read one robot status
+      operationId: getRobotStatus
       responses:
-        "200":
-          description: Dettaglio stato robot
-
-  /api/robot/escrow/{jobId}:
-    get:
-      tags: [Robot Escrow]
-      summary: Dettaglio escrow job robot
-      parameters:
-        - name: jobId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Dettaglio job escrow
-
-  /api/bounty:
-    get:
-      tags: [Bounty]
-      summary: Lista bounty disponibili
-      responses:
-        "200":
-          description: Lista bounty
+        '200': {$ref: '#/components/responses/Success'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /api/robot/logo/create:
     post:
-      tags: [Bounty]
-      summary: Crea un nuovo bounty
+      tags: [Robot logos]
+      summary: Create a robot logo job
+      operationId: createRobotLogoJob
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/LogoJobRequest'}
       responses:
-        "201":
-          description: Bounty creato
-
-  /api/stake:
-    get:
-      tags: [Stake]
-      summary: Lista stake attivi
-      responses:
-        "200":
-          description: Lista stake
+        '200': {$ref: '#/components/responses/Success'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '500': {$ref: '#/components/responses/ServerError'}
+  /api/robot/logo/generate:
     post:
-      tags: [Stake]
-      summary: Crea un nuovo stake
+      tags: [Robot logos]
+      summary: Generate and deliver a logo job
+      operationId: generateRobotLogo
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/JobIdRequest'}}}
       responses:
-        "201":
-          description: Stake creato
-
-  /api/escrow/house:
+        '200': {$ref: '#/components/responses/Success'}
+        '500': {$ref: '#/components/responses/ServerError'}
+  /api/robot/logo/job/{jobId}:
+    parameters:
+      - {name: jobId, in: path, required: true, schema: {type: string}}
     get:
-      tags: [Escrow House]
-      summary: Lista escrow immobiliari
+      tags: [Robot logos]
+      summary: Read one logo job
+      operationId: getRobotLogoJob
       responses:
-        "200":
-          description: Lista escrow house
-
-  /api/webhooks/github:
-    post:
-      tags: [Webhooks]
-      summary: GitHub webhook per reward automatici
-      description: Riceve eventi GitHub e assegna bounty ai contributor
-      parameters:
-        - name: X-Hub-Signature-256
-          in: header
-          required: true
-          schema:
-            type: string
-        - name: X-GitHub-Event
-          in: header
-          required: true
-          schema:
-            type: string
+        '200': {$ref: '#/components/responses/Success'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /api/robot/logo/jobs:
+    get:
+      tags: [Robot logos]
+      summary: List logo jobs
+      operationId: listRobotLogoJobs
       responses:
-        "200":
-          description: Evento processato
-
+        '200': {$ref: '#/components/responses/Success'}
 components:
+  parameters:
+    Id: {name: id, in: path, required: true, schema: {type: string}}
+    GardenId: {name: gardenId, in: path, required: true, schema: {type: string}}
+  responses:
+    Success:
+      description: Successful JSON response
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/SuccessResponse'}
+    BadRequest:
+      description: Invalid request or missing required field
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ErrorResponse'}
+    NotFound:
+      description: Requested resource was not found
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ErrorResponse'}
+    ServerError:
+      description: Internal processing error
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ErrorResponse'}
+    UpstreamError:
+      description: GL1 upstream service failure
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ErrorResponse'}
   schemas:
-    Reward:
+    JsonObject:
+      type: object
+      additionalProperties: true
+    SuccessResponse:
       type: object
       properties:
-        id:
-          type: string
-        userId:
-          type: string
-        amount:
-          type: number
-        reason:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-        status:
-          type: string
-          enum: [pending, paid, failed]
-
-    Bounty:
+        success: {type: boolean, example: true}
+        data: {$ref: '#/components/schemas/JsonValue'}
+        error: {type: string}
+    JsonValue:
+      nullable: true
+      oneOf:
+        - {$ref: '#/components/schemas/JsonObject'}
+        - type: array
+          items: {}
+        - {type: string}
+        - {type: number}
+        - {type: boolean}
+    ErrorResponse:
       type: object
+      required: [error]
       properties:
-        issueId:
-          type: string
-        rewardMYZ:
-          type: number
-        assignedTo:
-          type: string
-        status:
-          type: string
-          enum: [open, assigned, completed]
-
-    Robot:
+        success: {type: boolean, example: false}
+        error: {type: string, example: Missing required fields}
+    HealthResponse:
       type: object
+      required: [status, timestamp, uptime]
       properties:
-        robotId:
-          type: string
-        name:
-          type: string
-        status:
-          type: string
-          enum: [idle, working, delivering, dispute]
-        reputation:
-          type: number
+        status: {type: string, example: ok}
+        timestamp: {type: string, format: date-time}
+        uptime: {type: number, format: double}
+        memory: {$ref: '#/components/schemas/JsonObject'}
+        rateLimit: {type: string, example: 100 requests per 15 minutes}
+    RegistryRequest:
+      type: object
+      required: [species, place, userId]
+      properties:
+        species: {type: string}
+        place: {type: string}
+        userId: {type: string}
+        description: {type: string}
+    SensorReading:
+      type: object
+      required: [gardenId, ph]
+      properties:
+        gardenId: {type: string}
+        ph: {type: number, minimum: 0, maximum: 14}
+        ec: {type: number, minimum: 0}
+        temperature: {type: number}
+        humidity: {type: number, minimum: 0, maximum: 100}
+        timestamp: {type: string, format: date-time}
+    SwapRequest:
+      type: object
+      required: [from, to, amount, userId]
+      properties:
+        from: {type: string, enum: [XMR, MYZ]}
+        to: {type: string, enum: [XMR, MYZ]}
+        amount: {type: number, exclusiveMinimum: 0}
+        userId: {type: string}
+    RewardRequest:
+      type: object
+      required: [userId, amount, reason]
+      properties:
+        userId: {type: string}
+        amount: {type: number, exclusiveMinimum: 0}
+        reason: {type: string}
+        source: {type: string, default: manual}
+    XmrVerificationRequest:
+      type: object
+      required: [txId, expectedAmount]
+      properties:
+        txId: {type: string}
+        expectedAmount: {type: number, exclusiveMinimum: 0}
+    RobotRequest:
+      type: object
+      required: [robotId, name, walletAddress]
+      properties:
+        robotId: {type: string}
+        name: {type: string}
+        walletAddress: {type: string, description: Public receiving address only}
+    RobotIdRequest:
+      type: object
+      required: [robotId]
+      properties:
+        robotId: {type: string}
+    RobotAssignmentRequest:
+      type: object
+      required: [robotId, jobId, clientId, amount, currency]
+      properties:
+        robotId: {type: string}
+        jobId: {type: string}
+        clientId: {type: string}
+        amount: {type: number, exclusiveMinimum: 0}
+        currency: {type: string}
+    RobotJobRequest:
+      type: object
+      required: [robotId, jobId]
+      properties:
+        robotId: {type: string}
+        jobId: {type: string}
+    RobotDisputeRequest:
+      allOf:
+        - {$ref: '#/components/schemas/RobotJobRequest'}
+        - type: object
+          required: [reason]
+          properties:
+            reason: {type: string}
+    LogoJobRequest:
+      type: object
+      required: [jobId, clientId, robotId, prompt]
+      properties:
+        jobId: {type: string}
+        clientId: {type: string}
+        robotId: {type: string}
+        prompt: {type: string}
+        style: {type: string}
+        amount: {type: number, default: 100}
+        currency: {type: string, default: MYZ}
+    JobIdRequest:
+      type: object
+      required: [jobId]
+      properties:
+        jobId: {type: string}

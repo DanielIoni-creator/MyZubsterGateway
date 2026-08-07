@@ -50,6 +50,14 @@ MyZubster is a decentralized ecosystem where **autonomous robots** work for real
 
 ## 📡 API Endpoints
 
+### Interactive documentation
+
+After starting the gateway, open [`/docs`](http://localhost:10000/docs) for the
+Swagger UI. It loads the repository's complete mounted-route specification from
+[`/openapi.yaml`](openapi.yaml) and enables **Try it out** against the same
+origin. The step-by-step tutorial, including Monero verification examples, is
+in [`docs/API_TUTORIAL.md`](docs/API_TUTORIAL.md).
+
 ### Swap
 ```bash
 # Get exchange rate
