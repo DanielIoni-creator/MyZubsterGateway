@@ -1,4 +1,5 @@
 require('dotenv').config();
+app.use('/api/payment-verification', require('./src/routes/paymentVerificationRoutes'));
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
