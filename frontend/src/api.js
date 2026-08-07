@@ -1,5 +1,5 @@
 // frontend/src/api.js
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:10000';
+export const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:10000';
 
 export async function fetchHealth() {
   const res = await fetch(`${API_BASE}/health`);
@@ -20,6 +20,10 @@ export async function getRobotStatus(robotId) {
   return res.json();
 }
 
-// Aggiungi qui altre funzioni per:
-// - bounty, stake, rewards, escrow, animal rescue, logo, code, ecc.
-export default { fetchHealth, createRobot, getRobotStatus };
+export async function getRewards({ userId, page = 1, limit = 10 } = {}) {
+  const params = new URLSearchParams({ userId, limit: String(limit), page: String(page) });
+  const res = await fetch(`${API_BASE}/api/rewards?${params}`);
+  return res.json();
+}
+
+export default { fetchHealth, createRobot, getRobotStatus, getRewards };
