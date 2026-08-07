@@ -1,4 +1,5 @@
 require('dotenv').config();
+app.use('/api/escrow', require('./src/routes/escrowRoutes'));
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
