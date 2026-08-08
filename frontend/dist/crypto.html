@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>₿ Crypto Dashboard - BTC/ETH/ADA - MyZubster</title>
+  <style>
+    :root {
+      --accent: #f7931a;
+      --accent-2: #627eea;
+      --accent-3: #0033ad;
+      --bg: #10141b;
+      --surface: #171d27;
+      --surface-2: #1f2733;
+      --text: #e8edf4;
+      --text-soft: #94a1b2;
+      --border: #2a3444;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      --radius: 14px;
+      --green: #22a06b;
+      --red: #d94f4f;
+      --warn: #d99000;
+    }
+    [data-theme="light"] {
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --surface-2: #eef1f6;
+      --text: #1f2733;
+      --text-soft: #5b6675;
+      --border: #e2e7ee;
+      --shadow: 0 10px 30px rgba(20, 30, 50, 0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      margin: 0; padding: 28px 20px 48px;
+      font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg); color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; }
+    header { display: flex; align-items: center; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+    h1 { font-size: 24px; margin: 0; }
+    .spacer { flex: 1; }
+    .btn {
+      background: var(--surface); color: var(--text); border: 1px solid var(--border);
+      border-radius: 10px; padding: 8px 14px; cursor: pointer; font-size: 14px;
+      transition: border-color 0.2s;
+    }
+    .btn:hover { border-color: var(--accent); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #1b1200; font-weight: 600; }
+    .btn.primary:hover { opacity: 0.9; }
+    .btn.export { background: var(--green); border-color: var(--green); color: #fff; }
+    .btn.export:hover { opacity: 0.9; }
+
+    .pill { font-size: 12px; color: var(--text-soft); border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; }
+    .pill.live::before { content: "●"; color: var(--green); margin-right: 6px; }
+    .pill.demo::before { content: "●"; color: var(--warn); margin-right: 6px; }
+
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .kpi-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px; display: flex; align-items: center; gap: 16px;
+      box-shadow: var(--shadow); transition: transform 0.2s;
+    }
+    .kpi-card:hover { transform: translateY(-2px); }
+    .kpi-icon { font-size: 2rem; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 12px; flex-shrink: 0; }
+    .kpi-icon.btc { background: rgba(247,147,26,0.15); color: #f7931a; }
+    .kpi-icon.eth { background: rgba(98,126,234,0.15); color: #627eea; }
+    .kpi-icon.ada { background: rgba(0,51,173,0.15); color: #0033ad; }
+    .kpi-icon.total { background: rgba(34,160,107,0.15); color: #22a06b; }
+    .kpi-info h3 { font-size: 0.85rem; color: var(--text-soft); margin-bottom: 4px; }
+    .kpi-value { font-size: 1.5rem; font-weight: 700; }
+    .kpi-sub { font-size: 0.8rem; color: var(--text-soft); margin-top: 2px; }
+    .kpi-change { font-size: 0.8rem; font-weight: 600; }
+    .kpi-change.up { color: var(--green); }
+    .kpi-change.down { color: var(--red); }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow); }
+    .card h2 { font-size: 1.1rem; margin-bottom: 16px; color: var(--text); }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+    .card-header h2 { margin-bottom: 0; }
+
+    .converter-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; }
+    .conv-group { display: flex; flex-direction: column; gap: 6px; }
+    .conv-group label { font-size: 0.85rem; color: var(--text-soft); }
+    .conv-group select, .conv-group input {
+      padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px;
+      background: var(--surface-2); color: var(--text); font-size: 1rem;
+    }
+    .conv-group select:focus, .conv-group input:focus { outline: none; border-color: var(--accent); }
+    .conv-swap { font-size: 1.5rem; color: var(--text-soft); cursor: pointer; padding: 10px; }
+    .conv-swap:hover { color: var(--accent); }
+    .conv-result { margin-top: 12px; padding: 12px; background: var(--surface-2); border-radius: 10px; text-align: center; font-size: 1.1rem; }
+    .conv-rate { font-size: 0.85rem; color: var(--text-soft); margin-top: 8px; text-align: center; }
+    .conv-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .conv-tab {
+      padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border);
+      background: transparent; color: var(--text-soft); cursor: pointer; font-size: 13px;
+      transition: all 0.2s;
+    }
+    .conv-tab.active { background: var(--accent); border-color: var(--accent); color: #1b1200; }
+
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { padding: 12px; text-align: left; font-weight: 600; white-space: nowrap; border-bottom: 1px solid var(--border); color: var(--text-soft); }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    tr:hover { background: var(--surface-2); }
+    .coin-badge { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+    .coin-badge .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .dot.btc { background: #f7931a; }
+    .dot.eth { background: #627eea; }
+    .dot.ada { background: #0033ad; }
+    .tx-type { padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+    .tx-type.in { background: rgba(34,160,107,0.15); color: var(--green); }
+    .tx-type.out { background: rgba(217,79,79,0.15); color: var(--red); }
+    .tx-status { padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; }
+    .tx-status.confirmed { background: rgba(34,160,107,0.15); color: var(--green); }
+    .tx-status.pending { background: rgba(217,144,0,0.15); color: var(--warn); }
+    .tx-status.failed { background: rgba(217,79,79,0.15); color: var(--red); }
+    .filter-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .filter-row select, .filter-row input {
+      padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
+      background: var(--surface-2); color: var(--text); font-size: 13px;
+    }
+
+    .prices-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .price-card { background: var(--surface-2); border-radius: 10px; padding: 14px; text-align: center; }
+    .price-card h4 { font-size: 0.85rem; color: var(--text-soft); margin-bottom: 6px; }
+    .price-card .price { font-size: 1.3rem; font-weight: 700; }
+    .price-card .change { font-size: 0.8rem; margin-top: 4px; }
+
+    .chart-container { position: relative; height: 200px; margin: 16px 0; }
+    .chart-container svg { width: 100%; height: 100%; }
+    .chart-tooltip {
+      position: absolute; padding: 8px 12px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 8px; font-size: 0.8rem;
+      pointer-events: none; display: none; z-index: 10;
+    }
+
+    .alerts-list { display: flex; flex-direction: column; gap: 10px; }
+    .alert-item { display: flex; align-items: flex-start; gap: 12px; padding: 14px; border-radius: 10px; border-left: 4px solid; }
+    .alert-item.critical { background: rgba(217,79,79,0.1); border-left-color: var(--red); }
+    .alert-item.warning { background: rgba(217,144,0,0.1); border-left-color: var(--warn); }
+    .alert-item.info { background: rgba(98,126,234,0.1); border-left-color: #627eea; }
+    .alert-icon { font-size: 1.3rem; }
+    .alert-message { font-weight: 500; }
+    .alert-time { font-size: 0.8rem; color: var(--text-soft); margin-top: 4px; }
+
+    .loading { text-align: center; font-size: 1.5rem; padding: 50px; }
+    .error { text-align: center; padding: 40px; color: var(--red); }
+    .empty { text-align: center; padding: 30px; color: var(--text-soft); }
+    .last-update { text-align: right; color: var(--text-soft); font-size: 0.85rem; margin-top: 8px; }
+
+    @media (max-width: 768px) {
+      header { flex-direction: column; align-items: stretch; }
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      .converter-grid { grid-template-columns: 1fr; }
+      .conv-swap { text-align: center; }
+      body { padding: 16px 12px 32px; }
+      h1 { font-size: 20px; }
+    }
+    @media (max-width: 480px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <header>
+    <h1>₿ Crypto Dashboard</h1>
+    <span class="pill demo" id="modePill">Demo</span>
+    <span class="spacer"></span>
+    <button class="btn" onclick="toggleTheme()" id="themeBtn">☀️ Light</button>
+    <button class="btn primary" onclick="loadData()">🔄 Aggiorna</button>
+    <button class="btn export" onclick="exportCSV()">📥 CSV</button>
+  </header>
+
+  <div class="kpi-grid" id="kpiGrid">
+    <div class="kpi-card"><div class="kpi-icon btc">₿</div><div class="kpi-info"><h3>BTC Saldo</h3><div class="kpi-value" id="kpiBtc">0.0000</div><div class="kpi-sub" id="kpiBtcUsd">$0.00</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon eth">◆</div><div class="kpi-info"><h3>ETH Saldo</h3><div class="kpi-value" id="kpiEth">0.0000</div><div class="kpi-sub" id="kpiEthUsd">$0.00</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon ada">▲</div><div class="kpi-info"><h3>ADA Saldo</h3><div class="kpi-value" id="kpiAda">0.0000</div><div class="kpi-sub" id="kpiAdaUsd">$0.00</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon total">$</div><div class="kpi-info"><h3>Valore Totale</h3><div class="kpi-value" id="kpiTotal">$0.00</div><div class="kpi-sub">+ MYZ equivalente</div></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h2>🔄 Convertitore Automatico</h2></div>
+    <div class="conv-tabs" id="convTabs">
+      <button class="conv-tab active" data-pair="btc-eth">BTC ↔ ETH</button>
+      <button class="conv-tab" data-pair="btc-ada">BTC ↔ ADA</button>
+      <button class="conv-tab" data-pair="eth-ada">ETH ↔ ADA</button>
+      <button class="conv-tab" data-pair="crypto-myz">Crypto ↔ MYZ</button>
+    </div>
+    <div class="converter-grid">
+      <div class="conv-group">
+        <label>Da</label>
+        <select id="convFrom"><option value="BTC">₿ BTC</option><option value="ETH">◆ ETH</option><option value="ADA">▲ ADA</option><option value="MYZ">MYZ</option></select>
+        <input type="number" id="convAmount" value="1" min="0" step="0.01" oninput="convert()">
+      </div>
+      <div class="conv-swap" onclick="swapConv()">⇄</div>
+      <div class="conv-group">
+        <label>A</label>
+        <select id="convTo"><option value="ETH">◆ ETH</option><option value="BTC">₿ BTC</option><option value="ADA">▲ ADA</option><option value="MYZ">MYZ</option></select>
+        <input type="text" id="convResult" readonly placeholder="Risultato">
+      </div>
+    </div>
+    <div class="conv-rate" id="convRate">Tasso: 1 BTC = ...</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h2>📊 Prezzi in Tempo Reale</h2></div>
+    <div class="prices-grid" id="pricesGrid">
+      <div class="price-card"><h4>₿ BTC/USD</h4><div class="price" id="priceBtc">$67,432</div><div class="change up" id="changeBtc">+2.34%</div></div>
+      <div class="price-card"><h4>◆ ETH/USD</h4><div class="price" id="priceEth">$3,456</div><div class="change up" id="changeEth">+1.87%</div></div>
+      <div class="price-card"><h4>▲ ADA/USD</h4><div class="price" id="priceAda">$0.45</div><div class="change down" id="changeAda">-0.52%</div></div>
+    </div>
+    <div class="chart-container" id="chartContainer">
+      <svg viewBox="0 0 600 180" id="priceChart">
+        <polyline fill="none" stroke="#f7931a" stroke-width="2" id="chartLine"/>
+        <polyline fill="url(#chartGrad)" stroke="none" id="chartFill"/>
+      </svg>
+      <div class="chart-tooltip" id="chartTooltip"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>📋 Transazioni Recenti</h2>
+      <div class="filter-row">
+        <select id="filterCoin" onchange="renderTransactions()">
+          <option value="all">Tutte</option>
+          <option value="BTC">₿ BTC</option>
+          <option value="ETH">◆ ETH</option>
+          <option value="ADA">▲ ADA</option>
+        </select>
+        <select id="filterType" onchange="renderTransactions()">
+          <option value="all">Tutti</option>
+          <option value="in">Entrata</option>
+          <option value="out">Uscita</option>
+        </select>
+        <select id="filterStatus" onchange="renderTransactions()">
+          <option value="all">Tutti</option>
+          <option value="confirmed">Confermato</option>
+          <option value="pending">In attesa</option>
+          <option value="failed">Fallito</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-container" id="txTable"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h2>🔔 Notifiche e Allarmi</h2></div>
+    <div class="alerts-list" id="alertsList"></div>
+  </div>
+
+  <div class="last-update" id="lastUpdate"></div>
+</div>
+
+<script>
+  // ===== DEMO DATA =====
+  const DEMO = {
+    balances: { BTC: 1.2534, ETH: 15.6789, ADA: 4520.0 },
+    prices: { BTC: 67432.0, ETH: 3456.0, ADA: 0.45, MYZ: 0.12 },
+    changes: { BTC: '+2.34', ETH: '+1.87', ADA: '-0.52' },
+    txs: [
+      { id: 'tx1', coin: 'BTC', type: 'in', amount: 0.05, usd: 3371.6, status: 'confirmed', date: '2026-11-08 14:32', addr: 'bc1q...8f3a' },
+      { id: 'tx2', coin: 'ETH', type: 'out', amount: 2.5, usd: 8640.0, status: 'confirmed', date: '2026-11-08 12:15', addr: '0x4a2b...c91e' },
+      { id: 'tx3', coin: 'ADA', type: 'in', amount: 500, usd: 225.0, status: 'pending', date: '2026-11-08 10:48', addr: 'addr1...9x3f' },
+      { id: 'tx4', coin: 'BTC', type: 'out', amount: 0.12, usd: 8091.84, status: 'confirmed', date: '2026-11-07 22:10', addr: 'bc1q...a4d2' },
+      { id: 'tx5', coin: 'ETH', type: 'in', amount: 1.0, usd: 3456.0, status: 'confirmed', date: '2026-11-07 18:45', addr: '0x9f3c...b712' },
+      { id: 'tx6', coin: 'ADA', type: 'out', amount: 200, usd: 90.0, status: 'failed', date: '2026-11-07 15:30', addr: 'addr1...k2m8' },
+      { id: 'tx7', coin: 'BTC', type: 'in', amount: 0.01, usd: 674.32, status: 'pending', date: '2026-11-07 09:00', addr: 'bc1q...e5f7' },
+      { id: 'tx8', coin: 'ETH', type: 'out', amount: 0.5, usd: 1728.0, status: 'confirmed', date: '2026-11-06 20:30', addr: '0x7d1e...f403' },
+      { id: 'tx9', coin: 'ADA', type: 'in', amount: 1000, usd: 450.0, status: 'confirmed', date: '2026-11-06 14:00', addr: 'addr1...p5n9' },
+      { id: 'tx10', coin: 'BTC', type: 'out', amount: 0.03, usd: 2022.96, status: 'confirmed', date: '2026-11-05 08:15', addr: 'bc1q...c2b8' },
+    ],
+    alerts: [
+      { level: 'info', msg: 'BTC prezzo supera $70,000', time: '2 ore fa' },
+      { level: 'warning', msg: 'ADA saldo in calo sotto 5000', time: '5 ore fa' },
+      { level: 'critical', msg: 'Transazione ETH fallita: gas insufficiente', time: '1 giorno fa' },
+      { level: 'info', msg: 'Nuovo indirizzo BTC registrato per deposito', time: '2 giorni fa' },
+    ],
+    chartData: [62000, 63500, 64800, 64200, 65800, 67000, 66500, 67200, 68000, 67432],
+  };
+
+  let state = { data: DEMO, mode: 'demo' };
+
+  function format(v, d) { return v.toFixed(d); }
+  function fmtUsd(v) { return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+  function renderKPI() {
+    const d = state.data;
+    const totalUsd = d.balances.BTC * d.prices.BTC + d.balances.ETH * d.prices.ETH + d.balances.ADA * d.prices.ADA;
+    document.getElementById('kpiBtc').textContent = format(d.balances.BTC, 4);
+    document.getElementById('kpiBtcUsd').textContent = fmtUsd(d.balances.BTC * d.prices.BTC);
+    document.getElementById('kpiEth').textContent = format(d.balances.ETH, 4);
+    document.getElementById('kpiEthUsd').textContent = fmtUsd(d.balances.ETH * d.prices.ETH);
+    document.getElementById('kpiAda').textContent = format(d.balances.ADA, 0);
+    document.getElementById('kpiAdaUsd').textContent = fmtUsd(d.balances.ADA * d.prices.ADA);
+    document.getElementById('kpiTotal').textContent = fmtUsd(totalUsd);
+
+    document.getElementById('priceBtc').textContent = fmtUsd(d.prices.BTC);
+    document.getElementById('priceEth').textContent = fmtUsd(d.prices.ETH);
+    document.getElementById('priceAda').textContent = '$' + d.prices.ADA.toFixed(2);
+    ['Btc', 'Eth', 'Ada'].forEach(c => {
+      const el = document.getElementById('change' + c);
+      el.textContent = (d.changes[c.toLowerCase()] > 0 ? '+' : '') + d.changes[c.toLowerCase()] + '%';
+      el.className = 'change ' + (parseFloat(d.changes[c.toLowerCase()]) >= 0 ? 'up' : 'down');
+    });
+  }
+
+  function renderChart() {
+    const data = state.data.chartData;
+    const svg = document.getElementById('priceChart');
+    const w = 600, h = 180, pad = 20;
+    const min = Math.min(...data), max = Math.max(...data), range = max - min || 1;
+    const xStep = (w - pad * 2) / (data.length - 1);
+    const points = data.map((v, i) => `${pad + i * xStep},${h - pad - ((v - min) / range) * (h - pad * 2)}`).join(' ');
+
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    const grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+    grad.id = 'chartGrad';
+    grad.setAttribute('x1', '0'); grad.setAttribute('y1', '0');
+    grad.setAttribute('x2', '0'); grad.setAttribute('y2', '1');
+    const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop1.setAttribute('offset', '0%'); stop1.setAttribute('stop-color', '#f7931a'); stop1.setAttribute('stop-opacity', '0.3');
+    const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop2.setAttribute('offset', '100%'); stop2.setAttribute('stop-color', '#f7931a'); stop2.setAttribute('stop-opacity', '0');
+    grad.appendChild(stop1); grad.appendChild(stop2); defs.appendChild(grad);
+    svg.prepend(defs);
+
+    document.getElementById('chartLine').setAttribute('points', points);
+    const fillPoints = points + ` ${w - pad},${h - pad} ${pad},${h - pad}`;
+    document.getElementById('chartFill').setAttribute('points', fillPoints);
+  }
+
+  function renderTransactions() {
+    const coin = document.getElementById('filterCoin').value;
+    const type = document.getElementById('filterType').value;
+    const status = document.getElementById('filterStatus').value;
+    let txs = state.data.txs;
+    if (coin !== 'all') txs = txs.filter(t => t.coin === coin);
+    if (type !== 'all') txs = txs.filter(t => t.type === type);
+    if (status !== 'all') txs = txs.filter(t => t.status === status);
+
+    if (!txs.length) {
+      document.getElementById('txTable').innerHTML = '<div class="empty">Nessuna transazione trovata</div>';
+      return;
+    }
+    const dots = { BTC: 'btc', ETH: 'eth', ADA: 'ada' };
+    let html = '<table><thead><tr><th>Data</th><th>Valuta</th><th>Tipo</th><th>Importo</th><th>USD</th><th>Indirizzo</th><th>Stato</th></tr></thead><tbody>';
+    txs.forEach(t => {
+      const amt = t.coin === 'ADA' ? format(t.amount, 0) : format(t.amount, 4);
+      html += `<tr>
+        <td>${t.date}</td>
+        <td><span class="coin-badge"><span class="dot ${dots[t.coin]}"></span>${t.coin}</span></td>
+        <td><span class="tx-type ${t.type}">${t.type === 'in' ? '⬇ Entrata' : '⬆ Uscita'}</span></td>
+        <td>${amt}</td>
+        <td>${fmtUsd(t.usd)}</td>
+        <td style="font-size:0.8rem;color:var(--text-soft)">${t.addr}</td>
+        <td><span class="tx-status ${t.status}">${t.status === 'confirmed' ? '✅ Confermato' : t.status === 'pending' ? '⏳ In attesa' : '❌ Fallito'}</span></td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    document.getElementById('txTable').innerHTML = html;
+  }
+
+  function renderAlerts() {
+    const html = state.data.alerts.map(a =>
+      `<div class="alert-item ${a.level}">
+        <span class="alert-icon">${a.level === 'critical' ? '🔴' : a.level === 'warning' ? '🟡' : '🔵'}</span>
+        <div><div class="alert-message">${a.msg}</div><div class="alert-time">${a.time}</div></div>
+      </div>`
+    ).join('');
+    document.getElementById('alertsList').innerHTML = html;
+  }
+
+  function convert() {
+    const from = document.getElementById('convFrom').value;
+    const to = document.getElementById('convTo').value;
+    const amt = parseFloat(document.getElementById('convAmount').value) || 0;
+    const p = state.data.prices;
+    let usd = amt * (p[from] || 0);
+    let result = usd / (p[to] || 1);
+    document.getElementById('convResult').value = (to === 'ADA' ? result.toFixed(0) : result.toFixed(8));
+    document.getElementById('convRate').textContent = `Tasso: 1 ${from} = ${(p[from] / (p[to] || 1)).toFixed(8)} ${to}`;
+  }
+
+  function swapConv() {
+    const f = document.getElementById('convFrom');
+    const t = document.getElementById('convTo');
+    [f.value, t.value] = [t.value, f.value];
+    convert();
+  }
+
+  function setupConvTabs() {
+    document.querySelectorAll('.conv-tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.conv-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        const pair = this.dataset.pair;
+        const [from, to] = pair.split('-');
+        document.getElementById('convFrom').value = from.toUpperCase();
+        document.getElementById('convTo').value = to.toUpperCase();
+        convert();
+      });
+    });
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('themeBtn').textContent = isDark ? '🌙 Dark' : '☀️ Light';
+    try { localStorage.setItem('crypto-theme', isDark ? 'light' : 'dark'); } catch(e) {}
+  }
+
+  function exportCSV() {
+    const rows = [['Data','Valuta','Tipo','Importo','USD','Indirizzo','Stato']];
+    state.data.txs.forEach(t => rows.push([t.date, t.coin, t.type, t.amount, t.usd, t.addr, t.status]));
+    const bom = '\uFEFF';
+    const csv = bom + rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'crypto-transazioni.csv';
+    a.click();
+  }
+
+  async function loadData() {
+    document.getElementById('modePill').className = 'pill live';
+    document.getElementById('modePill').textContent = 'Live';
+    try {
+      const res = await fetch('/api/payments');
+      if (res.ok) {
+        const data = await res.json();
+        // Process real data if available
+        // For now, simulate with slight random variation
+        state.data = JSON.parse(JSON.stringify(DEMO));
+        Object.keys(state.data.prices).forEach(k => {
+          if (k !== 'MYZ') state.data.prices[k] *= (1 + (Math.random() - 0.5) * 0.02);
+        });
+        state.data.chartData = DEMO.chartData.map(v => v * (1 + (Math.random() - 0.5) * 0.01));
+      }
+    } catch(e) {
+      state.data = JSON.parse(JSON.stringify(DEMO));
+      document.getElementById('modePill').className = 'pill demo';
+      document.getElementById('modePill').textContent = 'Demo';
+    }
+    renderAll();
+    document.getElementById('lastUpdate').textContent = 'Ultimo aggiornamento: ' + new Date().toLocaleString('it-IT');
+  }
+
+  function renderAll() {
+    renderKPI();
+    renderChart();
+    renderTransactions();
+    renderAlerts();
+    convert();
+  }
+
+  // Init
+  try {
+    const saved = localStorage.getItem('crypto-theme');
+    if (saved) document.documentElement.setAttribute('data-theme', saved);
+  } catch(e) {}
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.getElementById('themeBtn').textContent = isDark ? '☀️ Light' : '🌙 Dark';
+
+  document.getElementById('convFrom').addEventListener('change', convert);
+  document.getElementById('convTo').addEventListener('change', convert);
+  setupConvTabs();
+  renderAll();
+  document.getElementById('lastUpdate').textContent = 'Ultimo aggiornamento: ' + new Date().toLocaleString('it-IT');
+</script>
+</body>
+</html>
