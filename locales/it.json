@@ -5,18 +5,52 @@
   "auth": {
     "loginEndpoint": "Endpoint di accesso",
     "registerEndpoint": "Endpoint di registrazione",
-    "required": "Autenticazione richiesta"
+    "required": "Autenticazione richiesta",
+    "invalidCredentials": "Credenziali non valide",
+    "sessionExpired": "Sessione scaduta, effettua nuovamente l'accesso"
   },
   "admin": {
-    "required": "Privilegi di amministratore richiesti"
+    "required": "Privilegi di amministratore richiesti",
+    "dashboard": "Pannello di controllo",
+    "users": "Utenti",
+    "settings": "Impostazioni"
   },
   "validation": {
-    "targetUrlRequired": "targetUrl è obbligatorio"
+    "targetUrlRequired": "targetUrl è obbligatorio",
+    "invalidEmail": "Indirizzo email non valido",
+    "passwordTooShort": "La password deve contenere almeno 8 caratteri"
   },
   "webhooks": {
-    "sentWithRetry": "Webhook inviato con nuovo tentativo automatico"
+    "sentWithRetry": "Webhook inviato con nuovo tentativo automatico",
+    "deliveryFailed": "Consegna webhook fallita dopo tutti i tentativi"
   },
   "errors": {
-    "internal": "Errore interno del server"
+    "internal": "Errore interno del server",
+    "notFound": "Risorsa non trovata",
+    "rateLimited": "Troppe richieste, riprova più tardi"
+  },
+  "transactions": {
+    "title": "Cronologia Transazioni",
+    "sent": "Inviato",
+    "received": "Ricevuto",
+    "pending": "In attesa",
+    "completed": "Completato",
+    "failed": "Fallito"
+  },
+  "bounty": {
+    "title": "Bounty",
+    "create": "Crea Bounty",
+    "claim": "Richiedi Bounty",
+    "reward": "Ricompensa",
+    "description": "Descrizione"
+  },
+  "common": {
+    "save": "Salva",
+    "cancel": "Annulla",
+    "delete": "Elimina",
+    "edit": "Modifica",
+    "search": "Cerca",
+    "loading": "Caricamento in corso...",
+    "noResults": "Nessun risultato trovato"
   }
 }
