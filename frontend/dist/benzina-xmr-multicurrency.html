@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⛽ BENZINA - Multi-valuta MYZ/XMR - MyZubster</title>
+
+  <!-- Chart.js for rate chart -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root {
+      --accent: #f7931a;
+      --accent-2: #2ecc71;
+      --accent-3: #3498db;
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface-2: #1c2333;
+      --text: #e6edf3;
+      --text-soft: #8b949e;
+      --border: #30363d;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --credit: #2ea043;
+      --debit: #da3633;
+      --warn: #d29922;
+      --info: #58a6ff;
+      --myz: #f7931a;
+      --xmr: #2ecc71;
+    }
+    [data-theme="light"] {
+      --bg: #f0f2f5;
+      --surface: #ffffff;
+      --surface-2: #e8ecf1;
+      --text: #1f2328;
+      --text-soft: #656d76;
+      --border: #d0d7de;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      padding: 24px 20px 48px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; }
+
+    /* Header */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    h1 { font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    h1 span.myz { color: var(--myz); }
+    h1 span.xmr { color: var(--xmr); }
+    .spacer { flex: 1; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--text-soft);
+      background: var(--surface);
+    }
+    .badge.live::before { content: "●"; color: var(--credit); }
+    .badge.demo::before { content: "●"; color: var(--warn); }
+
+    /* Buttons */
+    .btn {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .btn:hover { border-color: var(--accent); background: var(--surface-2); }
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #1b1200;
+      font-weight: 600;
+    }
+    .btn.primary:hover { filter: brightness(1.1); }
+    .btn-group { display: flex; gap: 6px; }
+
+    /* Currency tabs */
+    .currency-tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--surface-2);
+      padding: 4px;
+      border-radius: var(--radius-sm);
+    }
+    .currency-tab {
+      padding: 6px 16px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text-soft);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+    .currency-tab.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .currency-tab .symbol { font-size: 15px; margin-right: 4px; }
+    .currency-tab.active.myz-tab { color: var(--myz); }
+    .currency-tab.active.xmr-tab { color: var(--xmr); }
+    .currency-tab.active.all-tab { color: var(--info); }
+
+    /* Cards grid */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px 20px;
+    }
+    .card h3 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-soft);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .card .value {
+      font-size: 28px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .card .value.myz { color: var(--myz); }
+    .card .value.xmr { color: var(--xmr); }
+    .card .sub {
+      display: flex;
+      gap: 16px;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+    .card .sub b { color: var(--text); font-weight: 600; }
+
+    /* Panels */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+    .panel-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .panel-head h2 {
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-head .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-left: auto;
+    }
+
+    /* Exchange rate display */
+    .rate-display {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      padding: 12px 16px;
+      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      margin-bottom: 16px;
+    }
+    .rate-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .rate-item .label {
+      font-size: 12px;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .rate-item .rate-value {
+      font-size: 20px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .rate-item .rate-change {
+      font-size: 13px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+    .rate-change.up { color: var(--credit); background: rgba(46, 160, 67, 0.15); }
+    .rate-change.down { color: var(--debit); background: rgba(218, 54, 51, 0.15); }
+
+    /* Chart container */
+    .chart-container {
+      position: relative;
+      height: 260px;
+      width: 100%;
+    }
+
+    /* Select / Input */
+    select, input {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+    select:focus, input:focus { outline: none; border-color: var(--accent); }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th {
+      text-align: left;
+      color: var(--text-soft);
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 8px 10px;
+      border-bottom: 2px solid var(--border);
+    }
+    td {
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+      font-variant-numeric: tabular-nums;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background: var(--surface-2); }
+    .dir-CREDIT { color: var(--credit); font-weight: 600; }
+    .dir-DEBIT { color: var(--debit); font-weight: 600; }
+    .tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--text-soft);
+    }
+    .tag.myz { border-color: var(--myz); color: var(--myz); }
+    .tag.xmr { border-color: var(--xmr); color: var(--xmr); }
+    .empty { color: var(--text-soft); padding: 32px 10px; text-align: center; }
+    .scroll { overflow-x: auto; }
+
+    /* Alerts */
+    .alerts { display: grid; gap: 8px; margin-bottom: 18px; }
+    .alert {
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 13px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .alert.warning { border-left: 4px solid var(--warn); }
+    .alert.error { border-left: 4px solid var(--debit); }
+    .alert.info { border-left: 4px solid var(--info); }
+    .alert.success { border-left: 4px solid var(--credit); }
+
+    /* Summary bar */
+    .summary-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .summary-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 14px;
+      background: var(--surface-2);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+    .summary-item .label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-soft);
+    }
+    .summary-item .total {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      body { padding: 14px 10px 32px; }
+      .panel-head { flex-direction: column; align-items: flex-start; }
+      .panel-head .controls { margin-left: 0; width: 100%; }
+      .rate-display { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .cards { grid-template-columns: 1fr; }
+      .summary-bar { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- Header -->
+    <header>
+      <h1>⛽ BENZINA <span class="myz">MYZ</span>/<span class="xmr">XMR</span> Multi-valuta</h1>
+      <span id="source-badge" class="badge demo">Dati dimostrativi</span>
+      <span class="spacer"></span>
+      <div class="btn-group">
+        <button id="theme-btn" class="btn">☾ Tema</button>
+        <button id="export-btn" class="btn primary">⬇ Esporta CSV</button>
+      </div>
+    </header>
+
+    <!-- Currency tabs -->
+    <div class="currency-tabs" style="margin-bottom:16px">
+      <button class="currency-tab active all-tab" data-currency="all"><span class="symbol">⚡</span> Tutte</button>
+      <button class="currency-tab myz-tab" data-currency="MYZ"><span class="symbol">🪙</span> MYZ</button>
+      <button class="currency-tab xmr-tab" data-currency="XMR"><span class="symbol">◎</span> XMR</button>
+    </div>
+
+    <!-- Alerts -->
+    <div id="alerts" class="alerts"></div>
+
+    <!-- Exchange Rates -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>💱 Tassi di cambio</h2>
+        <span class="spacer"></span>
+        <span id="rate-updated" class="badge">—</span>
+      </div>
+      <div class="rate-display" id="rate-display">
+        <div class="rate-item">
+          <span class="label">MYZ → XMR</span>
+          <span class="rate-value myz" id="rate-myz-xmr">—</span>
+        </div>
+        <div class="rate-item">
+          <span class="label">XMR → MYZ</span>
+          <span class="rate-value xmr" id="rate-xmr-myz">—</span>
+        </div>
+        <div class="rate-item">
+          <span class="label">1 MYZ (USD)</span>
+          <span class="rate-value" id="rate-myz-usd">—</span>
+        </div>
+        <div class="rate-item">
+          <span class="label">1 XMR (USD)</span>
+          <span class="rate-value" id="rate-xmr-usd">—</span>
+        </div>
+        <div class="rate-item">
+          <span class="label">Variazione (24h)</span>
+          <span class="rate-change" id="rate-change-24h">—</span>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="rateChart"></canvas>
+      </div>
+    </section>
+
+    <!-- Unified Dashboard Cards -->
+    <section id="balance-cards" class="cards"></section>
+
+    <!-- Summary Bar -->
+    <section class="summary-bar" id="summary-bar"></section>
+
+    <!-- Multi-currency Report -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>📊 Report multi-valuta</h2>
+        <div class="controls">
+          <select id="report-filter">
+            <option value="all">Tutte le valute</option>
+            <option value="MYZ">Solo MYZ</option>
+            <option value="XMR">Solo XMR</option>
+          </select>
+          <select id="report-period">
+            <option value="7">7 giorni</option>
+            <option value="14" selected>14 giorni</option>
+            <option value="30">30 giorni</option>
+            <option value="90">90 giorni</option>
+          </select>
+        </div>
+      </div>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Valuta</th>
+              <th>Stazione</th>
+              <th>Direzione</th>
+              <th>Importo</th>
+              <th>Equivalente</th>
+              <th>Stato</th>
+            </tr>
+          </thead>
+          <tbody id="report-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Station Dashboard -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>🏪 Dashboard stazioni</h2>
+        <div class="controls">
+          <select id="station-filter">
+            <option value="all">Tutte le stazioni</option>
+            <option value="station-1">Stazione 1 - Centrale</option>
+            <option value="station-2">Stazione 2 - Nord</option>
+            <option value="station-3">Stazione 3 - Est</option>
+            <option value="station-4">Stazione 4 - Ovest</option>
+          </select>
+        </div>
+      </div>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Stazione</th>
+              <th>MYZ Accettato</th>
+              <th>XMR Accettato</th>
+              <th>Volume MYZ</th>
+              <th>Volume XMR</th>
+              <th>Transazioni</th>
+              <th>Stato</th>
+            </tr>
+          </thead>
+          <tbody id="station-rows"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    /* ================================================================
+     * State
+     * ================================================================ */
+    var USER = new URLSearchParams(location.search).get('userId') || 'demo-user';
+    var POLL_MS = 15000;
+    var state = {
+      transactions: [],
+      rates: [],
+      live: false,
+      activeCurrency: 'all',
+      rateChart: null
+    };
+
+    /* ================================================================
+     * Demo data
+     * ================================================================ */
+    function demoTransactions() {
+      var out = [];
+      var now = Date.now();
+      var stations = ['Stazione 1 - Centrale', 'Stazione 2 - Nord', 'Stazione 3 - Est', 'Stazione 4 - Ovest'];
+      var plan = [
+        [0, 'MYZ', 'CREDIT', 1500, 'POSTED', stations[0]],
+        [0, 'XMR', 'CREDIT', 0.85, 'POSTED', stations[0]],
+        [1, 'MYZ', 'DEBIT', 320, 'POSTED', stations[1]],
+        [1, 'XMR', 'DEBIT', 0.12, 'POSTED', stations[1]],
+        [2, 'MYZ', 'CREDIT', 800, 'POSTED', stations[2]],
+        [2, 'XMR', 'CREDIT', 0.45, 'POSTED', stations[2]],
+        [3, 'MYZ', 'DEBIT', 150, 'POSTED', stations[3]],
+        [3, 'XMR', 'DEBIT', 0.08, 'PENDING', stations[3]],
+        [4, 'MYZ', 'CREDIT', 2000, 'POSTED', stations[0]],
+        [4, 'XMR', 'CREDIT', 1.20, 'POSTED', stations[0]],
+        [5, 'MYZ', 'DEBIT', 500, 'POSTED', stations[1]],
+        [5, 'XMR', 'DEBIT', 0.30, 'POSTED', stations[2]],
+        [6, 'MYZ', 'CREDIT', 600, 'POSTED', stations[3]],
+        [6, 'XMR', 'CREDIT', 0.35, 'POSTED', stations[3]],
+        [7, 'MYZ', 'DEBIT', 220, 'POSTED', stations[0]],
+        [7, 'XMR', 'DEBIT', 0.15, 'POSTED', stations[1]],
+        [8, 'MYZ', 'CREDIT', 1100, 'POSTED', stations[2]],
+        [8, 'XMR', 'CREDIT', 0.65, 'POSTED', stations[2]],
+        [9, 'MYZ', 'DEBIT', 400, 'POSTED', stations[3]],
+        [9, 'XMR', 'DEBIT', 0.22, 'POSTED', stations[0]],
+        [10, 'MYZ', 'CREDIT', 750, 'POSTED', stations[1]],
+        [10, 'XMR', 'CREDIT', 0.42, 'POSTED', stations[1]],
+        [11, 'MYZ', 'DEBIT', 180, 'POSTED', stations[2]],
+        [11, 'XMR', 'DEBIT', 0.10, 'PENDING', stations[3]],
+        [12, 'MYZ', 'CREDIT', 950, 'POSTED', stations[0]],
+        [12, 'XMR', 'CREDIT', 0.55, 'POSTED', stations[0]],
+        [13, 'MYZ', 'DEBIT', 300, 'POSTED', stations[1]],
+        [13, 'XMR', 'DEBIT', 0.18, 'POSTED', stations[2]],
+      ];
+      plan.forEach(function (p, i) {
+        out.push({
+          createdAt: new Date(now - p[0] * 86400000).toISOString(),
+          currency: p[1],
+          direction: p[2],
+          amount: p[3],
+          state: p[4],
+          station: p[5],
+          reference: 'demo-' + i
+        });
+      });
+      return out;
+    }
+
+    function demoRates() {
+      var rates = [];
+      var now = Date.now();
+      var baseMYZ = 0.00045;  // 1 MYZ in XMR
+      var baseXMRUSD = 178.50;
+      var baseMYZUSD = 0.0803;
+      for (var i = 29; i >= 0; i--) {
+        var jitter = 1 + (Math.random() - 0.5) * 0.06;
+        rates.push({
+          date: new Date(now - i * 86400000).toISOString().slice(0, 10),
+          myzToXmr: baseMYZ * jitter,
+          xmrToMyz: (1 / baseMYZ) * (1 + (Math.random() - 0.5) * 0.06),
+          myzUsd: baseMYZUSD * jitter,
+          xmrUsd: baseXMRUSD * (1 + (Math.random() - 0.5) * 0.05)
+        });
+      }
+      return rates;
+    }
+
+    function demoStations() {
+      return [
+        { name: 'Stazione 1 - Centrale', myzEnabled: true, xmrEnabled: true, myzVol: 4750, xmrVol: 3.05, txCount: 142, status: 'attivo' },
+        { name: 'Stazione 2 - Nord', myzEnabled: true, xmrEnabled: true, myzVol: 1420, xmrVol: 0.75, txCount: 67, status: 'attivo' },
+        { name: 'Stazione 3 - Est', myzEnabled: true, xmrEnabled: false, myzVol: 2850, xmrVol: 0, txCount: 89, status: 'attivo' },
+        { name: 'Stazione 4 - Ovest', myzEnabled: true, xmrEnabled: true, myzVol: 1890, xmrVol: 1.02, txCount: 73, status: 'attivo' },
+      ];
+    }
+
+    /* ================================================================
+     * Helpers
+     * ================================================================ */
+    var DECIMALS = { XMR: 12, MYZ: 4 };
+
+    function formatAmount(value, currency) {
+      var dec = DECIMALS[currency] !== undefined ? DECIMALS[currency] : 6;
+      var text = Number(value).toFixed(dec);
+      return text.indexOf('.') === -1 ? text : text.replace(/0+$/, '').replace(/\.$/, '');
+    }
+
+    function formatUSD(value) {
+      return '$' + Number(value).toFixed(2);
+    }
+
+    function el(id) { return document.getElementById(id); }
+
+    function signedAmount(tx) {
+      return tx.direction === 'CREDIT' ? Number(tx.amount) : -Number(tx.amount);
+    }
+
+    /* ================================================================
+     * Exchange rates
+     * ================================================================ */
+    function renderRates(rates) {
+      if (!rates || rates.length === 0) return;
+      var latest = rates[rates.length - 1];
+      var prev = rates.length > 1 ? rates[rates.length - 2] : null;
+
+      el('rate-myz-xmr').textContent = formatAmount(latest.myzToXmr, 'XMR') + ' XMR';
+      el('rate-xmr-myz').textContent = formatAmount(latest.xmrToMyz, 'MYZ') + ' MYZ';
+      el('rate-myz-usd').textContent = formatUSD(latest.myzUsd);
+      el('rate-xmr-usd').textContent = formatUSD(latest.xmrUsd);
+
+      if (prev) {
+        var change = ((latest.myzToXmr - prev.myzToXmr) / prev.myzToXmr * 100);
+        var changeEl = el('rate-change-24h');
+        changeEl.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+        changeEl.className = 'rate-change ' + (change >= 0 ? 'up' : 'down');
+      }
+
+      el('rate-updated').textContent = 'Aggiornato ' + new Date().toISOString().slice(11, 19) + ' UTC';
+
+      updateRateChart(rates);
+    }
+
+    /* ================================================================
+     * Rate chart (Chart.js)
+     * ================================================================ */
+    function updateRateChart(rates) {
+      var displayDays = Number(el('report-period').value) || 14;
+      var sliced = rates.slice(-displayDays);
+
+      if (state.rateChart) {
+        state.rateChart.data.labels = sliced.map(function (r) { return r.date.slice(5); });
+        state.rateChart.data.datasets[0].data = sliced.map(function (r) { return r.myzUsd; });
+        state.rateChart.data.datasets[1].data = sliced.map(function (r) { return r.xmrUsd; });
+        state.rateChart.update('none');
+        return;
+      }
+
+      var ctx = el('rateChart').getContext('2d');
+      var isDark = document.documentElement.dataset.theme === 'dark';
+      var gridColor = isDark ? 'rgba(48,54,61,0.5)' : 'rgba(208,215,222,0.5)';
+      var textColor = isDark ? '#8b949e' : '#656d76';
+
+      state.rateChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: sliced.map(function (r) { return r.date.slice(5); }),
+          datasets: [{
+            label: 'MYZ (USD)',
+            data: sliced.map(function (r) { return r.myzUsd; }),
+            borderColor: '#f7931a',
+            backgroundColor: 'rgba(247, 147, 26, 0.08)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 2,
+            pointHoverRadius: 5,
+            borderWidth: 2
+          }, {
+            label: 'XMR (USD)',
+            data: sliced.map(function (r) { return r.xmrUsd; }),
+            borderColor: '#2ecc71',
+            backgroundColor: 'rgba(46, 204, 113, 0.08)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 2,
+            pointHoverRadius: 5,
+            borderWidth: 2,
+            yAxisID: 'y1'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { intersect: false, mode: 'index' },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: { color: textColor, font: { size: 11 }, usePointStyle: true, padding: 16 }
+            },
+            tooltip: {
+              backgroundColor: isDark ? '#161b22' : '#ffffff',
+              titleColor: textColor,
+              bodyColor: isDark ? '#e6edf3' : '#1f2328',
+              borderColor: gridColor,
+              borderWidth: 1,
+              padding: 10,
+              callbacks: {
+                label: function (ctx) {
+                  return ctx.dataset.label + ': ' + formatUSD(ctx.parsed.y);
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: gridColor, display: true },
+              ticks: { color: textColor, font: { size: 10 }, maxTicksLimit: 10 }
+            },
+            y: {
+              position: 'left',
+              grid: { color: gridColor },
+              ticks: { color: textColor, font: { size: 10 }, callback: function (v) { return '$' + v.toFixed(2); } }
+            },
+            y1: {
+              position: 'right',
+              grid: { display: false },
+              ticks: { color: textColor, font: { size: 10 }, callback: function (v) { return '$' + v.toFixed(0); } }
+            }
+          }
+        }
+      });
+    }
+
+    /* ================================================================
+     * Balance cards
+     * ================================================================ */
+    function summariseBalances(transactions, currencies) {
+      var list = currencies || ['MYZ', 'XMR'];
+      var result = {};
+      list.forEach(function (currency) {
+        var rows = (transactions || []).filter(function (tx) { return tx.currency === currency; });
+        var settled = 0, pending = 0, inflow = 0, outflow = 0;
+        rows.forEach(function (tx) {
+          if (tx.state === 'PENDING') { pending += signedAmount(tx); return; }
+          settled += signedAmount(tx);
+          if (tx.direction === 'CREDIT') inflow += Number(tx.amount);
+          else outflow += Number(tx.amount);
+        });
+        result[currency] = {
+          currency: currency,
+          available: Number(Number(settled).toFixed(12)),
+          pending: Number(Number(pending).toFixed(12)),
+          inflow: Number(Number(inflow).toFixed(12)),
+          outflow: Number(Number(outflow).toFixed(12)),
+          txCount: rows.length
+        };
+      });
+      return result;
+    }
+
+    function renderCards(balances) {
+      var html = '';
+      Object.keys(balances).forEach(function (currency) {
+        var b = balances[currency];
+        var cls = currency.toLowerCase();
+        html += '<div class="card">'
+          + '<h3>Saldo ' + currency + '</h3>'
+          + '<div class="value ' + cls + '">' + formatAmount(b.available, currency) + ' ' + currency + '</div>'
+          + '<div class="sub">'
+          + '<span>In attesa <b>' + formatAmount(b.pending, currency) + '</b></span>'
+          + '<span>Entrate <b>' + formatAmount(b.inflow, currency) + '</b></span>'
+          + '<span>Uscite <b>' + formatAmount(b.outflow, currency) + '</b></span>'
+          + '<span>Tx <b>' + b.txCount + '</b></span>'
+          + '</div></div>';
+      });
+      // Add total card
+      var totalMYZ = balances['MYZ'] ? balances['MYZ'].available : 0;
+      var totalXMR = balances['XMR'] ? balances['XMR'].available : 0;
+      var rates = state.rates;
+      var latestRate = rates.length > 0 ? rates[rates.length - 1] : null;
+      var totalUSD = 0;
+      if (latestRate) {
+        totalUSD = totalMYZ * latestRate.myzUsd + totalXMR * latestRate.xmrUsd;
+      }
+      html += '<div class="card">'
+        + '<h3>Totale combinato (USD)</h3>'
+        + '<div class="value" style="color:var(--info)">' + formatUSD(totalUSD) + '</div>'
+        + '<div class="sub">'
+        + '<span>MYZ: <b>' + formatAmount(totalMYZ, 'MYZ') + '</b></span>'
+        + '<span>XMR: <b>' + formatAmount(totalXMR, 'XMR') + '</b></span>'
+        + '</div></div>';
+      el('balance-cards').innerHTML = html;
+    }
+
+    /* ================================================================
+     * Summary bar
+     * ================================================================ */
+    function renderSummary(transactions) {
+      var rates = state.rates;
+      var latestRate = rates.length > 0 ? rates[rates.length - 1] : null;
+      var totalMYZVol = 0, totalXMRVol = 0;
+      var totalMYZTx = 0, totalXMRTx = 0;
+      var stations = {};
+
+      (transactions || []).forEach(function (tx) {
+        if (tx.state === 'PENDING') return;
+        if (tx.currency === 'MYZ') {
+          totalMYZVol += Number(tx.amount);
+          totalMYZTx++;
+        } else {
+          totalXMRVol += Number(tx.amount);
+          totalXMRTx++;
+        }
+        var s = tx.station || 'Sconosciuta';
+        if (!stations[s]) stations[s] = { myzVol: 0, xmrVol: 0, tx: 0 };
+        stations[s].tx++;
+        if (tx.currency === 'MYZ') stations[s].myzVol += Number(tx.amount);
+        else stations[s].xmrVol += Number(tx.amount);
+      });
+
+      var totalStations = Object.keys(stations).length;
+      var totalTx = totalMYZTx + totalXMRTx;
+      var totalVolUSD = 0;
+      if (latestRate) {
+        totalVolUSD = totalMYZVol * latestRate.myzUsd + totalXMRVol * latestRate.xmrUsd;
+      }
+
+      el('summary-bar').innerHTML = ''
+        + '<div class="summary-item"><span class="label">Stazioni attive</span><span class="total">' + totalStations + '</span></div>'
+        + '<div class="summary-item"><span class="label">Volume MYZ</span><span class="total" style="color:var(--myz)">' + formatAmount(totalMYZVol, 'MYZ') + ' MYZ</span></div>'
+        + '<div class="summary-item"><span class="label">Volume XMR</span><span class="total" style="color:var(--xmr)">' + formatAmount(totalXMRVol, 'XMR') + ' XMR</span></div>'
+        + '<div class="summary-item"><span class="label">Volume totale (USD)</span><span class="total" style="color:var(--info)">' + formatUSD(totalVolUSD) + '</span></div>'
+        + '<div class="summary-item"><span class="label">Transazioni totali</span><span class="total">' + totalTx + '</span></div>';
+    }
+
+    /* ================================================================
+     * Report table
+     * ================================================================ */
+    function renderReport(transactions) {
+      var filter = el('report-filter').value;
+      var period = Number(el('report-period').value);
+      var cutoff = new Date(Date.now() - period * 86400000).toISOString();
+
+      var rows = (transactions || []).filter(function (tx) {
+        if (filter !== 'all' && tx.currency !== filter) return false;
+        if (tx.createdAt < cutoff) return false;
+        return true;
+      }).sort(function (a, b) { return a.createdAt < b.createdAt ? 1 : -1; });
+
+      var rates = state.rates;
+      var latestRate = rates.length > 0 ? rates[rates.length - 1] : null;
+
+      if (!rows.length) {
+        el('report-rows').innerHTML = '<tr><td colspan="7" class="empty">Nessuna transazione nel periodo selezionato</td></tr>';
+        return;
+      }
+
+      el('report-rows').innerHTML = rows.map(function (tx) {
+        var equiv = '—';
+        if (latestRate) {
+          if (tx.currency === 'MYZ') {
+            equiv = formatAmount(Number(tx.amount) * latestRate.myzToXmr, 'XMR') + ' XMR';
+          } else {
+            equiv = formatAmount(Number(tx.amount) * latestRate.xmrToMyz, 'MYZ') + ' MYZ';
+          }
+        }
+        var tagClass = tx.currency.toLowerCase();
+        return '<tr>'
+          + '<td>' + tx.createdAt.slice(0, 16).replace('T', ' ') + '</td>'
+          + '<td><span class="tag ' + tagClass + '">' + tx.currency + '</span></td>'
+          + '<td>' + (tx.station || '—') + '</td>'
+          + '<td class="dir-' + tx.direction + '">' + (tx.direction === 'CREDIT' ? '↓ Entrata' : '↑ Uscita') + '</td>'
+          + '<td>' + formatAmount(tx.amount, tx.currency) + ' ' + tx.currency + '</td>'
+          + '<td>' + equiv + '</td>'
+          + '<td><span class="tag">' + tx.state + '</span></td>'
+          + '</tr>';
+      }).join('');
+    }
+
+    /* ================================================================
+     * Stations table
+     * ================================================================ */
+    function renderStations(stations) {
+      var filter = el('station-filter').value;
+      var rows = filter === 'all' ? stations : stations.filter(function (s) { return s.name === filter; });
+
+      if (!rows.length) {
+        el('station-rows').innerHTML = '<tr><td colspan="7" class="empty">Nessuna stazione trovata</td></tr>';
+        return;
+      }
+
+      el('station-rows').innerHTML = rows.map(function (s) {
+        var statusClass = s.status === 'attivo' ? 'dir-CREDIT' : 'dir-DEBIT';
+        var statusIcon = s.status === 'attivo' ? '●' : '○';
+        return '<tr>'
+          + '<td><strong>' + s.name + '</strong></td>'
+          + '<td>' + (s.myzEnabled ? '✅' : '❌') + '</td>'
+          + '<td>' + (s.xmrEnabled ? '✅' : '❌') + '</td>'
+          + '<td style="color:var(--myz)">' + formatAmount(s.myzVol, 'MYZ') + ' MYZ</td>'
+          + '<td style="color:var(--xmr)">' + (s.xmrVol > 0 ? formatAmount(s.xmrVol, 'XMR') + ' XMR' : '—') + '</td>'
+          + '<td>' + s.txCount + '</td>'
+          + '<td class="' + statusClass + '">' + statusIcon + ' ' + s.status.charAt(0).toUpperCase() + s.status.slice(1) + '</td>'
+          + '</tr>';
+      }).join('');
+    }
+
+    /* ================================================================
+     * Alerts
+     * ================================================================ */
+    function renderAlerts(balances) {
+      var alerts = [];
+      Object.keys(balances).forEach(function (currency) {
+        var b = balances[currency];
+        if (b.available < 0) {
+          alerts.push({ level: 'error', message: '⚠️ Saldo ' + currency + ' negativo: ' + formatAmount(b.available, currency) });
+        }
+        if (b.pending !== 0) {
+          alerts.push({ level: 'info', message: '⏳ ' + formatAmount(b.pending, currency) + ' ' + currency + ' in attesa di conferma' });
+        }
+        if (currency === 'MYZ' && b.available < 100) {
+          alerts.push({ level: 'warning', message: '⚠️ Saldo MYZ basso (' + formatAmount(b.available, 'MYZ') + '). Ricarica consigliata.' });
+        }
+        if (currency === 'XMR' && b.available < 0.05) {
+          alerts.push({ level: 'warning', message: '⚠️ Saldo XMR basso (' + formatAmount(b.available, 'XMR') + '). Ricarica consigliata.' });
+        }
+      });
+      if (alerts.length === 0) {
+        alerts.push({ level: 'success', message: '✅ Tutti i saldi sono nella norma. Nessun avviso.' });
+      }
+      el('alerts').innerHTML = alerts.map(function (a) {
+        return '<div class="alert ' + a.level + '">' + a.message + '</div>';
+      }).join('');
+    }
+
+    /* ================================================================
+     * Main render
+     * ================================================================ */
+    function renderAll() {
+      var tx = state.transactions;
+      var balances = summariseBalances(tx);
+      renderCards(balances);
+      renderAlerts(balances);
+      renderSummary(tx);
+      renderReport(tx);
+      renderStations(demoStations());
+    }
+
+    /* ================================================================
+     * Load data
+     * ================================================================ */
+    function load() {
+      var user = encodeURIComponent(USER);
+      fetch('/api/wallet/' + user + '/transactions?limit=500', { headers: { Accept: 'application/json' } })
+        .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+        .then(function (body) {
+          var items = (body && body.items) || [];
+          state.transactions = items;
+          state.live = true;
+          el('source-badge').className = 'badge live';
+          el('source-badge').textContent = 'Dati live';
+          renderAll();
+        })
+        .catch(function () {
+          if (!state.live && state.transactions.length === 0) {
+            state.transactions = demoTransactions();
+            renderAll();
+          }
+        });
+
+      fetch('/api/xmr/rate', { headers: { Accept: 'application/json' } })
+        .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+        .then(function (body) {
+          if (body && body.success && body.data) {
+            // Use live rate data - extend with historical data
+            var liveRate = body.data;
+            state.rates = demoRates(); // Use demo for historical, patch latest
+            if (state.rates.length > 0) {
+              var last = state.rates[state.rates.length - 1];
+              last.myzToXmr = liveRate.myzToXmr || last.myzToXmr;
+              last.xmrToMyz = liveRate.xmrToMyz || last.xmrToMyz;
+              last.myzUsd = liveRate.myzUsd || last.myzUsd;
+              last.xmrUsd = liveRate.xmrUsd || last.xmrUsd;
+            }
+            renderRates(state.rates);
+          }
+        })
+        .catch(function () {
+          if (state.rates.length === 0) {
+            state.rates = demoRates();
+            renderRates(state.rates);
+          }
+        });
+    }
+
+    /* ================================================================
+     * Event listeners
+     * ================================================================ */
+    // Theme toggle
+    el('theme-btn').addEventListener('click', function () {
+      var root = document.documentElement;
+      var isDark = root.dataset.theme === 'dark';
+      root.dataset.theme = isDark ? 'light' : 'dark';
+      el('theme-btn').textContent = isDark ? '☀ Tema' : '☾ Tema';
+      // Rebuild chart with new theme
+      if (state.rateChart) {
+        state.rateChart.destroy();
+        state.rateChart = null;
+      }
+      updateRateChart(state.rates);
+    });
+
+    // Export CSV
+    el('export-btn').addEventListener('click', function () {
+      var headers = ['createdAt', 'currency', 'station', 'direction', 'amount', 'state', 'reference'];
+      var csvRows = [headers.join(',')];
+      (state.transactions || []).forEach(function (tx) {
+        csvRows.push(headers.map(function (h) {
+          var val = tx[h] || '';
+          var str = String(val);
+          if (/[",\n]/.test(str)) str = '"' + str.replace(/"/g, '""') + '"';
+          return str;
+        }).join(','));
+      });
+      var blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      var link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'benzina-multicurrency-' + USER + '-' + new Date().toISOString().slice(0, 10) + '.csv';
+      link.click();
+      URL.revokeObjectURL(link.href);
+    });
+
+    // Currency tabs
+    document.querySelectorAll('.currency-tab').forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        document.querySelectorAll('.currency-tab').forEach(function (t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        state.activeCurrency = tab.dataset.currency;
+        // Filter report
+        if (state.activeCurrency === 'all') {
+          el('report-filter').value = 'all';
+        } else {
+          el('report-filter').value = state.activeCurrency;
+        }
+        renderReport(state.transactions);
+      });
+    });
+
+    // Report filter changes
+    el('report-filter').addEventListener('change', function () {
+      renderReport(state.transactions);
+    });
+
+    el('report-period').addEventListener('change', function () {
+      renderReport(state.transactions);
+      updateRateChart(state.rates);
+    });
+
+    el('station-filter').addEventListener('change', function () {
+      renderStations(demoStations());
+    });
+
+    /* ================================================================
+     * Init
+     * ================================================================ */
+    state.transactions = demoTransactions();
+    state.rates = demoRates();
+    renderRates(state.rates);
+    renderAll();
+    load();
+
+    // Poll
+    setInterval(load, POLL_MS);
+
+  })();
+  </script>
+</body>
+</html>
