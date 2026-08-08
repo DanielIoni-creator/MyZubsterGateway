@@ -1,5 +1,4 @@
 require('dotenv').config();
-app.use('/api/disputes', require('./src/routes/disputeRoutes'));
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
@@ -36,7 +35,7 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(limiter);
 
-// Import routes - UNA SOLA VOLTA
+// Import routes
 const swapRoutes = require('./routes/swap');
 const animalRoutes = require('./routes/animals');
 const plantRoutes = require('./routes/plants');
@@ -47,11 +46,9 @@ const sensorRoutes = require('./routes/sensors');
 const securityRoutes = require('./routes/security');
 const xmrRoutes = require('./routes/xmr');
 const gl1BridgeRoutes = require('./routes/gl1Bridge');
+const disputeRoutes = require('./routes/disputes');
 const paymentRoutes = require('./routes/payments');
-const schedulerRoutes = require('./routes/scheduler');
-const antennaRoutes = require('./routes/antenna');
-const repeaterRoutes = require('./routes/repeater');
-const repeaterPaymentRoutes = require('./routes/repeaterPayments');
+const escrowRoutes = require('./src/routes/escrowRoutes');
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -64,7 +61,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Routes API - UNA SOLA VOLTA
+// Routes API
 app.use('/api/swap', swapRoutes);
 app.use('/api/animals', animalRoutes);
 app.use('/api/plants', plantRoutes);
@@ -75,11 +72,9 @@ app.use('/api/sensors', sensorRoutes);
 app.use('/api/security', securityRoutes);
 app.use('/api/xmr', xmrRoutes);
 app.use('/api/gl1', gl1BridgeRoutes);
+app.use('/api/disputes', disputeRoutes);
 app.use('/api/payments', paymentRoutes);
-app.use('/api/scheduler', schedulerRoutes);
-app.use('/api/antenna', antennaRoutes);
-app.use('/api/repeater', repeaterRoutes);
-app.use('/api/repeater/payments', repeaterPaymentRoutes);
+app.use('/api/escrow', escrowRoutes);
 
 // Robot routes
 try {
