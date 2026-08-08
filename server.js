@@ -1,8 +1,9 @@
+require('dotenv').config();
+const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
-const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
@@ -35,33 +36,7 @@ app.use(express.json());
 app.use(limiter);
 
 // Import routes
-const cittaSuMarteRoutes = require('./routes/cittaSuMarte');
-const serreMarteRoutes = require('./routes/serreMarte');
-const trasportoMarteRoutes = require('./routes/trasportoMarte');
-const fabbricaMarteRoutes = require('./routes/fabbricaMarte');
-const estrazioneAcquaMarteRoutes = require('./routes/estrazioneAcquaMarte');
-const comunicazioneMarteTerraRoutes = require('./routes/comunicazioneMarteTerra');
-const stampa3DMarteRoutes = require('./routes/stampa3DMarte');
-const energiaMarteRoutes = require('./routes/energiaMarte');
-const baseMarteRoutes = require('./routes/baseMarte');
-const evaMarzianoRoutes = require('./routes/evaMarziano');
-const trasportoLunareRoutes = require('./routes/trasportoLunare');
-const serreLunariRoutes = require('./routes/serreLunari');
-const cittaLunareRoutes = require('./routes/cittaLunare');
-const energiaLunareRoutes = require('./routes/energiaLunare');
-const comunicazioniLunariRoutes = require('./routes/comunicazioniLunari');
-const fabbricaLunareRoutes = require('./routes/fabbricaLunare');
-const estrazioneRisorseRoutes = require('./routes/estrazioneRisorse');
-const stampa3DRoutes = require('./routes/stampa3D');
-const baseLunareRoutes = require('./routes/baseLunare');
-const evaLunareRoutes = require('./routes/evaLunare');
-const robotMilitareRoutes = require('./routes/robotMilitare');
-const robotChiesaRoutes = require('./routes/robotChiesa');
-const centroControlloRoutes = require('./routes/centroControllo');
-const navicellaRoutes = require('./routes/navicella');
-const stazioneRoutes = require('./routes/stazione');
-const autoRoutes = require('./routes/auto');
-const walletRoutes = require('./src/routes/walletRoutes');
+const quantumRoutes = require('./quantum/src/api/quantumRoutes');
 const swapRoutes = require('./routes/swap');
 const animalRoutes = require('./routes/animals');
 const plantRoutes = require('./routes/plants');
@@ -78,6 +53,28 @@ const escrowRoutes = require('./src/routes/escrowRoutes');
 const multiCurrencyEscrowRoutes = require('./src/routes/multiCurrencyEscrowRoutes');
 const verificationRoutes = require('./routes/verification');
 const seedExchangeRoutes = require('./routes/seedExchange');
+const robotChiesaRoutes = require('./routes/robotChiesa');
+const robotMilitareRoutes = require('./routes/robotMilitare');
+const evaLunareRoutes = require('./routes/evaLunare');
+const baseLunareRoutes = require('./routes/baseLunare');
+const stampa3DRoutes = require('./routes/stampa3D');
+const estrazioneRisorseRoutes = require('./routes/estrazioneRisorse');
+const fabbricaLunareRoutes = require('./routes/fabbricaLunare');
+const comunicazioniLunariRoutes = require('./routes/comunicazioniLunari');
+const energiaLunareRoutes = require('./routes/energiaLunare');
+const cittaLunareRoutes = require('./routes/cittaLunare');
+const serreLunariRoutes = require('./routes/serreLunari');
+const trasportoLunareRoutes = require('./routes/trasportoLunare');
+const evaMarzianoRoutes = require('./routes/evaMarziano');
+const baseMarteRoutes = require('./routes/baseMarte');
+const energiaMarteRoutes = require('./routes/energiaMarte');
+const stampa3DMarteRoutes = require('./routes/stampa3DMarte');
+const comunicazioneMarteTerraRoutes = require('./routes/comunicazioneMarteTerra');
+const estrazioneAcquaMarteRoutes = require('./routes/estrazioneAcquaMarte');
+const fabbricaMarteRoutes = require('./routes/fabbricaMarte');
+const trasportoMarteRoutes = require('./routes/trasportoMarte');
+const serreMarteRoutes = require('./routes/serreMarte');
+const cittaSuMarteRoutes = require('./routes/cittaSuMarte');
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -91,33 +88,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes API
-app.use('/api/citta-su-marte', cittaSuMarteRoutes);
-app.use('/api/serre-marte', serreMarteRoutes);
-app.use('/api/trasporto-marte', trasportoMarteRoutes);
-app.use('/api/fabbrica-marte', fabbricaMarteRoutes);
-app.use('/api/estrazione-acqua-marte', estrazioneAcquaMarteRoutes);
-app.use('/api/comunicazione-marte-terra', comunicazioneMarteTerraRoutes);
-app.use('/api/stampa-3d-marte', stampa3DMarteRoutes);
-app.use('/api/energia-marte', energiaMarteRoutes);
-app.use('/api/base-marte', baseMarteRoutes);
-app.use('/api/eva-marziano', evaMarzianoRoutes);
-app.use('/api/trasporto-lunare', trasportoLunareRoutes);
-app.use('/api/serre-lunari', serreLunariRoutes);
-app.use('/api/citta-lunare', cittaLunareRoutes);
-app.use('/api/energia-lunare', energiaLunareRoutes);
-app.use('/api/comunicazioni-lunari', comunicazioniLunariRoutes);
-app.use('/api/fabbrica-lunare', fabbricaLunareRoutes);
-app.use('/api/estrazione-risorse', estrazioneRisorseRoutes);
-app.use('/api/stampa-3d', stampa3DRoutes);
-app.use('/api/base-lunare', baseLunareRoutes);
-app.use('/api/eva-lunare', evaLunareRoutes);
-app.use('/api/militare', robotMilitareRoutes);
-app.use('/api/robot-chiesa', robotChiesaRoutes);
-app.use('/api/centri-controllo', centroControlloRoutes);
-app.use('/api/navicelle', navicellaRoutes);
-app.use('/api/stazioni', stazioneRoutes);
-app.use('/api/auto', autoRoutes);
-app.use('/api/wallet', walletRoutes);
+app.use('/api/quantum', quantumRoutes);
 app.use('/api/swap', swapRoutes);
 app.use('/api/animals', animalRoutes);
 app.use('/api/plants', plantRoutes);
@@ -134,6 +105,28 @@ app.use('/api/escrow', escrowRoutes);
 app.use('/api/multi-currency-escrow', multiCurrencyEscrowRoutes);
 app.use('/api/verification', verificationRoutes);
 app.use('/api/seed-exchange', seedExchangeRoutes);
+app.use('/api/robot-chiesa', robotChiesaRoutes);
+app.use('/api/militare', robotMilitareRoutes);
+app.use('/api/eva-lunare', evaLunareRoutes);
+app.use('/api/base-lunare', baseLunareRoutes);
+app.use('/api/stampa-3d', stampa3DRoutes);
+app.use('/api/estrazione-risorse', estrazioneRisorseRoutes);
+app.use('/api/fabbrica-lunare', fabbricaLunareRoutes);
+app.use('/api/comunicazioni-lunari', comunicazioniLunariRoutes);
+app.use('/api/energia-lunare', energiaLunareRoutes);
+app.use('/api/citta-lunare', cittaLunareRoutes);
+app.use('/api/serre-lunari', serreLunariRoutes);
+app.use('/api/trasporto-lunare', trasportoLunareRoutes);
+app.use('/api/eva-marziano', evaMarzianoRoutes);
+app.use('/api/base-marte', baseMarteRoutes);
+app.use('/api/energia-marte', energiaMarteRoutes);
+app.use('/api/stampa-3d-marte', stampa3DMarteRoutes);
+app.use('/api/comunicazione-marte-terra', comunicazioneMarteTerraRoutes);
+app.use('/api/estrazione-acqua-marte', estrazioneAcquaMarteRoutes);
+app.use('/api/fabbrica-marte', fabbricaMarteRoutes);
+app.use('/api/trasporto-marte', trasportoMarteRoutes);
+app.use('/api/serre-marte', serreMarteRoutes);
+app.use('/api/citta-su-marte', cittaSuMarteRoutes);
 
 // Robot routes
 try {
