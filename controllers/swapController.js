@@ -1,8 +1,9 @@
 const TokenBalance = require('../models/TokenBalance');
 
-// Tassi di cambio aggiornati con tutti i token
+// Tassi di cambio con XMR
 const EXCHANGE_RATES = {
   MYZ: { USD: 0.50, SGD: 0.67 },
+  XMR: { USD: 120, SGD: 162 },  // 1 XMR = 120 USD = 162 SGD
   MBFT: { USD: 740.74, SGD: 1000 },
   SRET: { USD: 740.74, SGD: 1000 },
   GGT: { USD: 740.74, SGD: 1000 },
@@ -11,11 +12,9 @@ const EXCHANGE_RATES = {
   MIL: { USD: 1075.27, SGD: 1451.61 }
 };
 
-// Ottieni il tasso di cambio
 const getSwapRate = async (req, res) => {
   try {
     const { from, to } = req.query;
-    
     if (!from || !to) {
       return res.status(400).json({
         success: false,
@@ -33,9 +32,7 @@ const getSwapRate = async (req, res) => {
       });
     }
 
-    // Calcola il tasso di cambio (1 from = X to)
     const rate = (fromRate.USD / toRate.USD);
-
     res.json({
       success: true,
       data: {
@@ -43,32 +40,19 @@ const getSwapRate = async (req, res) => {
         to: to.toUpperCase(),
         rate: rate,
         prices: {
-          from: {
-            usd: fromRate.USD,
-            sgd: fromRate.SGD
-          },
-          to: {
-            usd: toRate.USD,
-            sgd: toRate.SGD
-          }
+          from: { usd: fromRate.USD, sgd: fromRate.SGD },
+          to: { usd: toRate.USD, sgd: toRate.SGD }
         }
       }
     });
-
   } catch (error) {
-    console.error('Error getting swap rate:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
-// Esegui lo swap
 const executeSwap = async (req, res) => {
   try {
     const { fromToken, toToken, amount, userId } = req.body;
-
     if (!fromToken || !toToken || !amount || !userId) {
       return res.status(400).json({
         success: false,
@@ -76,7 +60,6 @@ const executeSwap = async (req, res) => {
       });
     }
 
-    // Verifica i tassi
     const fromRate = EXCHANGE_RATES[fromToken.toUpperCase()];
     const toRate = EXCHANGE_RATES[toToken.toUpperCase()];
 
@@ -87,12 +70,10 @@ const executeSwap = async (req, res) => {
       });
     }
 
-    // Calcola l'importo ricevuto
     const rate = (fromRate.USD / toRate.USD);
     const received = amount * rate;
-    const fee = received * 0.01; // 1% fee
+    const fee = received * 0.01;
 
-    // Crea una transazione
     const transaction = {
       id: 'tx-' + Date.now(),
       fromToken: fromToken.toUpperCase(),
@@ -106,21 +87,10 @@ const executeSwap = async (req, res) => {
       status: 'completed'
     };
 
-    res.json({
-      success: true,
-      data: transaction
-    });
-
+    res.json({ success: true, data: transaction });
   } catch (error) {
-    console.error('Error executing swap:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
-module.exports = {
-  getSwapRate,
-  executeSwap
-};
+module.exports = { getSwapRate, executeSwap };

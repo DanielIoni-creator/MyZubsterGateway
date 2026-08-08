@@ -29,3 +29,7 @@ temp/
 .idea/
 *.swp
 *.swo
+node_modules/
+.env
+server.log
+*.backup*
