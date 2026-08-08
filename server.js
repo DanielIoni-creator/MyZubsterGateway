@@ -1,10 +1,8 @@
-require('dotenv').config();
-app.use('/api/wallet', require('./src/routes/walletRoutes'));
-const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
+const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
@@ -37,6 +35,9 @@ app.use(express.json());
 app.use(limiter);
 
 // Import routes
+const stazioneRoutes = require('./routes/stazione');
+const autoRoutes = require('./routes/auto');
+const walletRoutes = require('./src/routes/walletRoutes');
 const swapRoutes = require('./routes/swap');
 const animalRoutes = require('./routes/animals');
 const plantRoutes = require('./routes/plants');
@@ -52,6 +53,7 @@ const paymentRoutes = require('./routes/payments');
 const escrowRoutes = require('./src/routes/escrowRoutes');
 const multiCurrencyEscrowRoutes = require('./src/routes/multiCurrencyEscrowRoutes');
 const verificationRoutes = require('./routes/verification');
+const seedExchangeRoutes = require('./routes/seedExchange');
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -65,6 +67,9 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes API
+app.use('/api/stazioni', stazioneRoutes);
+app.use('/api/auto', autoRoutes);
+app.use('/api/wallet', walletRoutes);
 app.use('/api/swap', swapRoutes);
 app.use('/api/animals', animalRoutes);
 app.use('/api/plants', plantRoutes);
@@ -80,6 +85,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/escrow', escrowRoutes);
 app.use('/api/multi-currency-escrow', multiCurrencyEscrowRoutes);
 app.use('/api/verification', verificationRoutes);
+app.use('/api/seed-exchange', seedExchangeRoutes);
 
 // Robot routes
 try {
@@ -114,10 +120,6 @@ app.get('/wallet-dashboard', (req, res) => {
 
 app.get('/hospital', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/dist/hospital.html'));
-});
-
-app.get('/ai-monitoraggio', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend/dist/ai-monitoraggio.html'));
 });
 
 // Static frontend
