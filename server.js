@@ -35,6 +35,7 @@ app.use(express.json());
 app.use(limiter);
 
 // Import routes
+const baseLunareRoutes = require('./routes/baseLunare');
 const evaLunareRoutes = require('./routes/evaLunare');
 const robotMilitareRoutes = require('./routes/robotMilitare');
 const robotChiesaRoutes = require('./routes/robotChiesa');
@@ -72,6 +73,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes API
+app.use('/api/base-lunare', baseLunareRoutes);
 app.use('/api/eva-lunare', evaLunareRoutes);
 app.use('/api/militare', robotMilitareRoutes);
 app.use('/api/robot-chiesa', robotChiesaRoutes);
