@@ -1,4 +1,5 @@
 require('dotenv').config();
+app.use('/api/disputes', require('./src/routes/disputeRoutes'));
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
