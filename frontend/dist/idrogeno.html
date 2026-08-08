@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>💧 Idrogeno - Rifornimento MYZ - MyZubster</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f5f7fa; padding: 20px; }
+    .dashboard { max-width: 1200px; margin: 0 auto; }
+    .header {
+      text-align: center; margin-bottom: 30px; padding: 24px;
+      background: linear-gradient(135deg, #1abc9c, #16a085); border-radius: 12px; color: white;
+    }
+    .header h1 { font-size: 2.2rem; margin: 0; }
+    .header p { margin: 10px 0 0; opacity: 0.9; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+    .kpi-card { display: flex; align-items: center; padding: 20px; border-radius: 12px; color: white; gap: 16px; }
+    .kpi-card.rifornimenti { background: linear-gradient(135deg, #1abc9c, #16a085); }
+    .kpi-card.kg { background: linear-gradient(135deg, #3498db, #2980b9); }
+    .kpi-card.entrate { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+    .kpi-card.stazioni { background: linear-gradient(135deg, #f39c12, #e67e22); }
+    .kpi-icon { font-size: 2.5rem; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.15); border-radius: 12px; }
+    .kpi-info h3 { margin: 0 0 4px; font-size: 0.85rem; opacity: 0.9; }
+    .kpi-value { font-size: 2rem; font-weight: bold; }
+    .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .card h2 { color: #2c3e50; margin-bottom: 16px; }
+    .card h3 { color: #2c3e50; margin-bottom: 10px; }
+    .station-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .station-card { padding: 20px; border-radius: 12px; border: 1px solid #e0e0e0; background: white; }
+    .station-card h3 { margin-bottom: 8px; }
+    .station-card .info { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.9rem; }
+    .station-card .label { color: #7f8c8d; }
+    .station-card .value { font-weight: 600; color: #2c3e50; }
+    .station-status { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 500; }
+    .station-status.active { background: #d4edda; color: #155724; }
+    .station-status.maintenance { background: #fff3cd; color: #856404; }
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #2c3e50; white-space: nowrap; }
+    td { padding: 10px 12px; border-bottom: 1px solid #eee; }
+    tr:hover { background: #f8f9fa; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 500; }
+    .badge.ok { background: #d4edda; color: #155724; }
+    .badge.active { background: #cce5ff; color: #004085; }
+    .badge.warn { background: #fff3cd; color: #856404; }
+    @media (max-width: 768px) {
+      .charts-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <div class="header">
+      <h1>💧 Idrogeno - Rifornimento MYZ</h1>
+      <p>Monitoraggio stazioni idrogeno · Pagamento MYZ · Storico rifornimenti</p>
+    </div>
+
+    <!-- KPI Grid -->
+    <div class="kpi-grid">
+      <div class="kpi-card rifornimenti">
+        <div class="kpi-icon">⛽</div>
+        <div class="kpi-info">
+          <h3>Rifornimenti Totali</h3>
+          <div class="kpi-value" id="totalRifornimenti">0</div>
+        </div>
+      </div>
+      <div class="kpi-card kg">
+        <div class="kpi-icon">⚖️</div>
+        <div class="kpi-info">
+          <h3>Kg Erogati</h3>
+          <div class="kpi-value" id="totalKg">0</div>
+        </div>
+      </div>
+      <div class="kpi-card entrate">
+        <div class="kpi-icon">💰</div>
+        <div class="kpi-info">
+          <h3>Entrate MYZ</h3>
+          <div class="kpi-value" id="entrateMyz">0</div>
+        </div>
+      </div>
+      <div class="kpi-card stazioni">
+        <div class="kpi-icon">🏪</div>
+        <div class="kpi-info">
+          <h3>Stazioni Attive</h3>
+          <div class="kpi-value" id="stazioniAttive">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Station Grid -->
+    <div class="card">
+      <h2>🏪 Stazioni Idrogeno</h2>
+      <div class="station-grid" id="stationGrid">
+        <div class="station-card">
+          <h3>Stazione Nord</h3>
+          <div class="info"><span class="label">Indirizzo:</span><span class="value">Via Roma 123, Milano</span></div>
+          <div class="info"><span class="label">Prezzo:</span><span class="value">€8.50/kg</span></div>
+          <div class="info"><span class="label">Disponibilità:</span><span class="value">200 kg</span></div>
+          <div class="info"><span class="label">Stato:</span><span><span class="station-status active">Attiva</span></span></div>
+        </div>
+        <div class="station-card">
+          <h3>Stazione Sud</h3>
+          <div class="info"><span class="label">Indirizzo:</span><span class="value">Via Garibaldi 45, Roma</span></div>
+          <div class="info"><span class="label">Prezzo:</span><span class="value">€8.70/kg</span></div>
+          <div class="info"><span class="label">Disponibilità:</span><span class="value">150 kg</span></div>
+          <div class="info"><span class="label">Stato:</span><span><span class="station-status active">Attiva</span></span></div>
+        </div>
+        <div class="station-card">
+          <h3>Stazione Est</h3>
+          <div class="info"><span class="label">Indirizzo:</span><span class="value">Viale Europa 78, Torino</span></div>
+          <div class="info"><span class="label">Prezzo:</span><span class="value">€8.40/kg</span></div>
+          <div class="info"><span class="label">Disponibilità:</span><span class="value">80 kg</span></div>
+          <div class="info"><span class="label">Stato:</span><span><span class="station-status maintenance">Manutenzione</span></span></div>
+        </div>
+        <div class="station-card">
+          <h3>Stazione Ovest</h3>
+          <div class="info"><span class="label">Indirizzo:</span><span class="value">Via Dante 22, Napoli</span></div>
+          <div class="info"><span class="label">Prezzo:</span><span class="value">€8.55/kg</span></div>
+          <div class="info"><span class="label">Disponibilità:</span><span class="value">120 kg</span></div>
+          <div class="info"><span class="label">Stato:</span><span><span class="station-status active">Attiva</span></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-row">
+      <div class="card">
+        <h2>📈 Andamento Rifornimenti (7 Giorni)</h2>
+        <canvas id="trendChart" height="250"></canvas>
+      </div>
+      <div class="card">
+        <h2>🔄 Distribuzione per Stazione</h2>
+        <canvas id="distChart" height="250"></canvas>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="card">
+      <h2>📋 Storico Rifornimenti</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Cliente</th>
+              <th>Stazione</th>
+              <th>Kg</th>
+              <th>Importo MYZ</th>
+              <th>Stato</th>
+              <th>Data</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody">
+            <tr>
+              <td colspan="7" style="text-align:center; color:#7f8c8d; padding:30px;">
+                Caricamento storico in corso...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const stations = ['Nord', 'Sud', 'Est', 'Ovest'];
+    const sampleHistory = [
+      { id: 'H2-001', cliente: 'Marco Neri', station: 'Nord', kg: 4.5, amount: 38.25, status: 'ok', date: '2026-08-08 14:30' },
+      { id: 'H2-002', cliente: 'Giulia Rossi', station: 'Sud', kg: 3.2, amount: 27.84, status: 'ok', date: '2026-08-08 13:45' },
+      { id: 'H2-003', cliente: 'Paolo Bianchi', station: 'Nord', kg: 5.0, amount: 42.50, status: 'ok', date: '2026-08-08 12:20' },
+      { id: 'H2-004', cliente: 'Anna Verdi', station: 'Ovest', kg: 2.8, amount: 23.94, status: 'active', date: '2026-08-08 11:15' },
+      { id: 'H2-005', cliente: 'Luca Gialli', station: 'Sud', kg: 6.0, amount: 52.20, status: 'ok', date: '2026-08-08 10:30' },
+    ];
+
+    document.getElementById('totalRifornimenti').textContent = '486';
+    document.getElementById('totalKg').textContent = '2,150';
+    document.getElementById('entrateMyz').textContent = '18,275';
+    document.getElementById('stazioniAttive').textContent = '3';
+
+    // Trend Chart
+    const ctx1 = document.getElementById('trendChart').getContext('2d');
+    const days = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+    new Chart(ctx1, {
+      type: 'line',
+      data: {
+        labels: days,
+        datasets: [{
+          label: 'Kg erogati',
+          data: [45, 52, 48, 58, 65, 72, 60],
+          borderColor: '#1abc9c',
+          backgroundColor: 'rgba(26, 188, 156, 0.1)',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#1abc9c',
+          pointRadius: 4
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: '#f0f0f0' }, title: { display: true, text: 'Kg' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // Distribution Chart
+    const ctx2 = document.getElementById('distChart').getContext('2d');
+    new Chart(ctx2, {
+      type: 'pie',
+      data: {
+        labels: ['Nord', 'Sud', 'Est', 'Ovest'],
+        datasets: [{ data: [42, 28, 12, 18], backgroundColor: ['#1abc9c', '#3498db', '#e67e22', '#9b59b6'] }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } }
+      }
+    });
+
+    // History table
+    function renderHistory() {
+      const tbody = document.getElementById('historyBody');
+      tbody.innerHTML = sampleHistory.map(t => {
+        const statusClass = t.status === 'ok' ? 'ok' : 'active';
+        const statusText = t.status === 'ok' ? 'Completato' : 'In corso';
+        return '<tr>' +
+          '<td>' + t.id + '</td>' +
+          '<td>' + t.cliente + '</td>' +
+          '<td>Stazione ' + t.station + '</td>' +
+          '<td>' + t.kg + ' kg</td>' +
+          '<td>' + t.amount.toFixed(2) + ' MYZ</td>' +
+          '<td><span class="badge ' + statusClass + '">' + statusText + '</span></td>' +
+          '<td>' + t.date + '</td>' +
+          '</tr>';
+      }).join('');
+    }
+    renderHistory();
+  </script>
+</body>
+</html>
