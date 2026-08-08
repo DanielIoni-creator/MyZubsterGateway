@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⛽ BENZINA Notifiche XMR - MyZubster</title>
+  <style>
+    :root {
+      --accent: #f7931a;
+      --accent-2: #2ecc71;
+      --accent-3: #4f8bd6;
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --surface-2: #eef1f6;
+      --text: #1f2733;
+      --text-soft: #5b6675;
+      --border: #e2e7ee;
+      --shadow: 0 10px 30px rgba(20, 30, 50, 0.08);
+      --radius: 14px;
+      --credit: #22a06b;
+      --debit: #d94f4f;
+      --warn: #d99000;
+    }
+    [data-theme="dark"] {
+      --bg: #10141b;
+      --surface: #171d27;
+      --surface-2: #1f2733;
+      --text: #e5e9f0;
+      --text-soft: #8b95a8;
+      --border: #2a3342;
+      --shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 20px; transition: background .3s, color .3s; }
+    .dashboard { max-width: 1200px; margin: 0 auto; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .top-bar h1 { font-size: 1.6rem; display: flex; align-items: center; gap: 8px; }
+    .theme-toggle { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 16px; cursor: pointer; color: var(--text); font-size: .9rem; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .stat-card .stat-label { font-size: .8rem; color: var(--text-soft); text-transform: uppercase; letter-spacing: .5px; }
+    .stat-card .stat-value { font-size: 1.6rem; font-weight: 700; margin-top: 4px; }
+    .stat-card .stat-sub { font-size: .8rem; color: var(--text-soft); margin-top: 2px; }
+
+    .notif-filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .notif-filters .filter-btn { padding: 8px 18px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--text-soft); cursor: pointer; font-size: .85rem; transition: all .2s; }
+    .notif-filters .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .notif-filters .filter-btn:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; background: var(--surface); border-radius: var(--radius); padding: 4px; border: 1px solid var(--border); }
+    .tab { padding: 10px 20px; border-radius: 10px; border: none; background: transparent; color: var(--text-soft); cursor: pointer; font-size: .9rem; font-weight: 500; transition: all .2s; flex: 1; text-align: center; }
+    .tab.active { background: var(--accent); color: white; }
+    .tab:hover:not(.active) { background: var(--surface-2); }
+
+    .notif-list { background: var(--surface); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .notif-item { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; gap: 14px; align-items: flex-start; transition: background .2s; }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item:hover { background: var(--surface-2); }
+    .notif-item.unread { border-left: 3px solid var(--accent); }
+    .notif-icon { font-size: 1.5rem; min-width: 36px; text-align: center; margin-top: 2px; }
+    .notif-content { flex: 1; }
+    .notif-title { font-weight: 600; margin-bottom: 4px; }
+    .notif-desc { font-size: .9rem; color: var(--text-soft); }
+    .notif-time { font-size: .8rem; color: var(--text-soft); margin-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .notif-badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: .7rem; font-weight: 600; }
+    .notif-badge.payment { background: rgba(46,204,113,.15); color: var(--credit); }
+    .notif-badge.receipt { background: rgba(52,152,219,.15); color: #3498db; }
+    .notif-badge.confirm { background: rgba(243,147,26,.15); color: var(--accent); }
+    .chain-chip { display: inline-flex; align-items: center; gap: 4px; font-size: .72rem; padding: 1px 8px; border-radius: 10px; background: rgba(79,139,214,.15); color: var(--accent-3); }
+    .chain-chip.ok { background: rgba(46,204,113,.15); color: var(--credit); }
+    .chain-chip.pending { background: rgba(243,147,26,.15); color: var(--warn); }
+    .mono { font-family: 'SF Mono', 'Menlo', 'Consolas', monospace; font-size: .75rem; }
+    .notif-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+    .notif-actions .btn-sm { padding: 4px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font-size: .8rem; transition: all .2s; }
+    .notif-actions .btn-sm:hover { background: var(--accent); color: white; border-color: var(--accent); }
+
+    .receipt-preview { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .receipt-header { text-align: center; margin-bottom: 20px; }
+    .receipt-header h2 { font-size: 1.3rem; }
+    .receipt-header .receipt-id { color: var(--text-soft); font-size: .85rem; }
+    .receipt-details { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .receipt-details .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--border); gap: 12px; }
+    .receipt-details .row .label { color: var(--text-soft); flex-shrink: 0; }
+    .receipt-details .row .value { font-weight: 600; text-align: right; word-break: break-all; }
+    .receipt-actions { margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .receipt-actions .btn { padding: 10px 24px; border-radius: 10px; border: none; cursor: pointer; font-size: .9rem; font-weight: 600; transition: opacity .2s; }
+    .receipt-actions .btn:hover { opacity: .85; }
+    .receipt-actions .btn-primary { background: linear-gradient(135deg, #f7931a, #e67e22); color: white; }
+    .receipt-actions .btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+
+    .chain-block { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 16px; }
+    .chain-block h3 { margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .chain-status { display: flex; align-items: center; gap: 10px; padding: 14px; border-radius: 10px; background: var(--surface-2); margin-bottom: 12px; }
+    .chain-status .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--warn); flex-shrink: 0; }
+    .chain-status.confirmed .dot { background: var(--credit); }
+    .chain-status.pending .dot { background: var(--warn); animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+    .chain-status .status-text { font-weight: 600; }
+    .chain-status .status-sub { font-size: .8rem; color: var(--text-soft); }
+    .chain-progress { height: 8px; border-radius: 4px; background: var(--border); overflow: hidden; margin-bottom: 12px; }
+    .chain-progress .bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 4px; transition: width .4s; }
+    .chain-info { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: .85rem; }
+    .chain-info .row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed var(--border); gap: 12px; }
+    .chain-info .row .label { color: var(--text-soft); flex-shrink: 0; }
+    .chain-info .row .value { font-weight: 600; word-break: break-all; text-align: right; }
+    .chain-icon { display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: white; text-align: center; line-height: 22px; font-size: 12px; font-weight: 700; }
+
+    .explorer-link { color: var(--accent-3); text-decoration: none; font-size: .8rem; }
+    .explorer-link:hover { text-decoration: underline; }
+
+    .no-data { text-align: center; padding: 40px; color: var(--text-soft); }
+
+    @media (max-width: 640px) {
+      .receipt-details, .chain-info { grid-template-columns: 1fr; }
+      .tabs { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <div class="top-bar">
+      <h1><span class="chain-icon">⛽</span> BENZINA Notifiche XMR</h1>
+      <button class="theme-toggle" onclick="toggleTheme()">🌓 Tema</button>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Non lette</div>
+        <div class="stat-value" id="statUnread">0</div>
+        <div class="stat-sub">notifiche</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Confermate</div>
+        <div class="stat-value" id="statConfirmed">0</div>
+        <div class="stat-sub">sulla blockchain</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">In attesa</div>
+        <div class="stat-value" id="statPending">0</div>
+        <div class="stat-sub">conferma</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Ricevute</div>
+        <div class="stat-value" id="statReceipts">0</div>
+        <div class="stat-sub">digitali</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('notifiche', this)">🔔 Notifiche</button>
+      <button class="tab" onclick="switchTab('ricevute', this)">🧾 Ricevute</button>
+      <button class="tab" onclick="switchTab('catena', this)">⛓ Conferma blockchain</button>
+    </div>
+
+    <div id="tab-notifiche" class="tab-content">
+      <div class="notif-filters">
+        <button class="filter-btn active" onclick="filterNotifs('all', this)">Tutte</button>
+        <button class="filter-btn" onclick="filterNotifs('payment', this)">💳 Pagamenti</button>
+        <button class="filter-btn" onclick="filterNotifs('receipt', this)">🧾 Ricevute</button>
+        <button class="filter-btn" onclick="filterNotifs('confirm', this)">⛓ Conferme</button>
+        <button class="filter-btn" onclick="filterNotifs('unread', this)">🔴 Non lette</button>
+      </div>
+      <div class="notif-list" id="notifList"><div class="no-data">Caricamento...</div></div>
+    </div>
+
+    <div id="tab-ricevute" class="tab-content" style="display:none">
+      <div class="receipt-preview" id="receiptArea">
+        <div class="receipt-header">
+          <h2>🧾 Ricevuta Digitale</h2>
+          <div class="receipt-id">Seleziona una notifica di pagamento per visualizzare la ricevuta</div>
+        </div>
+        <div id="receiptDetails" class="receipt-details" style="display:none"></div>
+        <div class="receipt-actions" id="receiptActions" style="display:none">
+          <button class="btn btn-primary" onclick="downloadReceiptPDF()">📥 Scarica PDF</button>
+          <button class="btn btn-secondary" onclick="shareReceipt()">📤 Condividi</button>
+        </div>
+        <div class="no-data" id="receiptNoData">Nessuna ricevuta disponibile</div>
+      </div>
+    </div>
+
+    <div id="tab-catena" class="tab-content" style="display:none">
+      <div class="chain-block" id="chainArea">
+        <h3>⛓ Conferma Blockchain</h3>
+        <div id="chainStatus" class="chain-status pending">
+          <span class="dot"></span>
+          <div>
+            <div class="status-text" id="chainStatusText">Verifica della transazione in corso...</div>
+            <div class="status-sub" id="chainStatusSub">Seleziona una transazione XMR per dettagli</div>
+          </div>
+        </div>
+        <div class="chain-progress" id="chainProgressWrap"><div class="bar" id="chainBar" style="width:0%"></div></div>
+        <div class="chain-info" id="chainInfo" style="display:none"></div>
+        <div class="no-data" id="chainNoData">Nessuna transazione selezionata</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Demo data: BENZINA XMR refueling notifications with blockchain confirmation.
+    const DEMO_NOTIFICATIONS = [
+      {
+        id: 1, type: 'payment', title: '💳 Pagamento XMR ricevuto', unread: true,
+        desc: 'Hai pagato 0.0042 XMR (~50 MYZ) per 20.41 L di benzina presso Stazione Rimini Centro.',
+        time: '2 min fa',
+        receipt: { id: 'XRCP-2026-08-001', date: '08/08/2026', time: '14:30', station: 'Stazione Rimini Centro', myz: 50, xmr: 0.0042, litri: 20.41, rate: 2.45, method: 'XMR', status: 'Confermato' },
+        chain: { txid: 'a1b2c3d4e5f60718293a4b5c6d7e8f90112233445566778899aabbccddeeff0011', height: 3141592, confirmations: 10, status: 'confirmed', network: 'Monero' }
+      },
+      {
+        id: 2, type: 'confirm', title: '⛓ Conferma blockchain ottenuta', unread: true,
+        desc: 'La transazione XMR è stata confermata in 10 blocchi. Rifornimento registrato in modo immutabile.',
+        time: '5 min fa',
+        receipt: { id: 'XRCP-2026-08-002', date: '08/08/2026', time: '14:25', station: 'Stazione Rimini Centro', myz: 50, xmr: 0.0042, litri: 20.41, rate: 2.45, method: 'XMR', status: 'Confermato' },
+        chain: { txid: 'a1b2c3d4e5f60718293a4b5c6d7e8f90112233445566778899aabbccddeeff0011', height: 3141592, confirmations: 10, status: 'confirmed', network: 'Monero' }
+      },
+      {
+        id: 3, type: 'receipt', title: '🧾 Ricevuta digitale disponibile', unread: true,
+        desc: 'Ricevuta per pagamento di 0.0025 XMR (~30 MYZ) presso Stazione Bologna Nord.',
+        time: '15 min fa',
+        receipt: { id: 'XRCP-2026-08-003', date: '08/08/2026', time: '14:15', station: 'Stazione Bologna Nord', myz: 30, xmr: 0.0025, litri: 12.24, rate: 2.45, method: 'XMR', status: 'In attesa' },
+        chain: { txid: 'ffeeddccbbaa99887766554433221100aabbccddeeff00112233445566778899', height: null, confirmations: 2, status: 'pending', network: 'Monero' }
+      },
+      {
+        id: 4, type: 'payment', title: '💳 Pagamento XMR automatico effettuato', unread: false,
+        desc: 'Pagamento ricorrente di 0.0083 XMR (~100 MYZ) per 40.82 L di benzina.',
+        time: '3 ore fa',
+        receipt: { id: 'XRCP-2026-08-004', date: '08/08/2026', time: '11:00', station: 'Stazione Firenze Ovest', myz: 100, xmr: 0.0083, litri: 40.82, rate: 2.45, method: 'Auto-Pay XMR', status: 'Confermato' },
+        chain: { txid: '99887766554433221100aabbccdd11223344556677889900aabbccddeeff0011', height: 3141588, confirmations: 14, status: 'confirmed', network: 'Monero' }
+      },
+      {
+        id: 5, type: 'receipt', title: '🧾 Nuova ricevuta disponibile', unread: false,
+        desc: 'Ricevuta per pagamento di 0.0062 XMR (~75 MYZ) presso Stazione Milano Est.',
+        time: '5 ore fa',
+        receipt: { id: 'XRCP-2026-08-005', date: '08/08/2026', time: '09:30', station: 'Stazione Milano Est', myz: 75, xmr: 0.0062, litri: 30.61, rate: 2.45, method: 'XMR', status: 'Confermato' },
+        chain: { txid: '11223344556677889900aabbccddeeff00112233445566778899aabbccddeeff', height: 3141582, confirmations: 20, status: 'confirmed', network: 'Monero' }
+      },
+      {
+        id: 6, type: 'confirm', title: '⛓ Transazione in attesa di conferma', unread: false,
+        desc: 'La transazione XMR per 0.0025 XMR sta aspettando la conferma. Conferme: 2/10.',
+        time: '20 min fa',
+        receipt: { id: 'XRCP-2026-08-003', date: '08/08/2026', time: '14:15', station: 'Stazione Bologna Nord', myz: 30, xmr: 0.0025, litri: 12.24, rate: 2.45, method: 'XMR', status: 'In attesa' },
+        chain: { txid: 'ffeeddccbbaa99887766554433221100aabbccddeeff00112233445566778899', height: null, confirmations: 2, status: 'pending', network: 'Monero' }
+      },
+      {
+        id: 7, type: 'payment', title: '💳 Pagamento XMR ricevuto', unread: false,
+        desc: 'Hai pagato 0.0042 XMR (~50 MYZ) per 20.41 L di benzina presso Stazione Torino Sud.',
+        time: '2 giorni fa',
+        receipt: { id: 'XRCP-2026-08-006', date: '06/08/2026', time: '16:45', station: 'Stazione Torino Sud', myz: 50, xmr: 0.0042, litri: 20.41, rate: 2.45, method: 'XMR', status: 'Confermato' },
+        chain: { txid: 'deadbeefcafe00112233445566778899aabbccddeeff00112233445566778899', height: 3139800, confirmations: 1790, status: 'confirmed', network: 'Monero' }
+      },
+      {
+        id: 8, type: 'receipt', title: '🧾 Report mensile disponibile', unread: false,
+        desc: 'Il report delle tue transazioni XMR di Luglio 2026 è pronto.',
+        time: '3 giorni fa'
+      },
+    ];
+
+    let notifications = [...DEMO_NOTIFICATIONS];
+    let currentFilter = 'all';
+    let currentTab = 'notifiche';
+    let selectedTx = null;
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+      localStorage.setItem('myz-theme', current === 'dark' ? 'light' : 'dark');
+    }
+
+    (function() {
+      const saved = localStorage.getItem('myz-theme');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
+      const savedNotifs = localStorage.getItem('myz-xmr-notifications');
+      if (savedNotifs) notifications = JSON.parse(savedNotifs);
+    })();
+
+    function updateStats() {
+      const unread = notifications.filter(n => n.unread).length;
+      const confirmed = notifications.filter(n => n.chain && n.chain.status === 'confirmed' && n.type === 'payment').length;
+      const pending = notifications.filter(n => n.chain && n.chain.status === 'pending').length;
+      const receipts = notifications.filter(n => n.receipt).length;
+      document.getElementById('statUnread').textContent = unread;
+      document.getElementById('statConfirmed').textContent = confirmed;
+      document.getElementById('statPending').textContent = pending;
+      document.getElementById('statReceipts').textContent = receipts;
+    }
+
+    function switchTab(tab, btn) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+      document.getElementById('tab-' + tab).style.display = 'block';
+      currentTab = tab;
+      if (tab === 'notifiche') renderNotifs();
+      if (tab === 'catena') renderChain();
+    }
+
+    function filterNotifs(filter, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = filter;
+      renderNotifs();
+    }
+
+    function chainChip(c) {
+      if (!c) return '';
+      const ok = c.status === 'confirmed';
+      return `<span class="chain-chip ${ok ? 'ok' : 'pending'}">${ok ? '✓ Confermato' : '⏳ In attesa'} · ${c.confirmations} conf.</span>`;
+    }
+
+    function renderNotifs() {
+      const container = document.getElementById('notifList');
+      let filtered = notifications;
+      if (currentFilter !== 'all' && currentFilter !== 'unread') {
+        filtered = filtered.filter(n => n.type === currentFilter);
+      } else if (currentFilter === 'unread') {
+        filtered = filtered.filter(n => n.unread);
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="no-data">Nessuna notifica trovata</div>';
+        return;
+      }
+
+      let html = '';
+      filtered.forEach(n => {
+        const badgeClass = n.type === 'payment' ? 'payment' : n.type === 'receipt' ? 'receipt' : 'confirm';
+        const badgeLabel = n.type === 'payment' ? '💳 Pagamento' : n.type === 'receipt' ? '🧾 Ricevuta' : '⛓ Conferma';
+        html += `<div class="notif-item ${n.unread ? 'unread' : ''}">
+          <div class="notif-icon">${n.type === 'payment' ? '💳' : n.type === 'receipt' ? '🧾' : '⛓'}</div>
+          <div class="notif-content">
+            <div class="notif-title">${n.title}</div>
+            <div class="notif-desc">${n.desc}</div>
+            <div class="notif-time">
+              <span class="notif-badge ${badgeClass}">${badgeLabel}</span>
+              <span>🕐 ${n.time}</span>
+              ${n.chain ? chainChip(n.chain) : ''}
+              ${n.unread ? '<span style="color:var(--accent)">● Non letta</span>' : ''}
+            </div>
+            <div class="notif-actions">
+              ${n.receipt ? `<button class="btn-sm" onclick="viewReceipt(${n.id})">👁 Visualizza Ricevuta</button>` : ''}
+              ${n.chain ? `<button class="btn-sm" onclick="viewChain(${n.id})">⛓ Verifica on-chain</button>` : ''}
+              <button class="btn-sm" onclick="markRead(${n.id})">${n.unread ? '✓ Segna come letta' : '📌'}</button>
+            </div>
+          </div>
+        </div>`;
+      });
+      container.innerHTML = html;
+      updateStats();
+    }
+
+    function markRead(id) {
+      const n = notifications.find(x => x.id === id);
+      if (n) { n.unread = false; localStorage.setItem('myz-xmr-notifications', JSON.stringify(notifications)); renderNotifs(); }
+    }
+
+    function viewReceipt(id) {
+      const n = notifications.find(x => x.id === id);
+      if (!n || !n.receipt) return;
+      switchTab('ricevute', document.querySelectorAll('.tab')[1]);
+      const r = n.receipt;
+      document.getElementById('receiptNoData').style.display = 'none';
+      document.getElementById('receiptDetails').style.display = 'grid';
+      document.getElementById('receiptActions').style.display = 'flex';
+      document.querySelector('.receipt-header .receipt-id').textContent = `#${r.id}`;
+      const confRow = n.chain ? `<div class="row"><span class="label">Conferma blockchain</span><span class="value" style="color:${n.chain.status === 'confirmed' ? 'var(--credit)' : 'var(--warn)'}">${n.chain.status === 'confirmed' ? '✓ Confermato' : '⏳ In attesa'} · ${n.chain.confirmations} conf.</span></div>` : '';
+      const txRow = n.chain ? `<div class="row"><span class="label">TXID</span><span class="value mono">${n.chain.txid.slice(0, 20)}…</span></div>` : '';
+      document.getElementById('receiptDetails').innerHTML = `
+        <div class="row"><span class="label">ID Ricevuta</span><span class="value">${r.id}</span></div>
+        <div class="row"><span class="label">Data</span><span class="value">${r.date}</span></div>
+        <div class="row"><span class="label">Ora</span><span class="value">${r.time}</span></div>
+        <div class="row"><span class="label">Stazione</span><span class="value">${r.station}</span></div>
+        <div class="row"><span class="label">Importo</span><span class="value">${r.xmr} XMR</span></div>
+        <div class="row"><span class="label">Equivalente</span><span class="value">${r.myz} MYZ</span></div>
+        <div class="row"><span class="label">Litri benzina</span><span class="value">${r.litri} L</span></div>
+        <div class="row"><span class="label">Tasso</span><span class="value">${r.rate} MYZ/L</span></div>
+        <div class="row"><span class="label">Metodo</span><span class="value">${r.method}</span></div>
+        <div class="row"><span class="label">Stato</span><span class="value" style="color:${r.status === 'Confermato' ? 'var(--credit)' : 'var(--warn)'}">${r.status}</span></div>
+        ${confRow}
+        ${txRow}
+      `;
+    }
+
+    function viewChain(id) {
+      const n = notifications.find(x => x.id === id);
+      if (!n || !n.chain) return;
+      switchTab('catena', document.querySelectorAll('.tab')[2]);
+      selectedTx = n.chain;
+      renderChain();
+    }
+
+    function explorerUrl(tx) {
+      // Monero explore explorer (demo): search by tx hash.
+      return `https://explore.moneropulse.org/tx/${tx.txid}`;
+    }
+
+    function renderChain() {
+      const noData = document.getElementById('chainNoData');
+      const statusEl = document.getElementById('chainStatus');
+      const infoEl = document.getElementById('chainInfo');
+      const bar = document.getElementById('chainBar');
+      const progressWrap = document.getElementById('chainProgressWrap');
+
+      if (!selectedTx) {
+        noData.style.display = 'block';
+        statusEl.style.display = 'none';
+        infoEl.style.display = 'none';
+        return;
+      }
+      noData.style.display = 'none';
+      statusEl.style.display = 'flex';
+      infoEl.style.display = 'grid';
+
+      const tx = selectedTx;
+      const confirmed = tx.status === 'confirmed';
+      statusEl.className = 'chain-status ' + (confirmed ? 'confirmed' : 'pending');
+      document.getElementById('chainStatusText').textContent = confirmed ? '✓ Transazione confermata' : '⏳ In attesa di conferma';
+      document.getElementById('chainStatusSub').textContent =
+        `${tx.network} · ${tx.confirmations} conferme` + (tx.height ? ` · blocco #${tx.height}` : '');
+
+      // Progress toward 10 confirmations (Monero typical threshold).
+      const pct = Math.min(100, Math.round((tx.confirmations / 10) * 100));
+      bar.style.width = pct + '%';
+      progressWrap.style.display = 'block';
+
+      infoEl.innerHTML = `
+        <div class="row"><span class="label">Network</span><span class="value">${tx.network}</span></div>
+        <div class="row"><span class="label">TXID</span><span class="value mono">${tx.txid}</span></div>
+        <div class="row"><span class="label">Conferme</span><span class="value" style="color:${confirmed ? 'var(--credit)' : 'var(--warn)'}">${tx.confirmations} / 10</span></div>
+        <div class="row"><span class="label">Altezza blocco</span><span class="value">${tx.height ? '#' + tx.height : 'In attesa'}</span></div>
+        <div class="row"><span class="label">Stato</span><span class="value" style="color:${confirmed ? 'var(--credit)' : 'var(--warn)'}">${confirmed ? 'Confermato' : 'Pending'}</span></div>
+        <div class="row"><span class="label">Esploratore</span><span class="value"><a class="explorer-link" href="${explorerUrl(tx)}" target="_blank" rel="noopener">Visualizza su Monero Pulse ↗</a></span></div>
+      `;
+    }
+
+    function downloadReceiptPDF() {
+      const details = document.getElementById('receiptDetails').innerText;
+      const blob = new Blob(['\uFEFFRicevuta BENZINA XMR\n\n' + details], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'ricevuta-benzina-xmr.txt'; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function shareReceipt() {
+      alert('📤 Condivisione ricevuta XMR: funzione disponibile nella prossima versione.');
+    }
+
+    renderNotifs();
+  </script>
+</body>
+</html>
