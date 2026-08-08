@@ -4,10 +4,12 @@
   "description": "EVA IONI - Robot Listings Dashboard",
   "private": true,
   "dependencies": {
+    "axios": "^1.6.0",
+    "chart.js": "^4.5.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "axios": "^1.6.0",
-    "react-router-dom": "^6.20.0"
+    "react-router-dom": "^6.20.0",
+    "socket.io-client": "^4.8.3"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -16,8 +18,8 @@
     "eject": "react-scripts eject"
   },
   "devDependencies": {
-    "react-scripts": "5.0.1",
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "react-scripts": "^5.0.1"
   },
   "browserslist": {
     "production": [

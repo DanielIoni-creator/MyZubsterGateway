@@ -5,6 +5,8 @@ import Home from './pages/Home';
 import UrbanGardenDashboard from './pages/UrbanGardenDashboard';
 import HospitalDashboard from './pages/HospitalDashboard';
 import TransactionHistory from './pages/TransactionHistory';
+import PublicRobotDashboard from './pages/PublicRobotDashboard';
+import EmbeddableWidget from './pages/EmbeddableWidget';
 
 function App() {
   return (
@@ -15,6 +17,8 @@ function App() {
         <Route path="/garden" element={<UrbanGardenDashboard />} />
         <Route path="/hospital" element={<HospitalDashboard />} />
         <Route path="/transactions" element={<TransactionHistory />} />
+        <Route path="/public-dashboard" element={<PublicRobotDashboard />} />
+        <Route path="/public-dashboard/embed" element={<EmbeddableWidget />} />
       </Routes>
     </BrowserRouter>
   );

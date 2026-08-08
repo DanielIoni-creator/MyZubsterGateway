@@ -2,3 +2,11 @@
 
 # Artefatti dei test di carico (Bounty P5)
 reports/
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Build output
+frontend/build/
+frontend/dist/
