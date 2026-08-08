@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⛽ BENZINA-XMR - Stazione App - MyZubster</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; min-height: 100vh; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    header {
+      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      color: white; text-align: center; padding: 28px; border-radius: 14px; margin-bottom: 24px;
+    }
+    header h1 { font-size: 2rem; margin: 0; }
+    header p { margin: 8px 0 0; opacity: 0.85; font-size: 0.95rem; }
+    .xmr-ticker {
+      display: flex; justify-content: center; gap: 24px; margin-top: 14px; flex-wrap: wrap;
+    }
+    .xmr-ticker span {
+      background: rgba(255,255,255,0.1); padding: 8px 18px; border-radius: 20px;
+      font-size: 0.9rem;
+    }
+    .xmr-ticker .rate { color: #f0b90b; font-weight: 700; }
+    .xmr-ticker .change { font-weight: 600; }
+    .xmr-ticker .change.up { color: #2ecc71; }
+    .xmr-ticker .change.down { color: #e74c3c; }
+    .tabs {
+      display: flex; gap: 0; margin-bottom: 20px; background: white; border-radius: 12px;
+      overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .tab-btn {
+      flex: 1; padding: 14px 20px; border: none; background: white; cursor: pointer;
+      font-size: 0.95rem; font-weight: 500; color: #666; transition: all 0.2s;
+      border-bottom: 3px solid transparent;
+    }
+    .tab-btn:hover { background: #f8f9fa; }
+    .tab-btn.active { color: #0f3460; border-bottom-color: #0f3460; background: #f0f4ff; font-weight: 600; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .card {
+      background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .card h2 { color: #1a1a2e; font-size: 1.2rem; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+    .kpi-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;
+    }
+    .kpi-card {
+      padding: 20px; border-radius: 10px; color: white; position: relative; overflow: hidden;
+    }
+    .kpi-card.blue { background: linear-gradient(135deg, #3498db, #2980b9); }
+    .kpi-card.green { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+    .kpi-card.orange { background: linear-gradient(135deg, #e67e22, #d35400); }
+    .kpi-card.purple { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+    .kpi-card .label { font-size: 0.8rem; opacity: 0.9; margin-bottom: 6px; }
+    .kpi-card .value { font-size: 1.8rem; font-weight: 700; }
+    .kpi-card .sub { font-size: 0.8rem; opacity: 0.8; margin-top: 4px; }
+    .kpi-icon { position: absolute; right: 16px; top: 16px; font-size: 2rem; opacity: 0.2; }
+    .form-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+    .form-group { margin-bottom: 14px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label { display: block; font-size: 0.85rem; color: #555; margin-bottom: 6px; font-weight: 500; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.95rem; transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
+    }
+    .btn {
+      padding: 10px 24px; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-primary { background: #0f3460; color: white; }
+    .btn-primary:hover { background: #1a1a2e; }
+    .btn-success { background: #27ae60; color: white; }
+    .btn-success:hover { background: #1e8449; }
+    .btn-outline { background: transparent; border: 1px solid #ddd; color: #555; }
+    .btn-outline:hover { background: #f5f5f5; }
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #2c3e50; font-size: 0.85rem; white-space: nowrap; }
+    td { padding: 10px 12px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+    tr:hover { background: #f8f9fa; }
+    .badge {
+      display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 500;
+    }
+    .badge.success { background: #d4edda; color: #155724; }
+    .badge.pending { background: #fff3cd; color: #856404; }
+    .badge.failed { background: #f8d7da; color: #721c24; }
+    .badge.info { background: #cce5ff; color: #004085; }
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px;
+      border-radius: 20px; font-size: 0.85rem; font-weight: 500;
+    }
+    .status-badge.active { background: #d4edda; color: #155724; }
+    .status-badge.inactive { background: #f8d7da; color: #721c24; }
+    .status-badge.pending-station { background: #fff3cd; color: #856404; }
+    .station-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .station-card {
+      padding: 18px; border-radius: 10px; border: 1px solid #eee; background: #fafafa;
+      transition: box-shadow 0.2s;
+    }
+    .station-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .station-card .name { font-weight: 600; font-size: 1.05rem; color: #1a1a2e; margin-bottom: 8px; }
+    .station-card .detail { font-size: 0.85rem; color: #666; margin-bottom: 4px; }
+    .station-card .actions { margin-top: 12px; display: flex; gap: 8px; }
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: white; border-radius: 14px; padding: 28px; max-width: 500px; width: 90%;
+      max-height: 80vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    }
+    .modal h2 { margin-bottom: 20px; color: #1a1a2e; }
+    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
+    .empty-state { text-align: center; padding: 40px 20px; color: #999; }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+    .empty-state p { font-size: 0.95rem; }
+    .loading { text-align: center; padding: 40px; color: #999; }
+    .loading::after { content: '...'; animation: dots 1.5s steps(3, end) infinite; }
+    @keyframes dots { 0% { content: '.'; } 33% { content: '..'; } 66% { content: '...'; } }
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; padding: 14px 24px; border-radius: 10px;
+      color: white; font-weight: 500; z-index: 2000; opacity: 0; transform: translateY(20px);
+      transition: all 0.3s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { background: #27ae60; }
+    .toast.error { background: #e74c3c; }
+    @media (max-width: 768px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      header h1 { font-size: 1.5rem; }
+      .tabs { flex-wrap: wrap; }
+      .tab-btn { font-size: 0.85rem; padding: 10px 12px; }
+    }
+    @media (max-width: 480px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+      .container { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>⛽ BENZINA-XMR</h1>
+      <p>App per stazioni di servizio - Accetta XMR (Monero)</p>
+      <div class="xmr-ticker" id="xmrTicker">
+        <span>1 XMR = <span class="rate" id="xmrRate">—</span> USD</span>
+        <span>24h: <span class="change" id="xmrChange">—</span></span>
+        <span>Aggiornato: <span id="xmrUpdated">—</span></span>
+      </div>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
+      <button class="tab-btn" data-tab="stations">🏪 Stazioni</button>
+      <button class="tab-btn" data-tab="register">➕ Registra</button>
+      <button class="tab-btn" data-tab="history">📜 Storico</button>
+    </div>
+
+    <!-- DASHBOARD TAB -->
+    <div class="tab-content active" id="tab-dashboard">
+      <div class="kpi-grid" id="dashboardKpis">
+        <div class="kpi-card blue">
+          <div class="kpi-icon">⛽</div>
+          <div class="label">Stazioni registrate</div>
+          <div class="value" id="kpiStations">—</div>
+          <div class="sub">totale</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-icon">💰</div>
+          <div class="label">Incassi XMR (24h)</div>
+          <div class="value" id="kpiRevenue24h">—</div>
+          <div class="sub" id="kpiRevenue24hUsd">— USD</div>
+        </div>
+        <div class="kpi-card orange">
+          <div class="kpi-icon">📊</div>
+          <div class="label">Incassi XMR (30gg)</div>
+          <div class="value" id="kpiRevenue30d">—</div>
+          <div class="sub" id="kpiRevenue30dUsd">— USD</div>
+        </div>
+        <div class="kpi-card purple">
+          <div class="kpi-icon">🔄</div>
+          <div class="label">Transazioni totali</div>
+          <div class="value" id="kpiTransactions">—</div>
+          <div class="sub">ultimi 30 giorni</div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>📈 Andamento Incassi (ultimi 7 giorni)</h2>
+        <div id="revenueChart" style="height:250px;display:flex;align-items:flex-end;gap:8px;padding-top:20px;"></div>
+      </div>
+      <div class="card">
+        <h2>🕐 Ultime transazioni</h2>
+        <div id="recentTransactions">
+          <div class="loading">Caricamento</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATIONS TAB -->
+    <div class="tab-content" id="tab-stations">
+      <div class="card">
+        <h2>🏪 Stazioni di servizio registrate</h2>
+        <div id="stationList">
+          <div class="loading">Caricamento</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REGISTER TAB -->
+    <div class="tab-content" id="tab-register">
+      <div class="card">
+        <h2>➕ Registra nuova stazione di servizio</h2>
+        <form id="stationForm" class="form-grid" onsubmit="return registerStation(event)">
+          <div class="form-group">
+            <label>Nome stazione *</label>
+            <input type="text" id="stationName" required placeholder="Es. Stazione XMR Roma">
+          </div>
+          <div class="form-group">
+            <label>Indirizzo *</label>
+            <input type="text" id="stationAddress" required placeholder="Via Roma 123, Roma">
+          </div>
+          <div class="form-group">
+            <label>Città *</label>
+            <input type="text" id="stationCity" required placeholder="Roma">
+          </div>
+          <div class="form-group">
+            <label>XMR Wallet Address *</label>
+            <input type="text" id="stationWallet" required placeholder="4...">
+          </div>
+          <div class="form-group">
+            <label>Telefono</label>
+            <input type="tel" id="stationPhone" placeholder="+39 123 456 7890">
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="stationEmail" placeholder="info@stazione.it">
+          </div>
+          <div class="form-group full">
+            <label>Orari di apertura</label>
+            <textarea id="stationHours" rows="2" placeholder="Lun-Ven: 06:00-22:00, Sab-Dom: 08:00-20:00"></textarea>
+          </div>
+          <div class="form-group full">
+            <label>Note</label>
+            <textarea id="stationNotes" rows="2" placeholder="Servizi aggiuntivi, POS, ecc."></textarea>
+          </div>
+          <div class="form-group full" style="display:flex;gap:12px;align-items:center;">
+            <button type="submit" class="btn btn-success">✅ Registra stazione</button>
+            <button type="reset" class="btn btn-outline">Annulla</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- HISTORY TAB -->
+    <div class="tab-content" id="tab-history">
+      <div class="card">
+        <h2>📜 Storico transazioni XMR</h2>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+          <input type="text" id="historySearch" placeholder="🔍 Cerca per stazione/ID..." style="flex:1;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:0.9rem;">
+          <select id="historyStatus" style="padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:0.9rem;">
+            <option value="">Tutti gli stati</option>
+            <option value="COMPLETED">Completati</option>
+            <option value="PENDING">In attesa</option>
+            <option value="FAILED">Falliti</option>
+          </select>
+          <button class="btn btn-outline" onclick="loadHistory()">🔃 Aggiorna</button>
+        </div>
+        <div id="historyTable">
+          <div class="loading">Caricamento</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <h2 id="modalTitle">Dettaglio stazione</h2>
+      <div id="modalBody"></div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModal()">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- STATE ----
+    const STORAGE_KEY = 'myz_benzina_stations';
+    const XMR_RATE_KEY = 'myz_xmr_rate_cache';
+    let stations = loadStations();
+    let xmrRate = null;
+    let xmrRateHistory = [];
+
+    // ---- INIT ----
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchXmrRate();
+      loadDashboard();
+      loadStationsView();
+      loadHistory();
+      initTabs();
+      setInterval(fetchXmrRate, 60000);
+    });
+
+    // ---- TABS ----
+    function initTabs() {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          btn.classList.add('active');
+          document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+          if (btn.dataset.tab === 'dashboard') loadDashboard();
+          if (btn.dataset.tab === 'stations') loadStationsView();
+          if (btn.dataset.tab === 'history') loadHistory();
+        });
+      });
+    }
+
+    // ---- XMR RATE ----
+    async function fetchXmrRate() {
+      try {
+        const res = await fetch('/api/xmr/rate');
+        const data = await res.json();
+        if (data.success && data.data) {
+          const rate = data.data;
+          xmrRate = typeof rate === 'object' ? rate.usd : rate;
+          xmrRateHistory.push({ time: Date.now(), rate: xmrRate });
+          if (xmrRateHistory.length > 30) xmrRateHistory.shift();
+          localStorage.setItem(XMR_RATE_KEY, JSON.stringify({
+            rate: xmrRate, history: xmrRateHistory, updated: Date.now()
+          }));
+          updateXmrTicker();
+        }
+      } catch (e) {
+        console.log('XMR rate fetch failed, using cached:', e.message);
+        const cached = localStorage.getItem(XMR_RATE_KEY);
+        if (cached) {
+          const c = JSON.parse(cached);
+          xmrRate = c.rate;
+          xmrRateHistory = c.history || [];
+          updateXmrTicker();
+        }
+      }
+    }
+
+    function updateXmrTicker() {
+      if (!xmrRate) return;
+      document.getElementById('xmrRate').textContent = '$' + xmrRate.toFixed(2);
+      const now = new Date();
+      document.getElementById('xmrUpdated').textContent = now.toLocaleTimeString('it-IT');
+      if (xmrRateHistory.length >= 2) {
+        const prev = xmrRateHistory[xmrRateHistory.length - 2].rate;
+        const change = ((xmrRate - prev) / prev * 100).toFixed(2);
+        const el = document.getElementById('xmrChange');
+        el.textContent = (change >= 0 ? '+' : '') + change + '%';
+        el.className = 'change ' + (change >= 0 ? 'up' : 'down');
+      }
+    }
+
+    function convertToUsd(xmrAmount) {
+      if (!xmrRate) return null;
+      return (xmrAmount * xmrRate).toFixed(2);
+    }
+
+    // ---- STATIONS ----
+    function loadStations() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch { return []; }
+    }
+
+    function saveStations() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(stations));
+    }
+
+    function registerStation(e) {
+      e.preventDefault();
+      const station = {
+        id: 'STZ-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substr(2,4).toUpperCase(),
+        name: document.getElementById('stationName').value.trim(),
+        address: document.getElementById('stationAddress').value.trim(),
+        city: document.getElementById('stationCity').value.trim(),
+        wallet: document.getElementById('stationWallet').value.trim(),
+        phone: document.getElementById('stationPhone').value.trim(),
+        email: document.getElementById('stationEmail').value.trim(),
+        hours: document.getElementById('stationHours').value.trim(),
+        notes: document.getElementById('stationNotes').value.trim(),
+        status: 'active',
+        registeredAt: new Date().toISOString(),
+        transactions: 0,
+        revenueXmr: 0
+      };
+      stations.push(station);
+      saveStations();
+      document.getElementById('stationForm').reset();
+      showToast('✅ Stazione ' + station.name + ' registrata con successo!', 'success');
+      loadDashboard();
+      loadStationsView();
+      return false;
+    }
+
+    function toggleStationStatus(id) {
+      const s = stations.find(st => st.id === id);
+      if (s) {
+        s.status = s.status === 'active' ? 'inactive' : 'active';
+        saveStations();
+        loadStationsView();
+        showToast(s.status === 'active' ? '✅ Stazione attivata' : '⏸️ Stazione disattivata', 'success');
+      }
+    }
+
+    function viewStation(id) {
+      const s = stations.find(st => st.id === id);
+      if (!s) return;
+      document.getElementById('modalTitle').textContent = '🏪 ' + s.name;
+      document.getElementById('modalBody').innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div><strong>ID:</strong> ${s.id}</div>
+          <div><strong>Stato:</strong> <span class="badge ${s.status === 'active' ? 'success' : 'failed'}">${s.status === 'active' ? 'Attiva' : 'Disattivata'}</span></div>
+          <div style="grid-column:1/-1;"><strong>Indirizzo:</strong> ${s.address}, ${s.city}</div>
+          <div style="grid-column:1/-1;"><strong>Wallet XMR:</strong> <code style="font-size:0.8rem;word-break:break-all;">${s.wallet}</code></div>
+          ${s.phone ? '<div><strong>Tel:</strong> ' + s.phone + '</div>' : ''}
+          ${s.email ? '<div><strong>Email:</strong> ' + s.email + '</div>' : ''}
+          ${s.hours ? '<div style="grid-column:1/-1;"><strong>Orari:</strong> ' + s.hours + '</div>' : ''}
+          ${s.notes ? '<div style="grid-column:1/-1;"><strong>Note:</strong> ' + s.notes + '</div>' : ''}
+          <div><strong>Transazioni:</strong> ${s.transactions}</div>
+          <div><strong>Incassi XMR:</strong> ${s.revenueXmr.toFixed(6)} XMR</div>
+          <div style="grid-column:1/-1;"><strong>Registrata il:</strong> ${new Date(s.registeredAt).toLocaleDateString('it-IT')}</div>
+        </div>
+      `;
+      document.getElementById('modal').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.remove('open');
+    }
+    document.getElementById('modal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeModal();
+    });
+
+    // ---- DEMO TRANSACTIONS ----
+    function generateDemoTransactions() {
+      const statuses = ['COMPLETED', 'PENDING', 'COMPLETED', 'COMPLETED', 'FAILED', 'COMPLETED', 'PENDING', 'COMPLETED'];
+      const amounts = [0.005, 0.012, 0.008, 0.015, 0.003, 0.009, 0.006, 0.011];
+      const txs = [];
+      const stNames = stations.length > 0 ? stations.map(s => s.name) : ['Stazione XMR Roma', 'Stazione XMR Milano', 'Stazione XMR Napoli'];
+      for (let i = 0; i < 24; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() - Math.floor(Math.random() * 30));
+        d.setHours(Math.floor(Math.random() * 24), Math.floor(Math.random() * 60));
+        const stName = stNames[Math.floor(Math.random() * stNames.length)];
+        const amt = amounts[Math.floor(Math.random() * amounts.length)];
+        txs.push({
+          id: 'TX-' + d.getTime().toString(36).toUpperCase(),
+          station: stName,
+          amount: amt,
+          status: statuses[Math.floor(Math.random() * statuses.length)],
+          timestamp: d.toISOString(),
+          txId: Math.random().toString(36).substr(2, 16).toUpperCase()
+        });
+      }
+      return txs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    }
+
+    let allTxs = generateDemoTransactions();
+
+    // ---- DASHBOARD ----
+    function loadDashboard() {
+      // Update station KPI
+      const activeStations = stations.filter(s => s.status === 'active').length;
+      document.getElementById('kpiStations').textContent = activeStations + '/' + stations.length;
+
+      // Calculate revenue from demo tx
+      const now = new Date();
+      const oneDay = 24 * 60 * 60 * 1000;
+      const oneMonth = 30 * oneDay;
+      const tx24h = allTxs.filter(t => now - new Date(t.timestamp) < oneDay && t.status === 'COMPLETED');
+      const tx30d = allTxs.filter(t => now - new Date(t.timestamp) < oneMonth && t.status === 'COMPLETED');
+      const rev24h = tx24h.reduce((s, t) => s + t.amount, 0);
+      const rev30d = tx30d.reduce((s, t) => s + t.amount, 0);
+
+      document.getElementById('kpiRevenue24h').textContent = rev24h.toFixed(4) + ' XMR';
+      document.getElementById('kpiTransactions').textContent = allTxs.filter(t => now - new Date(t.timestamp) < oneMonth).length;
+
+      const usd24h = convertToUsd(rev24h);
+      const usd30d = convertToUsd(rev30d);
+      document.getElementById('kpiRevenue24hUsd').textContent = usd24h ? '$' + usd24h : '— USD';
+      document.getElementById('kpiRevenue30d').textContent = rev30d.toFixed(4) + ' XMR';
+      document.getElementById('kpiRevenue30dUsd').textContent = usd30d ? '$' + usd30d : '— USD';
+
+      // Revenue chart (last 7 days)
+      const chartEl = document.getElementById('revenueChart');
+      chartEl.innerHTML = '';
+      const days = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+      const dayData = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const dayEnd = new Date(dayStart.getTime() + oneDay);
+        const dayTxs = allTxs.filter(t => {
+          const ts = new Date(t.timestamp);
+          return ts >= dayStart && ts < dayEnd && t.status === 'COMPLETED';
+        });
+        dayData.push(dayTxs.reduce((s, t) => s + t.amount, 0));
+      }
+      const maxVal = Math.max(...dayData, 0.001);
+      const dayNames = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+      const today = new Date().getDay();
+      dayData.forEach((val, i) => {
+        const pct = (val / maxVal) * 100;
+        const bar = document.createElement('div');
+        bar.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;';
+        const label = document.createElement('div');
+        label.textContent = val.toFixed(3);
+        label.style.cssText = 'font-size:0.7rem;color:#666;font-weight:600;';
+        const col = document.createElement('div');
+        col.style.cssText = `width:100%;max-width:40px;height:${Math.max(pct, 3)}%;background:linear-gradient(to top, #0f3460, #3498db);border-radius:6px 6px 0 0;transition:height 0.3s;min-height:8px;`;
+        const day = document.createElement('div');
+        day.textContent = dayNames[(today - 6 + i + 7) % 7];
+        day.style.cssText = 'font-size:0.75rem;color:#999;';
+        bar.appendChild(label);
+        bar.appendChild(col);
+        bar.appendChild(day);
+        chartEl.appendChild(bar);
+      });
+
+      // Recent transactions
+      const recent = allTxs.slice(0, 8);
+      const recentEl = document.getElementById('recentTransactions');
+      if (recent.length === 0) {
+        recentEl.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Nessuna transazione</p></div>';
+        return;
+      }
+      recentEl.innerHTML = `<div class="table-container"><table>
+        <thead><tr><th>ID</th><th>Stazione</th><th>Importo</th><th>Stato</th><th>Data</th></tr></thead>
+        <tbody>${recent.map(t => `<tr>
+          <td><code style="font-size:0.8rem;">${t.id}</code></td>
+          <td>${t.station}</td>
+          <td>${t.amount.toFixed(4)} XMR ${convertToUsd(t.amount) ? '<span style="color:#999;font-size:0.8rem;">($' + convertToUsd(t.amount) + ')</span>' : ''}</td>
+          <td><span class="badge ${t.status === 'COMPLETED' ? 'success' : t.status === 'PENDING' ? 'pending' : 'failed'}">${t.status === 'COMPLETED' ? '✅ Completato' : t.status === 'PENDING' ? '⏳ In attesa' : '❌ Fallito'}</span></td>
+          <td style="white-space:nowrap;">${new Date(t.timestamp).toLocaleDateString('it-IT') + ' ' + new Date(t.timestamp).toLocaleTimeString('it-IT', {hour:'2-digit',minute:'2-digit'})}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>`;
+    }
+
+    // ---- STATIONS VIEW ----
+    function loadStationsView() {
+      const el = document.getElementById('stationList');
+      if (stations.length === 0) {
+        el.innerHTML = '<div class="empty-state"><div class="icon">🏪</div><p>Nessuna stazione registrata. Vai su "Registra" per aggiungerne una!</p></div>';
+        return;
+      }
+      el.innerHTML = '<div class="station-list">' + stations.map(s => `
+        <div class="station-card">
+          <div class="name">${s.name}</div>
+          <div class="detail">📍 ${s.address}, ${s.city}</div>
+          <div class="detail">📊 Transazioni: ${s.transactions} | 💰 ${s.revenueXmr.toFixed(6)} XMR</div>
+          <div class="detail">Stato: <span class="status-badge ${s.status === 'active' ? 'active' : 'inactive'}">${s.status === 'active' ? '🟢 Attiva' : '🔴 Disattivata'}</span></div>
+          <div class="actions">
+            <button class="btn btn-outline" onclick="viewStation('${s.id}')" style="font-size:0.8rem;padding:6px 14px;">👁️ Dettagli</button>
+            <button class="btn btn-outline" onclick="toggleStationStatus('${s.id}')" style="font-size:0.8rem;padding:6px 14px;">${s.status === 'active' ? '⏸️ Disattiva' : '▶️ Attiva'}</button>
+          </div>
+        </div>
+      `).join('') + '</div>';
+    }
+
+    // ---- HISTORY ----
+    function loadHistory() {
+      const search = document.getElementById('historySearch').value.toLowerCase();
+      const statusFilter = document.getElementById('historyStatus').value;
+      let filtered = allTxs;
+      if (search) {
+        filtered = filtered.filter(t => t.id.toLowerCase().includes(search) || t.station.toLowerCase().includes(search));
+      }
+      if (statusFilter) {
+        filtered = filtered.filter(t => t.status === statusFilter);
+      }
+      const el = document.getElementById('historyTable');
+      if (filtered.length === 0) {
+        el.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Nessuna transazione trovata</p></div>';
+        return;
+      }
+      el.innerHTML = `<div class="table-container"><table>
+        <thead><tr><th>ID</th><th>Stazione</th><th>Importo (XMR)</th><th>USD</th><th>Stato</th><th>Data</th><th>TX ID</th></tr></thead>
+        <tbody>${filtered.map(t => `<tr>
+          <td><code style="font-size:0.75rem;">${t.id}</code></td>
+          <td>${t.station}</td>
+          <td>${t.amount.toFixed(4)}</td>
+          <td>${convertToUsd(t.amount) ? '$' + convertToUsd(t.amount) : '—'}</td>
+          <td><span class="badge ${t.status === 'COMPLETED' ? 'success' : t.status === 'PENDING' ? 'pending' : 'failed'}">${t.status === 'COMPLETED' ? '✅ Completato' : t.status === 'PENDING' ? '⏳ In attesa' : '❌ Fallito'}</span></td>
+          <td style="white-space:nowrap;">${new Date(t.timestamp).toLocaleDateString('it-IT') + ' ' + new Date(t.timestamp).toLocaleTimeString('it-IT', {hour:'2-digit',minute:'2-digit'})}</td>
+          <td><code style="font-size:0.7rem;word-break:break-all;">${t.txId}</code></td>
+        </tr>`).join('')}</tbody>
+      </table></div>`;
+    }
+
+    // ---- TOAST ----
+    function showToast(msg, type) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'toast ' + type + ' show';
+      setTimeout(() => el.classList.remove('show'), 3000);
+    }
+  </script>
+</body>
+</html>
