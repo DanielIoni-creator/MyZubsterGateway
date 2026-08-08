@@ -1,0 +1,114 @@
+# Test di carico Artillery per MyZubsterGateway - Bounty P5 (#269)
+#
+# Alternativa a k6 per chi preferisce Artillery. Stessi flussi, stesse soglie.
+#
+#   npx artillery run tests/load/artillery/gateway-load.yml \
+#     --output reports/load/artillery.json
+#   node scripts/load-report.js reports/load/artillery.json
+#
+# Override del target:
+#   npx artillery run -t https://gateway.example tests/load/artillery/gateway-load.yml
+
+config:
+  target: "http://localhost:10000"
+  processor: "./processor.js"
+  http:
+    timeout: 20
+  phases:
+    - name: warm-up
+      duration: 30
+      arrivalRate: 5
+    - name: ramp-up
+      duration: 60
+      arrivalRate: 5
+      rampTo: 50
+    # 50 nuovi utenti/s con ~4 richieste e ~1.2s di think time a testa
+    # tengono stabilmente oltre 100 utenti virtuali concorrenti.
+    - name: plateau
+      duration: 120
+      arrivalRate: 50
+    - name: ramp-down
+      duration: 30
+      arrivalRate: 50
+      rampTo: 0
+  ensure:
+    thresholds:
+      - "http.response_time.p95": 800
+      - "http.response_time.p99": 2000
+    conditions:
+      - expression: "http.codes.500 < 1"
+        strict: true
+  plugins:
+    metrics-by-endpoint:
+      useOnlyRequestNames: true
+
+scenarios:
+  # Traffico di sola lettura: è la quota maggioritaria del traffico reale.
+  - name: browse
+    weight: 5
+    flow:
+      - get:
+          url: "/health"
+          name: "GET /health"
+          expect:
+            - statusCode: 200
+            - contentType: json
+      - think: 1
+
+  # Ciclo completo robot: creazione, assegnazione job (crea escrow), lettura stato.
+  - name: robot-job
+    weight: 3
+    flow:
+      - function: "generateIds"
+      - post:
+          url: "/api/robot/create"
+          name: "POST /api/robot/create"
+          json:
+            robotId: "{{ robotId }}"
+            name: "LoadTest {{ robotId }}"
+            walletAddress: "wallet_{{ robotId }}"
+          expect:
+            - statusCode: 200
+      - post:
+          url: "/api/robot/assign"
+          name: "POST /api/robot/assign"
+          json:
+            robotId: "{{ robotId }}"
+            jobId: "{{ jobId }}"
+            clientId: "{{ clientId }}"
+            amount: 100
+            currency: "{{ currency }}"
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/api/robot/status/{{ robotId }}"
+          name: "GET /api/robot/status/:id"
+          expect:
+            - statusCode: 200
+      - think: 1
+
+  # Flussi di pagamento.
+  - name: payments
+    weight: 2
+    flow:
+      - function: "generateIds"
+      - post:
+          url: "/buy-myz"
+          name: "POST /buy-myz"
+          json:
+            userTariWallet: "tari_{{ clientId }}"
+            amountMYZ: 50
+          expect:
+            - statusCode: 200
+      - post:
+          url: "/escrow/create"
+          name: "POST /escrow/create"
+          json:
+            escrowId: "{{ escrowId }}"
+            buyer: "buyer_{{ clientId }}"
+            seller: "seller_{{ clientId }}"
+            amount: 42
+          # 400 accettabile: l'escrow simulator rifiuta gli id duplicati.
+          expect:
+            - statusCode: [200, 400]
+      - think: 2

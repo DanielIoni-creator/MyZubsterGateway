@@ -1,0 +1,1664 @@
+{
+  "version": "1.0.0",
+  "locale": "it-IT",
+  "description": "Template marketing per negozi MyZubster: 5 categorie, minimo 10 template per categoria, con metadati per A/B test.",
+  "categories": [
+    "gelaterie",
+    "ristoranti",
+    "abbigliamento",
+    "farmacie",
+    "palestre"
+  ],
+  "templates": [
+    {
+      "id": "gelaterie-01-novita-gusto-stagionale",
+      "category": "gelaterie",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Novità gusto stagionale",
+      "copy": {
+        "headline": "Novità gusto stagionale: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta novità gusto stagionale. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "gelaterie-02-combo-famiglia",
+      "category": "gelaterie",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Combo famiglia",
+      "copy": {
+        "headline": "Combo famiglia: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta combo famiglia. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "gelaterie-03-pausa-pranzo-dolce",
+      "category": "gelaterie",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Pausa pranzo dolce",
+      "copy": {
+        "headline": "Pausa pranzo dolce: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta pausa pranzo dolce. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "gelaterie-04-gelato-artigianale",
+      "category": "gelaterie",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Gelato artigianale",
+      "copy": {
+        "headline": "Gelato artigianale: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta gelato artigianale. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "gelaterie-05-promo-studenti",
+      "category": "gelaterie",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Promo studenti",
+      "copy": {
+        "headline": "Promo studenti: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta promo studenti. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "gelaterie-06-weekend-speciale",
+      "category": "gelaterie",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Weekend speciale",
+      "copy": {
+        "headline": "Weekend speciale: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta weekend speciale. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "gelaterie-07-cono-premium",
+      "category": "gelaterie",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Cono premium",
+      "copy": {
+        "headline": "Cono premium: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta cono premium. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "gelaterie-08-coppa-da-condividere",
+      "category": "gelaterie",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Coppa da condividere",
+      "copy": {
+        "headline": "Coppa da condividere: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta coppa da condividere. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "gelaterie-09-ingredienti-locali",
+      "category": "gelaterie",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Ingredienti locali",
+      "copy": {
+        "headline": "Ingredienti locali: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta ingredienti locali. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "gelaterie-10-programma-fedelta",
+      "category": "gelaterie",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Programma fedeltà",
+      "copy": {
+        "headline": "Programma fedeltà: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta programma fedeltà. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ristoranti-01-menu-del-giorno",
+      "category": "ristoranti",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Menu del giorno",
+      "copy": {
+        "headline": "Menu del giorno: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta menu del giorno. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ristoranti-02-cena-per-due",
+      "category": "ristoranti",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Cena per due",
+      "copy": {
+        "headline": "Cena per due: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta cena per due. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ristoranti-03-prenota-ora",
+      "category": "ristoranti",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Prenota ora",
+      "copy": {
+        "headline": "Prenota ora: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta prenota ora. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ristoranti-04-degustazione-chef",
+      "category": "ristoranti",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Degustazione chef",
+      "copy": {
+        "headline": "Degustazione chef: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta degustazione chef. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ristoranti-05-delivery-smart",
+      "category": "ristoranti",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Delivery smart",
+      "copy": {
+        "headline": "Delivery smart: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta delivery smart. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ristoranti-06-pranzo-business",
+      "category": "ristoranti",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Pranzo business",
+      "copy": {
+        "headline": "Pranzo business: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta pranzo business. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ristoranti-07-serata-regionale",
+      "category": "ristoranti",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Serata regionale",
+      "copy": {
+        "headline": "Serata regionale: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta serata regionale. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ristoranti-08-tavolo-famiglia",
+      "category": "ristoranti",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Tavolo famiglia",
+      "copy": {
+        "headline": "Tavolo famiglia: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta tavolo famiglia. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ristoranti-09-dessert-incluso",
+      "category": "ristoranti",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Dessert incluso",
+      "copy": {
+        "headline": "Dessert incluso: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta dessert incluso. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ristoranti-10-recensione-clienti",
+      "category": "ristoranti",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Recensione clienti",
+      "copy": {
+        "headline": "Recensione clienti: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta recensione clienti. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "abbigliamento-01-nuova-collezione",
+      "category": "abbigliamento",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Nuova collezione",
+      "copy": {
+        "headline": "Nuova collezione: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta nuova collezione. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "abbigliamento-02-saldi-weekend",
+      "category": "abbigliamento",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Saldi weekend",
+      "copy": {
+        "headline": "Saldi weekend: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta saldi weekend. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "abbigliamento-03-outfit-da-ufficio",
+      "category": "abbigliamento",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Outfit da ufficio",
+      "copy": {
+        "headline": "Outfit da ufficio: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta outfit da ufficio. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "abbigliamento-04-look-cerimonia",
+      "category": "abbigliamento",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Look cerimonia",
+      "copy": {
+        "headline": "Look cerimonia: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta look cerimonia. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "abbigliamento-05-capsule-sostenibile",
+      "category": "abbigliamento",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Capsule sostenibile",
+      "copy": {
+        "headline": "Capsule sostenibile: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta capsule sostenibile. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "abbigliamento-06-accessori-coordinati",
+      "category": "abbigliamento",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Accessori coordinati",
+      "copy": {
+        "headline": "Accessori coordinati: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta accessori coordinati. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "abbigliamento-07-back-to-school",
+      "category": "abbigliamento",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Back to school",
+      "copy": {
+        "headline": "Back to school: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta back to school. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "abbigliamento-08-personal-shopper",
+      "category": "abbigliamento",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Personal shopper",
+      "copy": {
+        "headline": "Personal shopper: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta personal shopper. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "abbigliamento-09-cambio-stagione",
+      "category": "abbigliamento",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Cambio stagione",
+      "copy": {
+        "headline": "Cambio stagione: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta cambio stagione. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "abbigliamento-10-gift-card",
+      "category": "abbigliamento",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Gift card",
+      "copy": {
+        "headline": "Gift card: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta gift card. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "farmacie-01-consiglio-benessere",
+      "category": "farmacie",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Consiglio benessere",
+      "copy": {
+        "headline": "Consiglio benessere: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta consiglio benessere. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "farmacie-02-screening-gratuito",
+      "category": "farmacie",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Screening gratuito",
+      "copy": {
+        "headline": "Screening gratuito: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta screening gratuito. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "farmacie-03-dermocosmesi",
+      "category": "farmacie",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Dermocosmesi",
+      "copy": {
+        "headline": "Dermocosmesi: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta dermocosmesi. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "farmacie-04-integratori-stagione",
+      "category": "farmacie",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Integratori stagione",
+      "copy": {
+        "headline": "Integratori stagione: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta integratori stagione. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "farmacie-05-prenota-servizio",
+      "category": "farmacie",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Prenota servizio",
+      "copy": {
+        "headline": "Prenota servizio: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta prenota servizio. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "farmacie-06-promemoria-salute",
+      "category": "farmacie",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Promemoria salute",
+      "copy": {
+        "headline": "Promemoria salute: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta promemoria salute. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "farmacie-07-kit-viaggio",
+      "category": "farmacie",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Kit viaggio",
+      "copy": {
+        "headline": "Kit viaggio: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta kit viaggio. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "farmacie-08-giornata-prevenzione",
+      "category": "farmacie",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Giornata prevenzione",
+      "copy": {
+        "headline": "Giornata prevenzione: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta giornata prevenzione. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "farmacie-09-fidelity-salute",
+      "category": "farmacie",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Fidelity salute",
+      "copy": {
+        "headline": "Fidelity salute: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta fidelity salute. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "farmacie-10-farmaco-disponibile",
+      "category": "farmacie",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Farmaco disponibile",
+      "copy": {
+        "headline": "Farmaco disponibile: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta farmaco disponibile. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "palestre-01-prova-gratuita",
+      "category": "palestre",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Prova gratuita",
+      "copy": {
+        "headline": "Prova gratuita: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta prova gratuita. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "palestre-02-corso-hiit",
+      "category": "palestre",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Corso HIIT",
+      "copy": {
+        "headline": "Corso HIIT: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta corso hiit. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "palestre-03-personal-trainer",
+      "category": "palestre",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Personal trainer",
+      "copy": {
+        "headline": "Personal trainer: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta personal trainer. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "palestre-04-abbonamento-mensile",
+      "category": "palestre",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Abbonamento mensile",
+      "copy": {
+        "headline": "Abbonamento mensile: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta abbonamento mensile. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "palestre-05-sfida-30-giorni",
+      "category": "palestre",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Sfida 30 giorni",
+      "copy": {
+        "headline": "Sfida 30 giorni: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta sfida 30 giorni. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "palestre-06-lezione-yoga",
+      "category": "palestre",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Lezione yoga",
+      "copy": {
+        "headline": "Lezione yoga: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta lezione yoga. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "palestre-07-allenamento-pausa-pranzo",
+      "category": "palestre",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Allenamento pausa pranzo",
+      "copy": {
+        "headline": "Allenamento pausa pranzo: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta allenamento pausa pranzo. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "palestre-08-programma-principianti",
+      "category": "palestre",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Programma principianti",
+      "copy": {
+        "headline": "Programma principianti: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta programma principianti. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "palestre-09-upgrade-membership",
+      "category": "palestre",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Upgrade membership",
+      "copy": {
+        "headline": "Upgrade membership: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta upgrade membership. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    },
+    {
+      "id": "palestre-10-success-story",
+      "category": "palestre",
+      "language": "it",
+      "channel": "social_post",
+      "objective": "Success story",
+      "copy": {
+        "headline": "Success story: porta più clienti nel tuo negozio",
+        "body": "Oggi è il momento giusto per scoprire la nostra proposta success story. Vieni in negozio, chiedi al team e approfitta dell'offerta dedicata ai clienti MyZubster.",
+        "callToAction": "Prenota, passa in negozio o scrivici ora."
+      },
+      "hashtags": [
+        "#MyZubster",
+        "#negozilocali",
+        "#promo"
+      ],
+      "abTest": {
+        "enabled": true,
+        "primaryMetric": "conversion_rate",
+        "variants": [
+          {
+            "name": "A",
+            "hook": "beneficio immediato",
+            "cta": "Scopri l'offerta oggi"
+          },
+          {
+            "name": "B",
+            "hook": "urgenza leggera",
+            "cta": "Prenota il tuo posto entro stasera"
+          }
+        ]
+      }
+    }
+  ]
+}

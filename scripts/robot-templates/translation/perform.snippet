@@ -1,0 +1,10 @@
+  // Stub deterministico: sostituiscilo con una vera API di traduzione
+  // (DeepL, LibreTranslate, un modello locale...).
+  const targetLang = job.targetLang || 'en';
+  console.log(`🌍 [{{SLUG}}] traduco verso ${targetLang} il job ${job.jobId}...`);
+
+  if (typeof job.text !== 'string' || !job.text.trim()) {
+    throw new Error('text deve essere una stringa non vuota');
+  }
+
+  return `[${targetLang}] ${job.text}`;

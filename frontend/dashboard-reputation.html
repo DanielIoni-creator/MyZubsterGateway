@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyZubster - Reputazione Robot</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+    .header { background: linear-gradient(135deg, #1e293b, #0f172a); padding: 24px 32px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+    .header h1 { font-size: 24px; color: #38bdf8; }
+    .total-box { background: #1e293b; padding: 16px 24px; border-radius: 12px; border: 1px solid #334155; text-align: right; }
+    .total-box .label { font-size: 12px; color: #94a3b8; text-transform: uppercase; }
+    .total-box .amount { font-size: 32px; font-weight: bold; color: #38bdf8; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .controls { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .controls input, .controls select, .controls button { padding: 10px 16px; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: #e2e8f0; font-size: 14px; }
+    .controls input::placeholder { color: #64748b; }
+    .controls button { cursor: pointer; }
+    .controls button:hover { border-color: #38bdf8; color: #38bdf8; }
+    table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 12px; overflow: hidden; }
+    th { background: #0f172a; padding: 14px 16px; text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; color: #94a3b8; }
+    td { padding: 14px 16px; border-top: 1px solid #334155; }
+    tr:hover { background: #0f172a; }
+    .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .badge-Platinum { background: #334155; color: #e2e8f0; border: 1px solid #94a3b8; }
+    .badge-Gold { background: #78350f; color: #fbbf24; }
+    .badge-Silver { background: #1e3a5f; color: #93c5fd; }
+    .badge-Bronze { background: #431407; color: #fb923c; }
+    .score-bar { display: flex; align-items: center; gap: 10px; min-width: 140px; }
+    .score-bar .track { flex: 1; height: 8px; background: #0f172a; border-radius: 4px; overflow: hidden; }
+    .score-bar .fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #34d399); }
+    .score-bar .value { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 44px; text-align: right; }
+    .stars { color: #fbbf24; letter-spacing: 2px; }
+    .muted { color: #64748b; }
+    .loading, .empty, .error { text-align: center; padding: 48px; color: #64748b; }
+    .error { color: #f87171; }
+    .detail { margin-top: 28px; background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; display: none; }
+    .detail h2 { font-size: 18px; color: #38bdf8; margin-bottom: 16px; }
+    .components { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .component { background: #0f172a; padding: 16px; border-radius: 10px; border: 1px solid #334155; }
+    .component .label { font-size: 12px; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; }
+    .component .val { font-size: 22px; font-weight: bold; color: #e2e8f0; }
+    .feedback-item { border-top: 1px solid #334155; padding: 14px 0; }
+    .feedback-item:first-of-type { border-top: none; }
+    .feedback-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+    .feedback-comment { color: #cbd5e1; font-size: 14px; }
+    .disputed-tag { background: #7f1d1d; color: #f87171; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    @media (max-width: 640px) {
+      .header { padding: 16px; }
+      .container { padding: 16px; }
+      th:nth-child(4), td:nth-child(4) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Reputazione Robot</h1>
+    <div class="total-box">
+      <div class="label">Robot valutati</div>
+      <div class="amount" id="totalRobots">0</div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="controls">
+      <input type="text" id="search" placeholder="Cerca per robotId o nome…">
+      <select id="badgeFilter">
+        <option value="">Tutti i badge</option>
+        <option value="Platinum">Platinum</option>
+        <option value="Gold">Gold</option>
+        <option value="Silver">Silver</option>
+        <option value="Bronze">Bronze</option>
+      </select>
+      <button id="refresh" type="button">Aggiorna</button>
+    </div>
+
+    <div id="state" class="loading">Caricamento…</div>
+
+    <table id="table" style="display:none">
+      <thead>
+        <tr>
+          <th>Robot</th>
+          <th>Badge</th>
+          <th>Punteggio</th>
+          <th>Valutazione</th>
+          <th>Job</th>
+          <th>Dispute</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+
+    <div class="detail" id="detail"></div>
+  </div>
+
+<script>
+  const API = window.location.origin;
+  let rows = [];
+
+  const stars = n => n === null ? '<span class="muted">nessun voto</span>'
+    : '<span class="stars">' + '★'.repeat(Math.round(n)) + '☆'.repeat(5 - Math.round(n)) + '</span> ' + n.toFixed(2);
+
+  const scoreBar = score =>
+    `<div class="score-bar"><div class="track"><div class="fill" style="width:${score}%"></div></div>
+     <span class="value">${score.toFixed(1)}</span></div>`;
+
+  function render() {
+    const term = document.getElementById('search').value.trim().toLowerCase();
+    const badge = document.getElementById('badgeFilter').value;
+    const filtered = rows.filter(r =>
+      (!badge || r.badge === badge) &&
+      (!term || r.robotId.toLowerCase().includes(term) || (r.name || '').toLowerCase().includes(term)));
+
+    document.getElementById('totalRobots').textContent = filtered.length;
+    const tbody = document.getElementById('tbody');
+    const state = document.getElementById('state');
+    const table = document.getElementById('table');
+
+    if (!filtered.length) {
+      table.style.display = 'none';
+      state.style.display = 'block';
+      state.className = 'empty';
+      state.textContent = rows.length ? 'Nessun robot corrisponde ai filtri.' : 'Nessun robot ancora valutato.';
+      return;
+    }
+
+    state.style.display = 'none';
+    table.style.display = 'table';
+    tbody.innerHTML = filtered.map(r => `
+      <tr data-robot="${r.robotId}" style="cursor:pointer">
+        <td><strong>${r.name || r.robotId}</strong><br><span class="muted">${r.robotId}</span></td>
+        <td><span class="badge badge-${r.badge}">${r.badge}</span></td>
+        <td>${scoreBar(r.score)}</td>
+        <td>${stars(r.averageRating)}<br><span class="muted">${r.totalFeedback} feedback</span></td>
+        <td>${r.jobsCompleted}</td>
+        <td>${r.disputes ? '<span class="disputed-tag">' + r.disputes + '</span>' : '0'}</td>
+      </tr>`).join('');
+
+    tbody.querySelectorAll('tr').forEach(tr =>
+      tr.addEventListener('click', () => showDetail(tr.dataset.robot)));
+  }
+
+  async function showDetail(robotId) {
+    const box = document.getElementById('detail');
+    box.style.display = 'block';
+    box.innerHTML = '<div class="loading">Caricamento…</div>';
+    try {
+      const [repRes, fbRes] = await Promise.all([
+        fetch(`${API}/api/robot/reputation/${encodeURIComponent(robotId)}`).then(r => r.json()),
+        fetch(`${API}/api/robot/feedback/${encodeURIComponent(robotId)}?limit=10`).then(r => r.json())
+      ]);
+      const r = repRes.data;
+      const next = r.nextBadge
+        ? `Per <strong>${r.nextBadge.name}</strong> servono ancora ${r.nextBadge.scoreNeeded} punti e ${r.nextBadge.jobsNeeded} job.`
+        : 'Badge massimo raggiunto. 🏆';
+
+      box.innerHTML = `
+        <h2>${r.name || r.robotId} — <span class="badge badge-${r.badge}">${r.badge}</span></h2>
+        <div class="components">
+          <div class="component"><div class="label">Punteggio</div><div class="val">${r.score.toFixed(1)}</div></div>
+          <div class="component"><div class="label">Qualità (60%)</div><div class="val">${r.components.quality.toFixed(1)}</div></div>
+          <div class="component"><div class="label">Esperienza (25%)</div><div class="val">${r.components.experience.toFixed(1)}</div></div>
+          <div class="component"><div class="label">Affidabilità (15%)</div><div class="val">${r.components.reliability.toFixed(1)}</div></div>
+        </div>
+        <p class="muted" style="margin-bottom:20px">${next}</p>
+        <h2>Ultimi feedback</h2>
+        ${(fbRes.data || []).length ? (fbRes.data).map(f => `
+          <div class="feedback-item">
+            <div class="feedback-head">
+              <span>${'★'.repeat(f.rating)}<span class="muted">${'☆'.repeat(5 - f.rating)}</span>
+                &nbsp;<span class="muted">da ${f.clientId} · job ${f.jobId}</span></span>
+              <span class="muted">${new Date(f.createdAt).toLocaleString('it-IT')}
+                ${f.disputed ? '<span class="disputed-tag">disputa</span>' : ''}</span>
+            </div>
+            ${f.comment ? `<div class="feedback-comment">${f.comment.replace(/</g, '&lt;')}</div>` : ''}
+          </div>`).join('') : '<p class="muted">Nessun feedback.</p>'}`;
+      box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } catch (err) {
+      box.innerHTML = `<div class="error">Errore nel caricamento: ${err.message}</div>`;
+    }
+  }
+
+  async function load() {
+    const state = document.getElementById('state');
+    state.style.display = 'block';
+    state.className = 'loading';
+    state.textContent = 'Caricamento…';
+    try {
+      const res = await fetch(`${API}/api/robot/reputation?limit=100`);
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || 'Risposta non valida');
+      rows = json.data || [];
+      render();
+    } catch (err) {
+      document.getElementById('table').style.display = 'none';
+      state.className = 'error';
+      state.textContent = `Errore nel caricamento: ${err.message}`;
+    }
+  }
+
+  document.getElementById('search').addEventListener('input', render);
+  document.getElementById('badgeFilter').addEventListener('change', render);
+  document.getElementById('refresh').addEventListener('click', load);
+  load();
+  setInterval(load, 30000);
+</script>
+</body>
+</html>

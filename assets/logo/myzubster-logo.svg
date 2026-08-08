@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4A90D9;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#9B59B6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1ABC9C;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="500" height="500" rx="50" fill="#0a0a1a"/>
+  <circle cx="250" cy="250" r="200" fill="none" stroke="url(#grad)" stroke-width="8" opacity="0.3"/>
+  <circle cx="250" cy="250" r="160" fill="none" stroke="url(#grad)" stroke-width="4" opacity="0.5"/>
+  <circle cx="250" cy="250" r="120" fill="none" stroke="#2ECC71" stroke-width="4" opacity="0.3"/>
+  
+  <!-- Robot centrale -->
+  <rect x="195" y="180" width="110" height="130" rx="15" fill="url(#grad)" opacity="0.9"/>
+  <rect x="215" y="190" width="70" height="40" rx="10" fill="white" opacity="0.2"/>
+  
+  <!-- Occhi -->
+  <circle cx="225" cy="210" r="12" fill="white"/>
+  <circle cx="275" cy="210" r="12" fill="white"/>
+  <circle cx="225" cy="210" r="7" fill="#4A90D9"/>
+  <circle cx="275" cy="210" r="7" fill="#4A90D9"/>
+  
+  <!-- Antenna -->
+  <line x1="250" y1="180" x2="250" y2="140" stroke="url(#grad)" stroke-width="4"/>
+  <circle cx="250" cy="135" r="10" fill="#1ABC9C"/>
+  
+  <!-- Blockchain elements -->
+  <circle cx="100" cy="150" r="6" fill="#4A90D9" opacity="0.6"/>
+  <circle cx="400" cy="150" r="6" fill="#9B59B6" opacity="0.6"/>
+  <circle cx="100" cy="350" r="6" fill="#1ABC9C" opacity="0.6"/>
+  <circle cx="400" cy="350" r="6" fill="#2ECC71" opacity="0.6"/>
+  
+  <line x1="106" y1="150" x2="194" y2="200" stroke="#4A90D9" stroke-width="2" opacity="0.3"/>
+  <line x1="306" y1="200" x2="394" y2="150" stroke="#9B59B6" stroke-width="2" opacity="0.3"/>
+  <line x1="106" y1="350" x2="194" y2="300" stroke="#1ABC9C" stroke-width="2" opacity="0.3"/>
+  <line x1="306" y1="300" x2="394" y2="350" stroke="#2ECC71" stroke-width="2" opacity="0.3"/>
+  
+  <!-- Testo -->
+  <text x="250" y="430" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="32" font-weight="bold" fill="white" letter-spacing="4">MyZubster</text>
+  <text x="250" y="460" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="14" fill="#a0a0b0" letter-spacing="2">DECENTRALIZED ROBOT ECOSYSTEM</text>
+</svg>
