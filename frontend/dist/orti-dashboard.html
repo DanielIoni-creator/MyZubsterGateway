@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🌱 Dashboard Orti Urbani - MyZubster</title>
+
+  <!-- Chart.js (interactive charts) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    /* Design tokens */
+    :root {
+      --accent: #2ecc71;
+      --accent-strong: #27ae60;
+      --accent-soft: #d1f2e0;
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --surface-2: #eef1f6;
+      --text: #1f2733;
+      --text-soft: #5b6675;
+      --border: #e3e8ef;
+      --radius: 14px;
+      --shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    }
+    [data-theme="dark"] {
+      --bg: #0f141a;
+      --surface: #1a222c;
+      --surface-2: #232d3a;
+      --text: #e6edf5;
+      --text-soft: #9aa7b8;
+      --border: #2c3947;
+      --shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+    .dashboard { max-width: 1280px; margin: 0 auto; }
+
+    /* Header */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .header {
+      background: linear-gradient(135deg, #2ecc71, #16a085);
+      padding: 24px 30px;
+      border-radius: var(--radius);
+      color: white;
+      box-shadow: var(--shadow);
+      flex: 1;
+      min-width: 260px;
+    }
+    .header h1 { margin: 0 0 4px; font-size: 1.5rem; }
+    .header p { margin: 0; opacity: 0.92; font-size: 0.95rem; }
+    .header .live-badge {
+      display: inline-block;
+      margin-top: 8px;
+      background: rgba(255, 255, 255, 0.22);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+    }
+    .header .live-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #fff;
+      margin-right: 6px;
+      animation: pulse 1.4s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      flex-wrap: wrap;
+    }
+    .controls button, .controls select {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .controls button:hover { background: var(--accent-soft); }
+    .controls button.primary { background: var(--accent); color: #fff; border-color: var(--accent-strong); }
+    .controls button.primary:hover { background: var(--accent-strong); }
+
+    /* Stats grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .stat-card {
+      padding: 18px;
+      border-radius: var(--radius);
+      color: white;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card h3 { margin: 0 0 6px; font-size: 0.85rem; font-weight: 600; opacity: 0.92; }
+    .stat-value { font-size: 2.2rem; font-weight: 700; line-height: 1.1; }
+    .stat-sub { font-size: 0.8rem; opacity: 0.9; margin-top: 4px; }
+    .stat-card .trend { position: absolute; top: 16px; right: 16px; font-size: 1.1rem; }
+    .stat-card.temp { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+    .stat-card.humidity { background: linear-gradient(135deg, #1abc9c, #16a085); }
+    .stat-card.ph { background: linear-gradient(135deg, #3498db, #2980b9); }
+    .stat-card.ec { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+
+    /* Charts */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .chart-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+    .chart-card h3 { margin: 0 0 12px; font-size: 1rem; }
+    .chart-card .chart-wrap { position: relative; height: 260px; }
+    @media (max-width: 860px) { .charts-grid { grid-template-columns: 1fr; } }
+
+    /* History table */
+    .history {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      margin: 20px 0;
+    }
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .history-header h3 { margin: 0; font-size: 1rem; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 560px; }
+    th { background: var(--surface-2); padding: 10px; text-align: left; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-soft); }
+    td { padding: 10px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    tr:hover td { background: var(--surface-2); }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-soft); }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--accent-strong);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 1000;
+      font-size: 0.9rem;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* Loading skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface) 50%, var(--surface-2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 6px;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <div class="topbar">
+      <div class="header">
+        <h1>🌱 Dashboard Orti Urbani</h1>
+        <p>Monitoraggio in tempo reale dei parametri del suolo</p>
+        <span class="live-badge"><span class="live-dot"></span>Aggiornamento automatico ogni 60s</span>
+      </div>
+      <div class="controls">
+        <select id="garden-select" title="Seleziona orto">
+          <option value="orto-rimini-001">Orto Rimini 001</option>
+        </select>
+        <select id="range-select" title="Intervallo storico">
+          <option value="10">Ultimi 10 campioni</option>
+          <option value="25" selected>Ultimi 25 campioni</option>
+          <option value="50">Ultimi 50 campioni</option>
+          <option value="100">Ultimi 100 campioni</option>
+        </select>
+        <button id="export-csv" class="primary" title="Esporta report CSV">⬇ Esporta CSV</button>
+        <button id="export-json" title="Esporta report JSON">⬇ JSON</button>
+        <button id="theme-toggle" title="Cambia tema">🌙</button>
+      </div>
+    </div>
+
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card temp">
+        <h3>Temperatura</h3>
+        <div class="stat-value" id="stat-temp"><span class="skeleton" style="display:inline-block;width:70px;height:34px"></span></div>
+        <div class="stat-sub" id="stat-temp-sub">Attesa dati...</div>
+      </div>
+      <div class="stat-card humidity">
+        <h3>Umidità</h3>
+        <div class="stat-value" id="stat-humidity"><span class="skeleton" style="display:inline-block;width:70px;height:34px"></span></div>
+        <div class="stat-sub" id="stat-humidity-sub">Attesa dati...</div>
+      </div>
+      <div class="stat-card ph">
+        <h3>pH</h3>
+        <div class="stat-value" id="stat-ph"><span class="skeleton" style="display:inline-block;width:60px;height:34px"></span></div>
+        <div class="stat-sub" id="stat-ph-sub">Attesa dati...</div>
+      </div>
+      <div class="stat-card ec">
+        <h3>EC (Conducibilità)</h3>
+        <div class="stat-value" id="stat-ec"><span class="skeleton" style="display:inline-block;width:60px;height:34px"></span></div>
+        <div class="stat-sub" id="stat-ec-sub">Attesa dati...</div>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>📈 Temperatura e Umidità</h3>
+        <div class="chart-wrap"><canvas id="chart-env"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>🧪 pH ed EC</h3>
+        <div class="chart-wrap"><canvas id="chart-ph-ec"></canvas></div>
+      </div>
+    </div>
+
+    <div class="history">
+      <div class="history-header">
+        <h3>📊 Storico dati</h3>
+        <span id="history-count" style="font-size:0.85rem;color:var(--text-soft)"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Data/Ora</th>
+              <th>pH</th>
+              <th>EC</th>
+              <th>Temperatura</th>
+              <th>Umidità</th>
+            </tr>
+          </thead>
+          <tbody id="history-body">
+            <tr><td colspan="5" class="empty-state">Caricamento dati...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ---------- State ----------
+      const gardenSelect = document.getElementById('garden-select');
+      const rangeSelect = document.getElementById('range-select');
+      const exportCsvBtn = document.getElementById('export-csv');
+      const exportJsonBtn = document.getElementById('export-json');
+      const themeToggle = document.getElementById('theme-toggle');
+      const toastEl = document.getElementById('toast');
+
+      let rawData = [];
+      let chartEnv = null;
+      let chartPhEc = null;
+      let lastData = null;
+
+      // ---------- Theme ----------
+      function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+        localStorage.setItem('orti-theme', theme);
+        if (chartEnv) chartEnv.update();
+        if (chartPhEc) chartPhEc.update();
+      }
+      const savedTheme = localStorage.getItem('orti-theme') ||
+        (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      applyTheme(savedTheme);
+      themeToggle.addEventListener('click', () => {
+        applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+      });
+
+      // ---------- Toast ----------
+      let toastTimer = null;
+      function showToast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2600);
+      }
+
+      // ---------- Data helpers ----------
+      function fmt(n, digits) {
+        if (n === null || n === undefined || isNaN(n)) return '--';
+        return Number(n).toFixed(digits === undefined ? 1 : digits);
+      }
+
+      function colorFor(theme) {
+        return {
+          temp: theme === 'dark' ? '#ff6b6b' : '#e74c3c',
+          humidity: theme === 'dark' ? '#2ecc71' : '#16a085',
+          ph: theme === 'dark' ? '#74b9ff' : '#3498db',
+          ec: theme === 'dark' ? '#a29bfe' : '#9b59b6',
+          grid: theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+        };
+      }
+
+      // ---------- Data loading ----------
+      async function loadData() {
+        const gardenId = gardenSelect.value;
+        const showSkeleton = !lastData;
+        if (showSkeleton) setSkeleton(true);
+        try {
+          const res = await fetch('/api/sensors/garden/' + gardenId);
+          if (!res.ok) throw new Error('Errore HTTP ' + res.status);
+          const json = await res.json();
+          if (!json.success) throw new Error(json.message || 'Risposta non valida');
+          rawData = json.data || [];
+          lastData = rawData;
+          renderDashboard();
+        } catch (err) {
+          console.error('Errore caricamento dati:', err);
+          showToast('⚠️ Errore nel caricamento dei dati: ' + err.message);
+          if (showSkeleton) {
+            document.getElementById('history-body').innerHTML =
+              '<tr><td colspan="5" class="empty-state">Impossibile caricare i dati dal backend. Riprova più tardi.</td></tr>';
+          }
+        } finally {
+          if (showSkeleton) setSkeleton(false);
+        }
+      }
+
+      function setSkeleton(on) {
+        const ids = ['stat-temp', 'stat-humidity', 'stat-ph', 'stat-ec'];
+        ids.forEach((id) => {
+          const el = document.getElementById(id);
+          if (on) {
+            el.innerHTML = '<span class="skeleton" style="display:inline-block;width:70px;height:34px"></span>';
+          }
+        });
+      }
+
+      // ---------- Render ----------
+      function renderDashboard() {
+        if (!rawData.length) {
+          document.getElementById('history-body').innerHTML =
+            '<tr><td colspan="5" class="empty-state">Nessun dato disponibile per questo orto.</td></tr>';
+          document.getElementById('history-count').textContent = '0 campioni';
+          return;
+        }
+
+        const limit = parseInt(rangeSelect.value, 10) || 25;
+        const slice = rawData.slice(0, limit);
+        const latest = slice[0];
+
+        // Stats
+        document.getElementById('stat-temp').textContent = fmt(latest.temperature) + '°C';
+        document.getElementById('stat-humidity').textContent = fmt(latest.humidity, 0) + '%';
+        document.getElementById('stat-ph').textContent = fmt(latest.ph, 2);
+        document.getElementById('stat-ec').textContent = fmt(latest.ec, 2);
+
+        const ts = new Date(latest.timestamp).toLocaleString('it-IT');
+        document.getElementById('stat-temp-sub').textContent = 'aggiornato ' + ts;
+        document.getElementById('stat-humidity-sub').textContent = 'aggiornato ' + ts;
+        document.getElementById('stat-ph-sub').textContent = 'aggiornato ' + ts;
+        document.getElementById('stat-ec-sub').textContent = 'aggiornato ' + ts;
+
+        // History table
+        const tbody = document.getElementById('history-body');
+        let html = '';
+        slice.forEach((d) => {
+          html += '<tr>' +
+            '<td>' + new Date(d.timestamp).toLocaleString('it-IT') + '</td>' +
+            '<td>' + fmt(d.ph, 2) + '</td>' +
+            '<td>' + fmt(d.ec, 2) + '</td>' +
+            '<td>' + fmt(d.temperature) + '°C</td>' +
+            '<td>' + fmt(d.humidity, 0) + '%</td>' +
+          '</tr>';
+        });
+        tbody.innerHTML = html;
+        document.getElementById('history-count').textContent = slice.length + ' campioni mostrati';
+
+        // Time labels (reversed so oldest → newest left→right)
+        const labels = slice.map((d) => new Date(d.timestamp).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })).reverse();
+        const tempVals = slice.map((d) => Number(d.temperature)).reverse();
+        const humVals = slice.map((d) => Number(d.humidity)).reverse();
+        const phVals = slice.map((d) => Number(d.ph)).reverse();
+        const ecVals = slice.map((d) => Number(d.ec)).reverse();
+
+        const theme = document.documentElement.getAttribute('data-theme');
+        const c = colorFor(theme);
+
+        // Chart 1: Temperature + Humidity
+        const ctxEnv = document.getElementById('chart-env').getContext('2d');
+        const envData = {
+          labels,
+          datasets: [
+            { label: 'Temperatura (°C)', data: tempVals, borderColor: c.temp, backgroundColor: c.temp + '22', tension: 0.3, fill: true, pointRadius: 2, yAxisID: 'y' },
+            { label: 'Umidità (%)', data: humVals, borderColor: c.humidity, backgroundColor: c.humidity + '22', tension: 0.3, fill: true, pointRadius: 2, yAxisID: 'y1' },
+          ],
+        };
+        if (chartEnv) { chartEnv.data = envData; chartEnv.update(); }
+        else {
+          chartEnv = new Chart(ctxEnv, {
+            type: 'line',
+            data: envData,
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: { mode: 'index', intersect: false },
+              plugins: { legend: { labels: { color: theme === 'dark' ? '#cbd5e1' : '#334155' } } },
+              scales: {
+                x: { ticks: { color: theme === 'dark' ? '#94a3b8' : '#64748b', maxRotation: 45 }, grid: { color: c.grid } },
+                y: { position: 'left', ticks: { color: c.temp }, grid: { color: c.grid } },
+                y1: { position: 'right', min: 0, max: 100, ticks: { color: c.humidity }, grid: { drawOnChartArea: false } },
+              },
+            },
+          });
+        }
+
+        // Chart 2: pH + EC
+        const ctxPh = document.getElementById('chart-ph-ec').getContext('2d');
+        const phEcData = {
+          labels,
+          datasets: [
+            { label: 'pH', data: phVals, borderColor: c.ph, backgroundColor: c.ph + '22', tension: 0.3, fill: true, pointRadius: 2, yAxisID: 'y' },
+            { label: 'EC (mS/cm)', data: ecVals, borderColor: c.ec, backgroundColor: c.ec + '22', tension: 0.3, fill: true, pointRadius: 2, yAxisID: 'y1' },
+          ],
+        };
+        if (chartPhEc) { chartPhEc.data = phEcData; chartPhEc.update(); }
+        else {
+          chartPhEc = new Chart(ctxPh, {
+            type: 'line',
+            data: phEcData,
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: { mode: 'index', intersect: false },
+              plugins: { legend: { labels: { color: theme === 'dark' ? '#cbd5e1' : '#334155' } } },
+              scales: {
+                x: { ticks: { color: theme === 'dark' ? '#94a3b8' : '#64748b', maxRotation: 45 }, grid: { color: c.grid } },
+                y: { position: 'left', min: 0, max: 14, ticks: { color: c.ph }, grid: { color: c.grid } },
+                y1: { position: 'right', suggestedMin: 0, ticks: { color: c.ec }, grid: { drawOnChartArea: false } },
+              },
+            },
+          });
+        }
+      }
+
+      // ---------- Export ----------
+      function csvEscape(v) {
+        const s = String(v === null || v === undefined ? '' : v);
+        return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+      }
+
+      function exportCSV() {
+        if (!rawData.length) { showToast('⚠️ Nessun dato da esportare'); return; }
+        const header = 'timestamp,ph,ec,temperature,humidity';
+        const rows = rawData.map((d) => [
+          csvEscape(d.timestamp),
+          csvEscape(d.ph),
+          csvEscape(d.ec),
+          csvEscape(d.temperature),
+          csvEscape(d.humidity),
+        ].join(','));
+        download('' + header + '\n' + rows.join('\n'), 'orti-dashboard-report.csv', 'text/csv');
+        showToast('✅ Report CSV esportato');
+      }
+
+      function exportJSON() {
+        if (!rawData.length) { showToast('⚠️ Nessun dato da esportare'); return; }
+        download(JSON.stringify({ gardenId: gardenSelect.value, exportedAt: new Date().toISOString(), count: rawData.length, data: rawData }, null, 2), 'orti-dashboard-report.json', 'application/json');
+        showToast('✅ Report JSON esportato');
+      }
+
+      function download(content, filename, mime) {
+        const blob = new Blob([content], { type: mime + ';charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      exportCsvBtn.addEventListener('click', exportCSV);
+      exportJsonBtn.addEventListener('click', exportJSON);
+      rangeSelect.addEventListener('change', () => { if (lastData) renderDashboard(); });
+
+      // ---------- Start ----------
+      loadData();
+      setInterval(loadData, 60000);
+    })();
+  </script>
+</body>
+</html>
