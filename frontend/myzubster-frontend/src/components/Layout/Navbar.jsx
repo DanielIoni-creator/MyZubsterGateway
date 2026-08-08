@@ -11,6 +11,7 @@ const Navbar = () => {
         <Link to="/" className="text-xl font-bold">MyZubster</Link>
         <div className="flex flex-wrap items-center space-x-4">
           <Link to="/offers" className="hover:text-gray-300">Offerte</Link>
+          <Link to="/bounties" className="hover:text-gray-300">💰 Bounty</Link>
           <Link to="/skills" className="hover:text-gray-300">Competenze</Link>
           <Link to="/tokens" className="hover:text-gray-300">💎 Token</Link>
           {user && (
