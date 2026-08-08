@@ -4,9 +4,8 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const mongoose = require('mongoose');
-feat/job-queue-bull
 
-// Queue / Bull Board (HEAD)
+// Queue / Bull Board
 const { bullBoardRouter } = require('./queues');
 
 // Upstream integrations
@@ -19,9 +18,6 @@ const { assignReward } = require('./services/rewardService');
 const { rateLimiter } = require('./middleware/rateLimiter');
 const { cacheMiddleware, getStats, del } = require('./services/cacheService');
 
-
-const cors = require('cors');
-main
 const app = express();
 const PORT = process.env.PORT || 10000;
 
@@ -34,7 +30,6 @@ app.use(cors({
 // Middleware
 app.use(express.json());
 
-feat/job-queue-bull
 // ---------- API ROUTES ----------
 
 // Buy MYZ (upstream)
@@ -80,10 +75,13 @@ app.use('/api/ratelimit', require('./routes/ratelimit'));
 app.use('/api/webhooks', require('./routes/webhook'));
 app.use('/api/webhooks/github', require('./routes/githubWebhook'));
 
-// Bull Board admin dashboard (HEAD)
+// Payout
+app.use('/api/payout', require('./routes/payout'));
+
+// Bull Board admin dashboard
 app.use('/admin/queues', bullBoardRouter);
 
-// Cache stats (Bounty B16 - upstream)
+// Cache stats
 app.get('/api/cache/stats', async (req, res) => {
   const stats = await getStats();
   res.json({ success: true, data: stats });
@@ -93,16 +91,7 @@ app.delete('/api/cache/clear', async (req, res) => {
   res.json({ success: true, cleared: count });
 });
 
-// Health check
-// Import routes
-const swapRoutes = require('./routes/swap');
-const animalRoutes = require('./routes/animals');
-const plantRoutes = require('./routes/plants');
-const rewardRoutes = require('./routes/rewards');
-const contributorsRoutes = require('./routes/contributors');
-
-// Health check
-main
+// Health checks
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -111,7 +100,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-feat/job-queue-bull
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
@@ -148,50 +136,6 @@ if (fs.existsSync(frontendDist)) {
 }
 
 // Error handler for 404
-// Routes API
-app.use('/api/swap', swapRoutes);
-app.use('/api/animals', animalRoutes);
-app.use('/api/plants', plantRoutes);
-app.use('/api/rewards', rewardRoutes);
-app.use('/api/contributors', contributorsRoutes);
-
-// Robot routes
-try {
-  const robotRoutes = require('./routes/robot');
-  app.use('/api/robot', robotRoutes);
-  console.log('✅ Caricamento routes robot...');
-} catch (err) {
-  console.error('❌ Errore caricamento robot:', err.message);
-}
-
-// Logo routes
-try {
-  const logoRoutes = require('./routes/robotLogo');
-  app.use('/api/robot/logo', logoRoutes);
-  console.log('✅ Caricamento routes logo...');
-} catch (err) {
-  console.error('❌ Errore caricamento logo:', err.message);
-}
-
-// ---- BOUNTY PAGE (DIRECT HTML) ----
-app.get('/bounty', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend/dist/bounty.html'));
-});
-
-// Static frontend
-const frontendPath = path.join(__dirname, 'frontend/dist');
-app.use(express.static(frontendPath));
-
-// SPA fallback
-app.use((req, res, next) => {
-  if (req.path.startsWith('/api/')) {
-    return next();
-  }
-  res.sendFile(path.join(frontendPath, 'index.html'));
-});
-
-// Error handler per 404
-main
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
@@ -201,9 +145,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/myzubster
   .then(() => console.log('✅ Connected to MongoDB'))
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
-feat/job-queue-bull
 // ---------- START SERVER ----------
-main
 const server = app.listen(PORT, () => {
   console.log(`🚀 Gateway running on http://localhost:${PORT}`);
 });
