@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⚡ CARBURANTI Ricarica Elettrica - MyZubster</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --accent: #22c55e;
+      --accent-2: #3b82f6;
+      --accent-3: #f59e0b;
+      --bg: #0b0f14;
+      --surface: #141b24;
+      --surface-2: #1c2532;
+      --text: #e2e8f0;
+      --text-soft: #94a3b8;
+      --border: #2a3a4e;
+      --shadow: 0 8px 32px rgba(0,0,0,0.5);
+      --radius: 12px;
+      --green: #22c55e;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --blue: #3b82f6;
+    }
+    [data-theme="light"] {
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --surface-2: #e2e8f0;
+      --text: #0f172a;
+      --text-soft: #64748b;
+      --border: #cbd5e1;
+      --shadow: 0 8px 32px rgba(0,0,0,0.08);
+    }
+    body {
+      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg); color: var(--text);
+      padding: 24px;
+    }
+    .container { max-width: 1400px; margin: 0 auto; }
+    .theme-toggle {
+      position: fixed; top: 16px; right: 16px; z-index: 9999;
+      background: var(--surface); border: 1px solid var(--border); color: var(--text);
+      width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+      font-size: 18px; display: flex; align-items: center; justify-content: center;
+    }
+    .theme-toggle:hover { background: var(--surface-2); }
+
+    /* Header */
+    header {
+      display: flex; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;
+    }
+    header h1 { font-size: 26px; }
+    header .badge {
+      background: var(--accent); color: #000; padding: 4px 12px; border-radius: 20px;
+      font-size: 12px; font-weight: 700; text-transform: uppercase;
+    }
+    .spacer { flex: 1; }
+    .stats-row {
+      display: flex; gap: 12px; flex-wrap: wrap;
+    }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 16px 20px; min-width: 140px;
+    }
+    .stat-card .label { font-size: 12px; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-card .value { font-size: 22px; font-weight: 700; margin-top: 4px; }
+    .stat-card .value.green { color: var(--green); }
+    .stat-card .value.blue { color: var(--blue); }
+    .stat-card .value.yellow { color: var(--yellow); }
+
+    /* Grid layout */
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .grid-full { grid-column: 1 / -1; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px; box-shadow: var(--shadow);
+    }
+    .card h2 {
+      font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+    }
+    .card h2 .icon { font-size: 20px; }
+
+    /* Map */
+    #map { height: 420px; border-radius: 8px; border: 1px solid var(--border); }
+
+    /* Forms */
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block; font-size: 13px; color: var(--text-soft); margin-bottom: 4px; font-weight: 500;
+    }
+    .form-group select, .form-group input {
+      width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--surface-2); color: var(--text); font-size: 14px; outline: none;
+    }
+    .form-group select:focus, .form-group input:focus {
+      border-color: var(--accent);
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .btn {
+      padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px;
+      font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-primary { background: var(--accent); color: #000; }
+    .btn-primary:hover { filter: brightness(1.1); }
+    .btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--border); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Booking & Charging */
+    .station-selector {
+      max-height: 200px; overflow-y: auto; margin-bottom: 12px;
+    }
+    .station-option {
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+      border-radius: 8px; cursor: pointer; transition: background 0.15s;
+    }
+    .station-option:hover { background: var(--surface-2); }
+    .station-option input[type="radio"] { accent-color: var(--accent); }
+    .station-option .s-name { font-weight: 600; font-size: 14px; }
+    .station-option .s-info { font-size: 12px; color: var(--text-soft); }
+    .station-option .s-status {
+      font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-left: auto;
+    }
+    .s-status.available { background: rgba(34,197,94,0.15); color: var(--green); }
+    .s-status.occupied { background: rgba(239,68,68,0.15); color: var(--red); }
+    .s-status.maintenance { background: rgba(245,158,11,0.15); color: var(--yellow); }
+
+    /* Charging display */
+    .charging-display {
+      text-align: center; padding: 20px 0;
+    }
+    .charging-display .big-kwh {
+      font-size: 48px; font-weight: 800; line-height: 1;
+    }
+    .charging-display .big-kwh .unit { font-size: 20px; font-weight: 400; color: var(--text-soft); }
+    .charging-display .sub { color: var(--text-soft); font-size: 14px; margin-top: 4px; }
+    .charging-bar {
+      height: 8px; background: var(--surface-2); border-radius: 4px; margin: 16px 0; overflow: hidden;
+    }
+    .charging-bar .fill {
+      height: 100%; background: linear-gradient(90deg, var(--green), var(--green));
+      border-radius: 4px; transition: width 0.5s;
+    }
+    .charging-meta { display: flex; justify-content: space-around; margin-top: 12px; }
+    .charging-meta .item { text-align: center; }
+    .charging-meta .item .val { font-size: 18px; font-weight: 700; }
+    .charging-meta .item .lbl { font-size: 11px; color: var(--text-soft); }
+
+    /* History table */
+    .history-table {
+      width: 100%; border-collapse: collapse; font-size: 13px;
+    }
+    .history-table th {
+      text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border);
+      color: var(--text-soft); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .history-table td {
+      padding: 10px 8px; border-bottom: 1px solid var(--border);
+    }
+    .history-table tr:hover td { background: var(--surface-2); }
+    .history-table .status-badge {
+      padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 600;
+    }
+    .status-badge.completed { background: rgba(34,197,94,0.15); color: var(--green); }
+    .status-badge.pending { background: rgba(245,158,11,0.15); color: var(--yellow); }
+    .status-badge.failed { background: rgba(239,68,68,0.15); color: var(--red); }
+    .status-badge.active { background: rgba(59,130,246,0.15); color: var(--blue); }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 99999;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 20px; box-shadow: var(--shadow); max-width: 360px;
+      transform: translateY(120px); opacity: 0; transition: all 0.3s;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { border-left: 4px solid var(--green); }
+    .toast.error { border-left: 4px solid var(--red); }
+    .toast.info { border-left: 4px solid var(--blue); }
+
+    .tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+    .tab {
+      padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500;
+      background: transparent; color: var(--text-soft); border: 1px solid transparent; transition: all 0.15s;
+    }
+    .tab:hover { background: var(--surface-2); }
+    .tab.active { background: var(--surface-2); color: var(--text); border-color: var(--border); }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      body { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle" title="Toggle theme">🌓</button>
+
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <h1>⚡ CARBURANTI Ricarica Elettrica</h1>
+      <span class="badge">MYZ</span>
+      <div class="spacer"></div>
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="label">Colonnine</div>
+          <div class="value green" id="statTotal">12</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Disponibili</div>
+          <div class="value blue" id="statAvailable">7</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">In Ricarica</div>
+          <div class="value yellow" id="statCharging">3</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Ricariche Oggi</div>
+          <div class="value" id="statToday">18</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Grid: Map + Booking -->
+    <div class="grid">
+      <div class="card">
+        <h2><span class="icon">🗺️</span> Mappa Colonnine</h2>
+        <div id="map"></div>
+      </div>
+      <div class="card">
+        <h2><span class="icon">📅</span> Prenotazione</h2>
+        <div class="form-group">
+          <label>Seleziona colonnina</label>
+          <div class="station-selector" id="stationList"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Data</label>
+            <input type="date" id="bookingDate" />
+          </div>
+          <div class="form-group">
+            <label>Ora</label>
+            <input type="time" id="bookingTime" value="10:00" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Durata (ore)</label>
+            <select id="bookingDuration">
+              <option value="1">1 ora</option>
+              <option value="2" selected>2 ore</option>
+              <option value="3">3 ore</option>
+              <option value="4">4 ore</option>
+              <option value="6">6 ore</option>
+              <option value="8">8 ore</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tipo ricarica</label>
+            <select id="bookingType">
+              <option value="AC">AC 7.4 kW</option>
+              <option value="AC22">AC 22 kW</option>
+              <option value="DC50">DC 50 kW</option>
+              <option value="DC150">DC 150 kW</option>
+              <option value="DC350">DC 350 kW</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="bookBtn">🔖 Prenota con MYZ</button>
+      </div>
+    </div>
+
+    <!-- Grid: Charging + History -->
+    <div class="grid">
+      <div class="card">
+        <h2><span class="icon">🔌</span> Ricarica MYZ</h2>
+        <div class="tabs" id="chargingTabs">
+          <div class="tab active" data-tab="start">Avvia Ricarica</div>
+          <div class="tab" data-tab="active">In Corso</div>
+        </div>
+        <div id="chargingTabStart">
+          <div class="form-group">
+            <label>Seleziona colonnina</label>
+            <select id="chargeStation">
+              <option value="">— Scegli —</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Energia (kWh)</label>
+              <input type="number" id="chargeKwh" min="1" max="100" value="20" />
+            </div>
+            <div class="form-group">
+              <label>Tipo</label>
+              <select id="chargeType">
+                <option value="AC">AC 7.4 kW</option>
+                <option value="DC50">DC 50 kW</option>
+                <option value="DC150">DC 150 kW</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:8px;padding:12px;background:var(--surface-2);border-radius:8px;font-size:14px;">
+            <strong>Costo stimato:</strong> <span id="chargeCost">—</span> MYZ
+          </div>
+          <button class="btn btn-primary" id="startChargeBtn" style="margin-top:14px;">⚡ Avvia Ricarica MYZ</button>
+        </div>
+        <div id="chargingTabActive" style="display:none;">
+          <div class="charging-display">
+            <div class="big-kwh" id="chargeDisplayKwh">0.0 <span class="unit">kWh</span></div>
+            <div class="sub">Energia erogata</div>
+            <div class="charging-bar"><div class="fill" id="chargeBar" style="width:0%"></div></div>
+            <div class="charging-meta">
+              <div class="item"><div class="val" id="chargeMetaPower">0.0</div><div class="lbl">kW</div></div>
+              <div class="item"><div class="val" id="chargeMetaTime">00:00</div><div class="lbl">Durata</div></div>
+              <div class="item"><div class="val" id="chargeMetaCost">0.00</div><div class="lbl">MYZ</div></div>
+              <div class="item"><div class="val" id="chargeMetaSOC">0%</div><div class="lbl">SOC</div></div>
+            </div>
+            <button class="btn btn-secondary" id="stopChargeBtn" style="margin-top:10px;">🛑 Termina Ricarica</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2><span class="icon">📊</span> Storico</h2>
+        <div class="tabs" id="historyTabs">
+          <div class="tab active" data-tab="chart">Grafico</div>
+          <div class="tab" data-tab="table">Tabella</div>
+        </div>
+        <div id="historyTabChart">
+          <canvas id="historyChart" height="200"></canvas>
+        </div>
+        <div id="historyTabTable" style="display:none;">
+          <div style="overflow-x:auto;">
+            <table class="history-table">
+              <thead>
+                <tr><th>Data</th><th>Colonnina</th><th>kWh</th><th>MYZ</th><th>Durata</th><th>Stato</th></tr>
+              </thead>
+              <tbody id="historyBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // === DATA ===
+    const stations = [
+      { id: 'S001', name: 'MYZ Station Milano Centrale', lat: 45.485, lng: 9.205, status: 'available', type: 'DC350', plugs: 4, rate: 0.45 },
+      { id: 'S002', name: 'MYZ Hub Roma Tiburtina', lat: 41.910, lng: 12.530, status: 'available', type: 'DC150', plugs: 6, rate: 0.38 },
+      { id: 'S003', name: 'MYZ Point Napoli Garibaldi', lat: 40.852, lng: 14.268, status: 'occupied', type: 'DC50', plugs: 2, rate: 0.32 },
+      { id: 'S004', name: 'MYZ Station Torino Porta Nuova', lat: 45.062, lng: 7.678, status: 'available', type: 'AC22', plugs: 8, rate: 0.25 },
+      { id: 'S005', name: 'MYZ Hub Bologna Centrale', lat: 44.505, lng: 11.342, status: 'maintenance', type: 'DC150', plugs: 4, rate: 0.38 },
+      { id: 'S006', name: 'MYZ Point Firenze SMN', lat: 43.777, lng: 11.248, status: 'available', type: 'AC', plugs: 6, rate: 0.20 },
+      { id: 'S007', name: 'MYZ Station Venezia Mestre', lat: 45.482, lng: 12.232, status: 'available', type: 'DC350', plugs: 4, rate: 0.45 },
+      { id: 'S008', name: 'MYZ Hub Genova Brignole', lat: 44.406, lng: 8.947, status: 'available', type: 'DC50', plugs: 3, rate: 0.32 },
+      { id: 'S009', name: 'MYZ Point Palermo Centrale', lat: 38.110, lng: 13.367, status: 'occupied', type: 'DC150', plugs: 4, rate: 0.38 },
+      { id: 'S010', name: 'MYZ Station Bari Centrale', lat: 41.118, lng: 16.869, status: 'available', type: 'AC22', plugs: 5, rate: 0.25 },
+      { id: 'S011', name: 'MYZ Hub Catania Centrale', lat: 37.507, lng: 15.090, status: 'available', type: 'DC350', plugs: 4, rate: 0.45 },
+      { id: 'S012', name: 'MYZ Point Cagliari', lat: 39.215, lng: 9.109, status: 'maintenance', type: 'DC50', plugs: 2, rate: 0.32 },
+    ];
+
+    const historyData = [
+      { date: '2026-08-01', station: 'S001', kwh: 45.2, cost: 20.34, duration: '01:15', status: 'completed' },
+      { date: '2026-08-01', station: 'S004', kwh: 22.0, cost: 5.50, duration: '02:00', status: 'completed' },
+      { date: '2026-08-02', station: 'S002', kwh: 38.5, cost: 14.63, duration: '01:30', status: 'completed' },
+      { date: '2026-08-02', station: 'S006', kwh: 14.8, cost: 2.96, duration: '01:00', status: 'completed' },
+      { date: '2026-08-03', station: 'S007', kwh: 52.1, cost: 23.45, duration: '02:00', status: 'completed' },
+      { date: '2026-08-03', station: 'S008', kwh: 18.5, cost: 5.92, duration: '01:00', status: 'failed' },
+      { date: '2026-08-04', station: 'S010', kwh: 33.0, cost: 8.25, duration: '02:30', status: 'completed' },
+      { date: '2026-08-04', station: 'S001', kwh: 50.0, cost: 22.50, duration: '01:45', status: 'completed' },
+      { date: '2026-08-05', station: 'S011', kwh: 55.0, cost: 24.75, duration: '02:00', status: 'completed' },
+      { date: '2026-08-05', station: 'S004', kwh: 20.0, cost: 5.00, duration: '01:50', status: 'pending' },
+      { date: '2026-08-06', station: 'S002', kwh: 42.0, cost: 15.96, duration: '01:30', status: 'completed' },
+      { date: '2026-08-06', station: 'S009', kwh: 30.0, cost: 11.40, duration: '01:15', status: 'completed' },
+      { date: '2026-08-07', station: 'S006', kwh: 16.5, cost: 3.30, duration: '01:00', status: 'completed' },
+      { date: '2026-08-07', station: 'S001', kwh: 48.0, cost: 21.60, duration: '02:00', status: 'completed' },
+      { date: '2026-08-08', station: 'S003', kwh: 25.0, cost: 8.00, duration: '01:20', status: 'active' },
+    ];
+
+    let chargingActive = false;
+    let chargingInterval = null;
+    let chargeKwhDelivered = 0;
+    let chargePower = 0;
+    let chargeCostRunning = 0;
+    let chargeStartTime = null;
+    let chargeRate = 0.38;
+    let chargeMaxKwh = 20;
+    let bookings = [];
+
+    // === MAP ===
+    const map = L.map('map').setView([42.5, 12.5], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 18,
+    }).addTo(map);
+
+    const markers = {};
+    const statusIcons = {
+      available: L.divIcon({ className: '', html: '<div style="background:#22c55e;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>', iconSize: [16,16], iconAnchor: [8,8] }),
+      occupied: L.divIcon({ className: '', html: '<div style="background:#ef4444;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>', iconSize: [16,16], iconAnchor: [8,8] }),
+      maintenance: L.divIcon({ className: '', html: '<div style="background:#f59e0b;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>', iconSize: [16,16], iconAnchor: [8,8] }),
+    };
+
+    stations.forEach(s => {
+      const icon = statusIcons[s.status] || statusIcons.available;
+      const m = L.marker([s.lat, s.lng], { icon }).addTo(map);
+      m.bindPopup(`
+        <div style="font-family:sans-serif;font-size:13px;min-width:200px;">
+          <strong>${s.name}</strong><br/>
+          <span style="color:#666;">${s.type} • ${s.plugs} prese</span><br/>
+          <span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:600;margin-top:4px;
+            background:${s.status==='available'?'#d4f5d4':s.status==='occupied'?'#ffd4d4':'#fff3d4'};
+            color:${s.status==='available'?'#166534':s.status==='occupied'?'#991b1b':'#92400e'};">
+            ${s.status === 'available' ? '⚠️ Disponibile' : s.status === 'occupied' ? '🔴 Occupata' : '🟡 Manutenzione'}
+          </span><br/>
+          <span style="font-size:12px;color:#666;margin-top:4px;display:block;">
+            Tariffa: ${s.rate} MYZ/kWh • ID: ${s.id}
+          </span>
+        </div>
+      `);
+      markers[s.id] = m;
+    });
+
+    // === STATION LIST FOR BOOKING ===
+    function renderStationList() {
+      const container = document.getElementById('stationList');
+      container.innerHTML = stations.map(s => `
+        <label class="station-option">
+          <input type="radio" name="bookStation" value="${s.id}" ${s.status !== 'available' ? 'disabled' : ''} />
+          <div>
+            <div class="s-name">${s.name}</div>
+            <div class="s-info">${s.type} • ${s.plugs} prese • ${s.rate} MYZ/kWh</div>
+          </div>
+          <span class="s-status ${s.status}">${s.status === 'available' ? '⚠️ Libera' : s.status === 'occupied' ? '🔴 Occupata' : '🟡 Manut.'}</span>
+        </label>
+      `).join('');
+    }
+    renderStationList();
+
+    // === BOOKING ===
+    document.getElementById('bookBtn').addEventListener('click', () => {
+      const selected = document.querySelector('input[name="bookStation"]:checked');
+      if (!selected) { showToast('Seleziona una colonnina disponibile', 'error'); return; }
+      const date = document.getElementById('bookingDate').value;
+      const time = document.getElementById('bookingTime').value;
+      if (!date || !time) { showToast('Inserisci data e ora', 'error'); return; }
+      const station = stations.find(s => s.id === selected.value);
+      const duration = parseInt(document.getElementById('bookingDuration').value);
+      const type = document.getElementById('bookingType').value;
+      const cost = (station.rate * duration * 10).toFixed(2);
+      bookings.push({ station: station.id, date, time, duration, type, cost });
+      showToast(`⚠️ Prenotato ${station.name} il ${date} alle ${time} — ${cost} MYZ`, 'success');
+      updateStats();
+    });
+
+    // === CHARGING ===
+    function populateChargeStations() {
+      const sel = document.getElementById('chargeStation');
+      sel.innerHTML = '<option value="">— Scegli —</option>' +
+        stations.filter(s => s.status === 'available').map(s =>
+          `<option value="${s.id}" data-rate="${s.rate}">${s.name} (${s.type})</option>`
+        ).join('');
+    }
+    populateChargeStations();
+
+    document.getElementById('chargeStation').addEventListener('change', function() {
+      const opt = this.options[this.selectedIndex];
+      const rate = opt ? parseFloat(opt.dataset.rate || 0.38) : 0.38;
+      chargeRate = rate;
+      updateCostEstimate();
+    });
+    document.getElementById('chargeKwh').addEventListener('input', updateCostEstimate);
+
+    function updateCostEstimate() {
+      const kwh = parseFloat(document.getElementById('chargeKwh').value) || 0;
+      const cost = (kwh * chargeRate).toFixed(2);
+      document.getElementById('chargeCost').textContent = cost + ' MYZ';
+    }
+    updateCostEstimate();
+
+    // Tab switching
+    document.querySelectorAll('#chargingTabs .tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('#chargingTabs .tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        document.getElementById('chargingTabStart').style.display = this.dataset.tab === 'start' ? 'block' : 'none';
+        document.getElementById('chargingTabActive').style.display = this.dataset.tab === 'active' ? 'block' : 'none';
+      });
+    });
+
+    document.getElementById('startChargeBtn').addEventListener('click', () => {
+      const sel = document.getElementById('chargeStation');
+      if (!sel.value) { showToast('Seleziona una colonnina', 'error'); return; }
+      chargeMaxKwh = parseFloat(document.getElementById('chargeKwh').value) || 20;
+      if (chargingActive) { showToast('Ricarica già in corso', 'error'); return; }
+      chargingActive = true;
+      chargeKwhDelivered = 0;
+      chargeCostRunning = 0;
+      chargeStartTime = new Date();
+      chargePower = parseFloat(document.getElementById('chargeType').value.replace('DC','').replace('AC','') || 50);
+      if (chargePower < 10) chargePower = 7.4;
+
+      // Switch to "In Corso" tab
+      document.querySelectorAll('#chargingTabs .tab')[1].click();
+      showToast(`⚡ Ricarica avviata con MYZ!`, 'success');
+      startChargingSimulation();
+    });
+
+    function startChargingSimulation() {
+      if (chargingInterval) clearInterval(chargingInterval);
+      const totalKwh = chargeMaxKwh;
+      const durationSec = 60; // simulate over 60 seconds
+      const kwhPerTick = totalKwh / durationSec;
+      let elapsed = 0;
+
+      chargingInterval = setInterval(() => {
+        if (!chargingActive) { clearInterval(chargingInterval); return; }
+        elapsed++;
+        chargeKwhDelivered = Math.min(elapsed * kwhPerTick, totalKwh);
+        chargeCostRunning = chargeKwhDelivered * chargeRate;
+        const pct = (chargeKwhDelivered / totalKwh) * 100;
+        const soc = Math.round(pct);
+        const mins = Math.floor(elapsed * 0.5);
+        const secs = Math.round((elapsed * 0.5 - mins) * 60);
+        const timeStr = String(mins).padStart(2,'0') + ':' + String(secs).padStart(2,'0');
+
+        document.getElementById('chargeDisplayKwh').innerHTML = chargeKwhDelivered.toFixed(1) + ' <span class="unit">kWh</span>';
+        document.getElementById('chargeBar').style.width = Math.min(pct, 100) + '%';
+        document.getElementById('chargeMetaPower').textContent = chargePower.toFixed(1);
+        document.getElementById('chargeMetaTime').textContent = timeStr;
+        document.getElementById('chargeMetaCost').textContent = chargeCostRunning.toFixed(2);
+        document.getElementById('chargeMetaSOC').textContent = soc + '%';
+
+        if (chargeKwhDelivered >= totalKwh) {
+          clearInterval(chargingInterval);
+          chargingActive = false;
+          showToast(`✅ Ricarica completata! ${totalKwh.toFixed(1)} kWh — ${chargeCostRunning.toFixed(2)} MYZ addebitati`, 'success');
+          updateStats();
+        }
+      }, 1000);
+    }
+
+    document.getElementById('stopChargeBtn').addEventListener('click', () => {
+      if (!chargingActive) { showToast('Nessuna ricarica in corso', 'error'); return; }
+      clearInterval(chargingInterval);
+      chargingActive = false;
+      const finalKwh = chargeKwhDelivered;
+      const finalCost = chargeCostRunning;
+      showToast(`🛑 Ricarica terminata: ${finalKwh.toFixed(1)} kWh — ${finalCost.toFixed(2)} MYZ addebitati`, 'info');
+      updateStats();
+    });
+
+    // === HISTORY ===
+    let historyChart = null;
+
+    function renderHistoryChart() {
+      const ctx = document.getElementById('historyChart').getContext('2d');
+      if (historyChart) historyChart.destroy();
+
+      // Group by date
+      const daily = {};
+      historyData.forEach(h => {
+        if (h.status === 'completed' || h.status === 'active') {
+          daily[h.date] = (daily[h.date] || 0) + h.kwh;
+        }
+      });
+      const labels = Object.keys(daily).sort();
+      const values = labels.map(d => daily[d]);
+      const costs = labels.map(d => {
+        return historyData.filter(h => h.date === d && (h.status === 'completed' || h.status === 'active'))
+          .reduce((sum, h) => sum + h.cost, 0);
+      });
+
+      historyChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'kWh',
+              data: values,
+              backgroundColor: 'rgba(34,197,94,0.6)',
+              borderColor: '#22c55e',
+              borderWidth: 1,
+              borderRadius: 4,
+              yAxisID: 'y',
+            },
+            {
+              label: 'MYZ',
+              data: costs,
+              backgroundColor: 'rgba(59,130,246,0.6)',
+              borderColor: '#3b82f6',
+              borderWidth: 1,
+              borderRadius: 4,
+              yAxisID: 'y1',
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              labels: { color: '#94a3b8', font: { size: 11 } }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#94a3b8', font: { size: 10 } },
+              grid: { color: '#2a3a4e' }
+            },
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: 'kWh', color: '#94a3b8' },
+              ticks: { color: '#94a3b8' },
+              grid: { color: '#2a3a4e' }
+            },
+            y1: {
+              beginAtZero: true,
+              position: 'right',
+              title: { display: true, text: 'MYZ', color: '#94a3b8' },
+              ticks: { color: '#94a3b8' },
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+
+    function renderHistoryTable() {
+      const tbody = document.getElementById('historyBody');
+      tbody.innerHTML = historyData.slice().reverse().map(h => {
+        const station = stations.find(s => s.id === h.station);
+        const sname = station ? station.name : h.station;
+        const statusClass = h.status;
+        const statusLabel = h.status === 'completed' ? '✅ Completato' : h.status === 'pending' ? '⏳ In attesa' : h.status === 'failed' ? '❌ Fallito' : '⚡ Attivo';
+        return `<tr>
+          <td>${h.date}</td>
+          <td>${sname}</td>
+          <td>${h.kwh.toFixed(1)}</td>
+          <td>${h.cost.toFixed(2)}</td>
+          <td>${h.duration}</td>
+          <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+        </tr>`;
+      }).join('');
+    }
+
+    renderHistoryChart();
+    renderHistoryTable();
+
+    // History tabs
+    document.querySelectorAll('#historyTabs .tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('#historyTabs .tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        document.getElementById('historyTabChart').style.display = this.dataset.tab === 'chart' ? 'block' : 'none';
+        document.getElementById('historyTabTable').style.display = this.dataset.tab === 'table' ? 'block' : 'none';
+        if (this.dataset.tab === 'chart' && historyChart) historyChart.resize();
+      });
+    });
+
+    // === THEME TOGGLE ===
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+    });
+
+    // === TOAST ===
+    let toastTimer = null;
+    function showToast(msg, type = 'info') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast ' + type + ' show';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // === STATS UPDATE ===
+    function updateStats() {
+      const total = stations.length;
+      const available = stations.filter(s => s.status === 'available').length;
+      const charging = stations.filter(s => s.status === 'occupied').length;
+      const todayCount = historyData.filter(h => h.date === '2026-08-08').length;
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statAvailable').textContent = available;
+      document.getElementById('statCharging').textContent = charging;
+      document.getElementById('statToday').textContent = todayCount + bookings.length;
+    }
+
+    // Set default date to today
+    document.getElementById('bookingDate').value = new Date().toISOString().split('T')[0];
+
+    // === INITIAL TOAST ===
+    showToast('⚠️ Benvenuto in CARBURANTI Ricarica Elettrica — MYZ', 'info');
+  </script>
+</body>
+</html>
