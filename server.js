@@ -13,8 +13,6 @@ const hpp = require('hpp');
 const app = express();
 
 // ============ SECURITY MIDDLEWARE ============
-
-// Helmet - header di sicurezza HTTP
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -32,19 +30,16 @@ app.use(helmet({
   }
 }));
 
-// Rate Limiting - protezione DDoS
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minuti
-  max: 100, // max 100 richieste per IP
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   message: 'Troppe richieste da questo IP, riprova tra 15 minuti'
 });
 app.use('/api', limiter);
 
-// CORS - limitato ai domini autorizzati
 const allowedOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:3000'];
 app.use(cors({
   origin: function(origin, callback) {
-    // Permetti richieste senza origin (come da Postman)
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
@@ -55,24 +50,14 @@ app.use(cors({
   credentials: true
 }));
 
-// Body parser - limita dimensione per prevenire DoS
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
-
-// Sanitizzazione - protezione NoSQL injection
 app.use(mongoSanitize());
-
-// XSS protection
 app.use(xss());
-
-// Compressione
 app.use(compression());
-
-// HPP - protezione parameter pollution
 app.use(hpp());
-
-// Logging
 app.use(morgan('combined'));
+app.use(express.static('public'));
 
 // ============ DATABASE ============
 mongoose.connect(process.env.MONGODB_URI, {
@@ -83,8 +68,6 @@ mongoose.connect(process.env.MONGODB_URI, {
 .catch(err => console.error('❌ MongoDB connection error:', err));
 
 // ============ ROUTES ============
-
-// Health check con info sicurezza
 app.get('/health', (req, res) => {
   res.json({
     success: true,
@@ -129,6 +112,14 @@ app.use("/api/tokens", tokenRoutes);
 const distributionRoutes = require("./routes/distributionRoutes");
 app.use("/api/distributions", distributionRoutes);
 
+// Status Routes
+const statusRoutes = require("./routes/statusRoutes");
+app.use("/api/status", statusRoutes);
+
+// Code Review Routes
+const codeReviewRoutes = require("./routes/codeReviewRoutes");
+app.use("/api/code-review", codeReviewRoutes);
+
 // ============ ERROR HANDLER ============
 app.use((err, req, res, next) => {
   console.error('Error:', err);
@@ -145,10 +136,3 @@ app.listen(PORT, () => {
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🔒 Security: Rate Limiting, Helmet, CORS, Sanitization, XSS, HPP`);
 });
-
-// Status Routes
-const statusRoutes = require("./routes/statusRoutes");
-app.use("/api/status", statusRoutes);
-
-// Serve static files (HTML, CSS, JS)
-app.use(express.static('public'));
