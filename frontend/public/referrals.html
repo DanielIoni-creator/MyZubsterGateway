@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merchant referrals | MyZubster</title>
+    <link rel="stylesheet" href="/referrals.css">
+  </head>
+  <body>
+    <main class="referral-shell">
+      <header class="referral-header">
+        <a href="/" class="referral-brand">MyZubster</a>
+        <span>Merchant referrals</span>
+      </header>
+
+      <section id="signup-view" class="referral-login" hidden>
+        <p id="referral-code" class="referral-eyebrow"></p>
+        <h1 id="signup-title">Join MyZubster</h1>
+        <form id="signup-form" class="referral-form">
+          <label>Shop ID<input name="referredShopId" required></label>
+          <label>Tari wallet<input name="referredWalletAddress" required></label>
+          <button type="submit">Register referral</button>
+        </form>
+        <a id="continue-link" class="referral-action" href="/" hidden>Continue</a>
+      </section>
+
+      <section id="login-view" class="referral-login">
+        <h1>Referral dashboard</h1>
+        <form id="shop-form" class="referral-form">
+          <label>Shop ID<input name="shopId" required></label>
+          <label>Tari wallet<input name="walletAddress" required></label>
+          <button type="submit">Open dashboard</button>
+        </form>
+      </section>
+
+      <section id="dashboard-view" class="referral-dashboard" hidden>
+        <div class="referral-title-row">
+          <div><p id="shop-id" class="referral-eyebrow"></p><h1>Referral dashboard</h1></div>
+          <button id="switch-shop" class="secondary">Switch shop</button>
+        </div>
+        <div class="referral-metrics">
+          <article><span>Available credit</span><strong id="available-credit">0 MYZ</strong></article>
+          <article><span>Successful referrals</span><strong id="referral-count">0</strong></article>
+          <article><span>Credit used</span><strong id="used-credit">0 MYZ</strong></article>
+        </div>
+        <section class="referral-link-panel">
+          <label>Referral link</label>
+          <div class="referral-copy-row">
+            <input id="referral-url" readonly>
+            <button id="copy-link">Copy</button>
+          </div>
+        </section>
+        <div class="referral-grid">
+          <section>
+            <h2>Referral history</h2>
+            <div class="referral-table-wrap">
+              <table>
+                <thead><tr><th>Shop</th><th>Wallet</th><th>Credit</th><th>Date</th></tr></thead>
+                <tbody id="referral-history"></tbody>
+              </table>
+              <p id="empty-history" class="referral-empty">No successful referrals yet.</p>
+            </div>
+          </section>
+          <section class="credit-panel">
+            <h2>Apply credit</h2>
+            <form id="credit-form" class="referral-form compact">
+              <label>Amount (MYZ)<input name="amountMYZ" type="number" min="0.01" step="0.01" required></label>
+              <button type="submit">Apply discount</button>
+            </form>
+          </section>
+        </div>
+      </section>
+      <div id="notice" class="referral-notice" role="status" hidden></div>
+    </main>
+    <script src="/referrals.js"></script>
+  </body>
+</html>
