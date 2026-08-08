@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyZubsterGateway — Admin Dashboard</title>
+<style>
+:root {
+  --bg: #0a0e17; --card: #111827; --border: #1f2937;
+  --text: #e5e7eb; --muted: #9ca3af; --accent: #3b82f6;
+  --green: #10b981; --red: #ef4444; --yellow: #f59e0b;
+  --radius: 12px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 240px; background: var(--card); border-right: 1px solid var(--border); padding: 20px; overflow-y: auto; }
+.sidebar h2 { font-size: 18px; margin-bottom: 24px; color: var(--accent); }
+.sidebar nav a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: var(--muted); text-decoration: none; border-radius: var(--radius); margin-bottom: 4px; font-size: 14px; transition: all 0.2s; }
+.sidebar nav a:hover, .sidebar nav a.active { background: rgba(59,130,246,0.1); color: var(--text); }
+.main { margin-left: 240px; padding: 24px; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.header h1 { font-size: 24px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+.stat-card .label { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.stat-card .value { font-size: 28px; font-weight: 700; }
+.stat-card .change { font-size: 12px; margin-top: 4px; }
+.change.up { color: var(--green); } .change.down { color: var(--red); }
+.panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+.panel h3 { font-size: 16px; margin-bottom: 16px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 10px 12px; font-size: 13px; border-bottom: 1px solid var(--border); }
+th { color: var(--muted); font-weight: 500; }
+.status { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.status.ok { background: rgba(16,185,129,0.15); color: var(--green); }
+.status.warn { background: rgba(245,158,11,0.15); color: var(--yellow); }
+.status.err { background: rgba(239,68,68,0.15); color: var(--red); }
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+  .panels { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <h2>⚡ MyZubster Admin</h2>
+  <nav>
+    <a href="#overview" class="active">📊 Overview</a>
+    <a href="#users">👥 Users</a>
+    <a href="#orders">📦 Orders</a>
+    <a href="#bounties">💰 Bounties</a>
+    <a href="#robots">🤖 Robots</a>
+    <a href="#logs">📋 System Logs</a>
+    <a href="#settings">⚙️ Settings</a>
+  </nav>
+</aside>
+
+<main class="main">
+  <div class="header">
+    <h1>Admin Dashboard</h1>
+    <div style="color:var(--muted);font-size:13px">🟢 System Online · Uptime: 14d 3h</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="label">Total Users</div>
+      <div class="value">12,847</div>
+      <div class="change up">↑ 12% vs last month</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Active Bounties</div>
+      <div class="value">342</div>
+      <div class="change up">↑ 8% vs last week</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">MYZ in Circulation</div>
+      <div class="value">2.4M</div>
+      <div class="change up">↑ 5% vs last month</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Gateway Health</div>
+      <div class="value" style="color:var(--green)">99.9%</div>
+      <div class="change up">All systems nominal</div>
+    </div>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <h3>Recent Users</h3>
+      <table>
+        <tr><th>User</th><th>Role</th><th>Joined</th><th>Status</th></tr>
+        <tr><td>@crypto_farmer</td><td>Contributor</td><td>2h ago</td><td><span class="status ok">Active</span></td></tr>
+        <tr><td>@robot_dev_42</td><td>Developer</td><td>5h ago</td><td><span class="status ok">Active</span></td></tr>
+        <tr><td>@garden_guru</td><td>Member</td><td>1d ago</td><td><span class="status ok">Active</span></td></tr>
+        <tr><td>@new_validator</td><td>Validator</td><td>3d ago</td><td><span class="status warn">Pending</span></td></tr>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h3>Recent Orders</h3>
+      <table>
+        <tr><th>Order ID</th><th>Type</th><th>Amount</th><th>Status</th></tr>
+        <tr><td>#ORD-8842</td><td>Robot Parts</td><td>250 MYZ</td><td><span class="status ok">Completed</span></td></tr>
+        <tr><td>#ORD-8841</td><td>Seeds</td><td>45 MYZ</td><td><span class="status ok">Shipped</span></td></tr>
+        <tr><td>#ORD-8840</td><td>Sensors</td><td>890 MYZ</td><td><span class="status warn">Processing</span></td></tr>
+        <tr><td>#ORD-8839</td><td>Gateway Fee</td><td>10 MYZ</td><td><span class="status err">Failed</span></td></tr>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h3>Bounty Activity</h3>
+      <table>
+        <tr><th>Bounty</th><th>Reward</th><th>Claimed By</th><th>Status</th></tr>
+        <tr><td>#339 Code Review</td><td>250 MYZ</td><td>laurentketterle-hub</td><td><span class="status ok">Paid</span></td></tr>
+        <tr><td>#271 Status Page</td><td>250 MYZ</td><td>laurentketterle-hub</td><td><span class="status ok">Paid</span></td></tr>
+        <tr><td>#146 Admin UI</td><td>Free</td><td>laurentketterle-hub</td><td><span class="status warn">In Progress</span></td></tr>
+        <tr><td>#147 API Docs</td><td>Free</td><td>laurentketterle-hub</td><td><span class="status warn">In Progress</span></td></tr>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h3>System Logs</h3>
+      <table>
+        <tr><th>Timestamp</th><th>Level</th><th>Message</th></tr>
+        <tr><td>19:45:22</td><td><span class="status ok">INFO</span></td><td>Gateway sync completed</td></tr>
+        <tr><td>19:30:15</td><td><span class="status ok">INFO</span></td><td>New user registered</td></tr>
+        <tr><td>19:15:08</td><td><span class="status warn">WARN</span></td><td>Rate limit approaching (85%)</td></tr>
+        <tr><td>18:59:44</td><td><span class="status err">ERROR</span></td><td>Payment timeout tx_9931</td></tr>
+      </table>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>
