@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⛽ Dashboard Gestione Stazioni - MyZubster</title>
+
+  <!-- Chart.js (interactive charts) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Leaflet (station map) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    /* Design tokens */
+    :root {
+      --accent: #f39c12;
+      --accent-strong: #d68910;
+      --accent-soft: #fdebd0;
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --surface-2: #eef1f6;
+      --text: #1f2733;
+      --text-soft: #5b6675;
+      --border: #e3e8ef;
+      --radius: 14px;
+      --shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    }
+    [data-theme="dark"] {
+      --bg: #0f141a;
+      --surface: #1a222c;
+      --surface-2: #232d3a;
+      --text: #e6edf5;
+      --text-soft: #9aa7b8;
+      --border: #2c3947;
+      --shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+    .dashboard { max-width: 1280px; margin: 0 auto; }
+
+    /* Header */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .header {
+      background: linear-gradient(135deg, #f39c12, #e67e22);
+      padding: 24px 30px;
+      border-radius: var(--radius);
+      color: white;
+      box-shadow: var(--shadow);
+      flex: 1;
+      min-width: 260px;
+    }
+    .header h1 { margin: 0 0 4px; font-size: 1.5rem; }
+    .header p { margin: 0; opacity: 0.92; font-size: 0.95rem; }
+    .header .live-badge {
+      display: inline-block;
+      margin-top: 8px;
+      background: rgba(255, 255, 255, 0.22);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+    }
+    .header .live-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #fff;
+      margin-right: 6px;
+      animation: pulse 1.4s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      flex-wrap: wrap;
+    }
+    .controls button, .controls select, .controls input {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .controls button:hover { background: var(--accent-soft); }
+    .controls button.primary { background: var(--accent); color: #fff; border-color: var(--accent-strong); }
+    .controls button.primary:hover { background: var(--accent-strong); }
+
+    /* Stats grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .stat-card {
+      padding: 18px;
+      border-radius: var(--radius);
+      color: white;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card h3 { margin: 0 0 6px; font-size: 0.85rem; font-weight: 600; opacity: 0.92; }
+    .stat-value { font-size: 2.2rem; font-weight: 700; line-height: 1.1; }
+    .stat-sub { font-size: 0.8rem; opacity: 0.9; margin-top: 4px; }
+    .stat-card .trend { position: absolute; top: 16px; right: 16px; font-size: 1.1rem; }
+    .stat-card.stations { background: linear-gradient(135deg, #f39c12, #e67e22); }
+    .stat-card.active { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+    .stat-card.volume { background: linear-gradient(135deg, #3498db, #2980b9); }
+    .stat-card.revenue { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+
+    /* Map + prices */
+    .map-prices-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+    .card h3 { margin: 0 0 12px; font-size: 1rem; }
+    #station-map { height: 320px; border-radius: 10px; z-index: 0; }
+    .price-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    .price-row:last-child { border-bottom: none; }
+    .price-row .fuel { font-weight: 600; }
+    .price-row .price { font-weight: 700; color: var(--accent); }
+    .price-row .station {
+      color: var(--text-soft);
+      font-size: 0.8rem;
+      max-width: 40%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    @media (max-width: 860px) { .map-prices-grid { grid-template-columns: 1fr; } }
+
+    /* Charts */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .chart-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+    .chart-card h3 { margin: 0 0 12px; font-size: 1rem; }
+    .chart-card .chart-wrap { position: relative; height: 260px; }
+    @media (max-width: 860px) { .charts-grid { grid-template-columns: 1fr; } }
+
+    /* Transactions table */
+    .history {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      margin: 20px 0;
+    }
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .history-header h3 { margin: 0; font-size: 1rem; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 640px; }
+    th { background: var(--surface-2); padding: 10px; text-align: left; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-soft); }
+    td { padding: 10px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    tr:hover td { background: var(--surface-2); }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-soft); }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge.ok { background: #d5f5e3; color: #1e8449; }
+    .badge.pending { background: #fdebd0; color: #b9770e; }
+    .badge.fail { background: #fadbd8; color: #c0392b; }
+    [data-theme="dark"] .badge.ok { background: #14532d; color: #6ee7a0; }
+    [data-theme="dark"] .badge.pending { background: #78350f; color: #fcd34d; }
+    [data-theme="dark"] .badge.fail { background: #7f1d1d; color: #fca5a5; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--accent-strong);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 1000;
+      font-size: 0.9rem;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* Loading skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface) 50%, var(--surface-2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 6px;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <div class="topbar">
+      <div class="header">
+        <h1>⛽ Dashboard Gestione Stazioni</h1>
+        <p>Monitoraggio delle stazioni di servizio che accettano MYZ</p>
+        <span class="live-badge"><span class="live-dot"></span>Aggiornamento automatico ogni 60s</span>
+      </div>
+      <div class="controls">
+        <select id="station-select" title="Filtra per stazione">
+          <option value="all">Tutte le stazioni</option>
+        </select>
+        <select id="range-select" title="Intervallo transazioni">
+          <option value="10">Ultime 10</option>
+          <option value="25" selected>Ultime 25</option>
+          <option value="50">Ultime 50</option>
+          <option value="100">Ultime 100</option>
+        </select>
+        <button id="export-csv" class="primary" title="Esporta report CSV">⬇ Report CSV</button>
+        <button id="export-json" title="Esporta report JSON">⬇ JSON</button>
+        <button id="theme-toggle" title="Cambia tema">🌙</button>
+      </div>
+    </div>
+
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card stations">
+        <h3>Stazioni attive</h3>
+        <div class="stat-value" id="stat-stations"><span class="skeleton" style="display:inline-block;width:70px;height:34px"></span></div>
+        <div class="stat-sub" id="stat-stations-sub">Attesa dati...</div>
+      </div>
+      <div class="stat-card active">
+        <h3>Stazioni online</h3>
+        <div class="stat-value" id="stat-online"><span class="skeleton" style="display:inline-block;width:70px;height:34px"></span></div>
+        <div class="stat-sub" id="stat-online-sub">Attesa dati...</div>
+      </div>
+      <div class="stat-card volume">
+        <h3>Volume oggi (L)</h3>
+        <div class="stat-value" id="stat-volume"><span class="skeleton" style="display:inline-block;width:70px;height:34px"></span></div>
+        <div class="stat-sub" id="stat-volume-sub">Attesa dati...</div>
+      </div>
+      <div class="stat-card revenue">
+        <h3>Ricavi oggi (MYZ)</h3>
+        <div class="stat-value" id="stat-revenue"><span class="skeleton" style="display:inline-block;width:70px;height:34px"></span></div>
+        <div class="stat-sub" id="stat-revenue-sub">Attesa dati...</div>
+      </div>
+    </div>
+
+    <div class="map-prices-grid">
+      <div class="card">
+        <h3>🗺️ Mappa stazioni</h3>
+        <div id="station-map"></div>
+      </div>
+      <div class="card">
+        <h3>⛽ Prezzi in tempo reale</h3>
+        <div id="prices-list"><div class="empty-state">Caricamento prezzi...</div></div>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>📈 Volume carburante (7 giorni)</h3>
+        <div class="chart-wrap"><canvas id="chart-volume"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>💰 Ricavi per stazione (MYZ)</h3>
+        <div class="chart-wrap"><canvas id="chart-revenue"></canvas></div>
+      </div>
+    </div>
+
+    <div class="history">
+      <div class="history-header">
+        <h3>🧾 Transazioni</h3>
+        <span id="history-count" style="font-size:0.85rem;color:var(--text-soft)"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Data/Ora</th>
+              <th>Stazione</th>
+              <th>Carburante</th>
+              <th>Litri</th>
+              <th>Importo (MYZ)</th>
+              <th>Stato</th>
+            </tr>
+          </thead>
+          <tbody id="history-body">
+            <tr><td colspan="6" class="empty-state">Caricamento transazioni...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ---------- State ----------
+      const stationSelect = document.getElementById('station-select');
+      const rangeSelect = document.getElementById('range-select');
+      const exportCsvBtn = document.getElementById('export-csv');
+      const exportJsonBtn = document.getElementById('export-json');
+      const themeToggle = document.getElementById('theme-toggle');
+      const toastEl = document.getElementById('toast');
+
+      let stations = [];
+      let transactions = [];
+      let chartVolume = null;
+      let chartRevenue = null;
+      let lastData = null;
+      let map = null;
+      let markers = [];
+
+      // ---------- Demo data (fallback se il backend non risponde) ----------
+      const DEMO_STATIONS = [
+        { id: 'st-001', name: 'Stazione Rimini Nord', lat: 44.0678, lng: 12.5695, status: 'online', prices: { benzina: 1.829, diesel: 1.749, gpl: 0.719 } },
+        { id: 'st-002', name: 'Stazione Bologna Est', lat: 44.4949, lng: 11.3426, status: 'online', prices: { benzina: 1.849, diesel: 1.769, gpl: 0.729 } },
+        { id: 'st-003', name: 'Stazione Milano Tangenziale', lat: 45.4642, lng: 9.19, status: 'online', prices: { benzina: 1.879, diesel: 1.799, gpl: 0.749 } },
+        { id: 'st-004', name: 'Stazione Roma Aurelia', lat: 41.9028, lng: 12.4964, status: 'offline', prices: { benzina: 1.859, diesel: 1.779, gpl: 0.739 } },
+        { id: 'st-005', name: 'Stazione Firenze Certosa', lat: 43.7696, lng: 11.2558, status: 'online', prices: { benzina: 1.839, diesel: 1.759, gpl: 0.719 } },
+        { id: 'st-006', name: 'Stazione Torino Lingotto', lat: 45.0266, lng: 7.6650, status: 'online', prices: { benzina: 1.869, diesel: 1.789, gpl: 0.739 } },
+        { id: 'st-007', name: 'Stazione Verona Sud', lat: 45.4384, lng: 10.9916, status: 'online', prices: { benzina: 1.849, diesel: 1.769, gpl: 0.729 } },
+        { id: 'st-008', name: 'Stazione Palermo Viale Regione', lat: 38.1157, lng: 13.3615, status: 'offline', prices: { benzina: 1.889, diesel: 1.809, gpl: 0.759 } },
+      ];
+
+      const FUELS = ['benzina', 'diesel', 'gpl'];
+      const FUEL_LABELS = { benzina: 'Benzina', diesel: 'Diesel', gpl: 'GPL' };
+
+      function generateDemoTransactions() {
+        const list = [];
+        for (let i = 0; i < 60; i++) {
+          const st = DEMO_STATIONS[Math.floor(Math.random() * DEMO_STATIONS.length)];
+          const fuel = FUELS[Math.floor(Math.random() * FUELS.length)];
+          const liters = Math.round((5 + Math.random() * 45) * 10) / 10;
+          const price = st.prices[fuel];
+          const amount = Math.round((liters * price) * 100) / 100;
+          const ts = new Date(Date.now() - i * 3600 * 1000 * (0.5 + Math.random()));
+          const status = Math.random() < 0.85 ? 'ok' : (Math.random() < 0.5 ? 'pending' : 'fail');
+          list.push({ id: 'tx-' + (1000 + i), stationId: st.id, stationName: st.name, fuel: fuel, liters: liters, amount: amount, status: status, timestamp: ts.toISOString() });
+        }
+        return list;
+      }
+
+      // ---------- Theme ----------
+      function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+        localStorage.setItem('benzina-theme', theme);
+        if (chartVolume) chartVolume.update();
+        if (chartRevenue) chartRevenue.update();
+      }
+      const savedTheme = localStorage.getItem('benzina-theme') ||
+        (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      applyTheme(savedTheme);
+      themeToggle.addEventListener('click', () => {
+        applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+      });
+
+      // ---------- Toast ----------
+      let toastTimer = null;
+      function showToast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2600);
+      }
+
+      // ---------- Data helpers ----------
+      function fmt(n, digits) {
+        if (n === null || n === undefined || isNaN(n)) return '--';
+        return Number(n).toFixed(digits === undefined ? 2 : digits);
+      }
+
+      function colorFor(theme) {
+        return {
+          volume: theme === 'dark' ? '#74b9ff' : '#3498db',
+          revenue: theme === 'dark' ? '#a29bfe' : '#9b59b6',
+          grid: theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+        };
+      }
+
+      // ---------- Data loading ----------
+      async function loadData() {
+        const showSkeleton = !lastData;
+        try {
+          // Try real backend APIs first
+          let stOk = false, txOk = false;
+          try {
+            const res = await fetch('/api/benzina/stations');
+            if (res.ok) {
+              const json = await res.json();
+              if (json.success && Array.isArray(json.data) && json.data.length) {
+                stations = json.data;
+                stOk = true;
+              }
+            }
+          } catch (e) { /* fallback */ }
+
+          try {
+            const res = await fetch('/api/benzina/transactions?limit=200');
+            if (res.ok) {
+              const json = await res.json();
+              if (json.success && Array.isArray(json.data) && json.data.length) {
+                transactions = json.data;
+                txOk = true;
+              }
+            }
+          } catch (e) { /* fallback */ }
+
+          lastData = true;
+          if (stOk && txOk) {
+            renderDashboard();
+            return;
+          }
+
+          // Fallback to demo data
+          if (!stOk) {
+            stations = DEMO_STATIONS.map(function (s) {
+              return { id: s.id, name: s.name, lat: s.lat, lng: s.lng, status: s.status, prices: s.prices };
+            });
+          }
+          if (!txOk) {
+            transactions = generateDemoTransactions();
+          }
+          renderDashboard();
+          if (!stOk || !txOk) {
+            showToast('⚠️ Backend non disponibile: dati dimostrativi');
+          }
+        } catch (err) {
+          console.error('Errore caricamento dati:', err);
+          stations = DEMO_STATIONS.slice();
+          transactions = generateDemoTransactions();
+          renderDashboard();
+          showToast('⚠️ Errore nel caricamento dei dati: ' + err.message);
+        }
+      }
+
+      // ---------- Map ----------
+      function initMap() {
+        if (map) return;
+        map = L.map('station-map').setView([43.5, 12.1], 5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors',
+          maxZoom: 18,
+        }).addTo(map);
+      }
+
+      function renderMap() {
+        initMap();
+        // Clear old markers
+        markers.forEach(function (m) { map.removeLayer(m); });
+        markers = [];
+
+        stations.forEach(function (st) {
+          const lat = Number(st.lat) || 43.5;
+          const lng = Number(st.lng) || 12.1;
+          const online = st.status === 'online';
+          const color = online ? '#2ecc71' : '#e74c3c';
+          const icon = L.divIcon({
+            className: '',
+            html: '<div style="background:' + color + ';width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4)"></div>',
+            iconSize: [18, 18],
+            iconAnchor: [9, 9],
+          });
+          const fuelInfo = (st.prices || {})
+            ? Object.keys(st.prices).map(function (k) {
+                return FUEL_LABELS[k] + ': ' + fmt(st.prices[k]) + ' €';
+              }).join('<br>')
+            : '';
+          const marker = L.marker([lat, lng], { icon: icon }).addTo(map);
+          marker.bindPopup(
+            '<b>' + st.name + '</b><br>' +
+            'Stato: ' + (online ? '🟢 Online' : '🔴 Offline') + '<br>' +
+            fuelInfo
+          );
+          markers.push(marker);
+        });
+
+        if (stations.length) {
+          const bounds = L.latLngBounds(stations.map(function (st) {
+            return [Number(st.lat) || 43.5, Number(st.lng) || 12.1];
+          }));
+          map.fitBounds(bounds, { padding: [30, 30] });
+        }
+      }
+
+      // ---------- Render ----------
+      function renderDashboard() {
+        // Populate station select
+        const prev = stationSelect.value;
+        const opts = ['<option value="all">Tutte le stazioni</option>'];
+        stations.forEach(function (st) {
+          opts.push('<option value="' + st.id + '">' + st.name + '</option>');
+        });
+        stationSelect.innerHTML = opts.join('');
+        if (prev && prev !== 'all' && stations.some(function (s) { return s.id === prev; })) {
+          stationSelect.value = prev;
+        }
+
+        const filterId = stationSelect.value;
+        const filteredTx = filterId === 'all'
+          ? transactions
+          : transactions.filter(function (t) { return t.stationId === filterId; });
+
+        // Stats
+        const onlineCount = stations.filter(function (s) { return s.status === 'online'; }).length;
+        document.getElementById('stat-stations').textContent = stations.length;
+        document.getElementById('stat-online').textContent = onlineCount;
+        document.getElementById('stat-stations-sub').textContent = onlineCount + ' online · ' + (stations.length - onlineCount) + ' offline';
+
+        const today = new Date().toISOString().slice(0, 10);
+        const todayTx = transactions.filter(function (t) { return (t.timestamp || '').slice(0, 10) === today; });
+        const volToday = todayTx.reduce(function (a, t) { return a + (Number(t.liters) || 0); }, 0);
+        const revToday = todayTx.reduce(function (a, t) { return a + (Number(t.amount) || 0); }, 0);
+        document.getElementById('stat-volume').textContent = Math.round(volToday).toLocaleString('it-IT');
+        document.getElementById('stat-revenue').textContent = fmt(revToday, 2) + ' MYZ';
+        const ts = new Date().toLocaleString('it-IT');
+        document.getElementById('stat-volume-sub').textContent = 'aggiornato ' + ts;
+        document.getElementById('stat-revenue-sub').textContent = 'aggiornato ' + ts;
+
+        // Prices (real-time)
+        const pricesList = document.getElementById('prices-list');
+        if (!stations.length) {
+          pricesList.innerHTML = '<div class="empty-state">Nessuna stazione</div>';
+        } else {
+          let pHtml = '';
+          FUELS.forEach(function (fuel) {
+            const rows = stations
+              .filter(function (s) { return s.status === 'online'; })
+              .map(function (s) {
+                return { name: s.name, price: Number((s.prices || {})[fuel]) || 0 };
+              })
+              .sort(function (a, b) { return a.price - b.price });
+            if (!rows.length) return;
+            const best = rows[0];
+            pHtml += '<div class="price-row">' +
+              '<span class="fuel">' + FUEL_LABELS[fuel] + '</span>' +
+              '<span class="station">' + best.name + '</span>' +
+              '<span class="price">' + fmt(best.price) + ' €</span>' +
+            '</div>';
+          });
+          pricesList.innerHTML = pHtml || '<div class="empty-state">Nessun prezzo disponibile</div>';
+        }
+
+        // Map
+        renderMap();
+
+        // Transactions table
+        const limit = parseInt(rangeSelect.value, 10) || 25;
+        const slice = filteredTx.slice(0, limit);
+        const tbody = document.getElementById('history-body');
+        if (!slice.length) {
+          tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Nessuna transazione per questo filtro.</td></tr>';
+        } else {
+          let html = '';
+          slice.forEach(function (t) {
+            const badgeClass = t.status === 'ok' ? 'ok' : (t.status === 'pending' ? 'pending' : 'fail');
+            const badgeLabel = t.status === 'ok' ? '✅ Completato' : (t.status === 'pending' ? '⏳ In attesa' : '❌ Fallito');
+            html += '<tr>' +
+              '<td>' + new Date(t.timestamp).toLocaleString('it-IT') + '</td>' +
+              '<td>' + (t.stationName || t.stationId || '—') + '</td>' +
+              '<td>' + (FUEL_LABELS[t.fuel] || t.fuel || '—') + '</td>' +
+              '<td>' + fmt(t.liters, 1) + '</td>' +
+              '<td>' + fmt(t.amount) + '</td>' +
+              '<td><span class="badge ' + badgeClass + '">' + badgeLabel + '</span></td>' +
+            '</tr>';
+          });
+          tbody.innerHTML = html;
+        }
+        document.getElementById('history-count').textContent = slice.length + ' transazioni mostrate';
+
+        // Charts
+        renderCharts();
+      }
+
+      function renderCharts() {
+        const theme = document.documentElement.getAttribute('data-theme');
+        const c = colorFor(theme);
+        const labels = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+        const volumeByDay = [0, 0, 0, 0, 0, 0, 0];
+        const now = new Date();
+        transactions.forEach(function (t) {
+          const d = new Date(t.timestamp);
+          const diff = (now - d) / 86400000;
+          if (diff < 7 && diff >= 0) {
+            const idx = 6 - Math.floor(diff);
+            if (idx >= 0 && idx < 7) volumeByDay[idx] += Number(t.liters) || 0;
+          }
+        });
+
+        // Chart 1: Volume by day
+        const ctxVol = document.getElementById('chart-volume').getContext('2d');
+        const volData = {
+          labels: labels,
+          datasets: [{
+            label: 'Volume (L)',
+            data: volumeByDay.map(function (v) { return Math.round(v); }),
+            borderColor: c.volume,
+            backgroundColor: c.volume + '33',
+            tension: 0.3,
+            fill: true,
+            pointRadius: 3,
+          }],
+        };
+        if (chartVolume) { chartVolume.data = volData; chartVolume.update(); }
+        else {
+          chartVolume = new Chart(ctxVol, {
+            type: 'line',
+            data: volData,
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: { mode: 'index', intersect: false },
+              plugins: { legend: { labels: { color: theme === 'dark' ? '#cbd5e1' : '#334155' } } },
+              scales: {
+                x: { ticks: { color: theme === 'dark' ? '#94a3b8' : '#64748b' }, grid: { color: c.grid } },
+                y: { beginAtZero: true, ticks: { color: c.volume }, grid: { color: c.grid } },
+              },
+            },
+          });
+        }
+
+        // Chart 2: Revenue by station
+        const revByStation = {};
+        transactions.forEach(function (t) {
+          const key = t.stationName || t.stationId || '—';
+          revByStation[key] = (revByStation[key] || 0) + (Number(t.amount) || 0);
+        });
+        const revEntries = Object.keys(revByStation)
+          .map(function (k) { return { name: k, value: revByStation[k] }; })
+          .sort(function (a, b) { return b.value - a.value; })
+          .slice(0, 8);
+        const ctxRev = document.getElementById('chart-revenue').getContext('2d');
+        const revData = {
+          labels: revEntries.map(function (e) { return e.name; }),
+          datasets: [{
+            label: 'Ricavi (MYZ)',
+            data: revEntries.map(function (e) { return Math.round(e.value * 100) / 100; }),
+            backgroundColor: c.revenue + '88',
+            borderColor: c.revenue,
+            borderWidth: 1,
+          }],
+        };
+        if (chartRevenue) { chartRevenue.data = revData; chartRevenue.update(); }
+        else {
+          chartRevenue = new Chart(ctxRev, {
+            type: 'bar',
+            data: revData,
+            options: {
+              indexAxis: 'y',
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                x: { ticks: { color: theme === 'dark' ? '#94a3b8' : '#64748b' }, grid: { color: c.grid } },
+                y: { ticks: { color: theme === 'dark' ? '#94a3b8' : '#64748b', font: { size: 11 } }, grid: { display: false } },
+              },
+            },
+          });
+        }
+      }
+
+      // ---------- Export ----------
+      function csvEscape(v) {
+        const s = String(v === null || v === undefined ? '' : v);
+        return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+      }
+
+      function exportCSV() {
+        if (!transactions.length) { showToast('⚠️ Nessun dato da esportare'); return; }
+        const header = 'timestamp,station_id,station_name,fuel,liters,amount_myz,status';
+        const rows = transactions.map(function (t) {
+          return [
+            csvEscape(t.timestamp),
+            csvEscape(t.stationId),
+            csvEscape(t.stationName || ''),
+            csvEscape(t.fuel),
+            csvEscape(t.liters),
+            csvEscape(t.amount),
+            csvEscape(t.status),
+          ].join(',');
+        });
+        download('' + header + '\n' + rows.join('\n'), 'benzina-stazioni-report.csv', 'text/csv');
+        showToast('✅ Report CSV esportato');
+      }
+
+      function exportJSON() {
+        if (!transactions.length) { showToast('⚠️ Nessun dato da esportare'); return; }
+        download(JSON.stringify({
+          exportedAt: new Date().toISOString(),
+          stations: stations,
+          transactions: transactions,
+        }, null, 2), 'benzina-stazioni-report.json', 'application/json');
+        showToast('✅ Report JSON esportato');
+      }
+
+      function download(content, filename, mime) {
+        const blob = new Blob([content], { type: mime + ';charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      // ---------- Events ----------
+      exportCsvBtn.addEventListener('click', exportCSV);
+      exportJsonBtn.addEventListener('click', exportJSON);
+      stationSelect.addEventListener('change', function () { if (lastData) renderDashboard(); });
+      rangeSelect.addEventListener('change', function () { if (lastData) renderDashboard(); });
+
+      // ---------- Start ----------
+      loadData();
+      setInterval(loadData, 60000);
+    })();
+  </script>
+</body>
+</html>

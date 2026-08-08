@@ -107,6 +107,10 @@ app.get('/hospital', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/dist/hospital.html'));
 });
 
+app.get('/benzina-dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/dist/benzina-dashboard.html'));
+});
+
 // Static frontend
 const frontendPath = path.join(__dirname, 'frontend/dist');
 app.use(express.static(frontendPath));
