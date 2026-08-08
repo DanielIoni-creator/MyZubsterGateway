@@ -107,6 +107,10 @@ app.get('/hospital', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/dist/hospital.html'));
 });
 
+app.get('/qr-code', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/dist/qr-code-pagamento.html'));
+});
+
 // Static frontend
 const frontendPath = path.join(__dirname, 'frontend/dist');
 app.use(express.static(frontendPath));

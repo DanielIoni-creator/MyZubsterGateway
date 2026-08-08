@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📱 QR Code - Pagamento Pompa - MyZubster</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --accent: #f7931a;
+      --accent-strong: #e67e00;
+      --accent-soft: #fff3e0;
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --surface-2: #eef1f6;
+      --text: #1f2733;
+      --text-soft: #5b6675;
+      --border: #e3e8ef;
+      --radius: 14px;
+      --shadow: 0 2px 10px rgba(0,0,0,0.06);
+      --success: #2ecc71;
+      --success-soft: #d5f5e3;
+      --danger: #e74c3c;
+      --danger-soft: #fdecea;
+      --warn: #f39c12;
+      --warn-soft: #fef6e7;
+    }
+    [data-theme="dark"] {
+      --bg: #0f141a;
+      --surface: #1a222c;
+      --surface-2: #232d3a;
+      --text: #e6edf5;
+      --text-soft: #9aa7b8;
+      --border: #2c3947;
+      --shadow: 0 2px 12px rgba(0,0,0,0.35);
+      --accent-soft: #3d2b0e;
+      --success-soft: #0d3320;
+      --danger-soft: #3d1414;
+      --warn-soft: #3d2e0e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+    .dashboard { max-width: 1100px; margin: 0 auto; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .header {
+      background: linear-gradient(135deg, #f7931a, #e67e00);
+      padding: 24px 30px;
+      border-radius: var(--radius);
+      color: white;
+      box-shadow: var(--shadow);
+      flex: 1;
+      min-width: 260px;
+    }
+    .header h1 { margin: 0 0 4px; font-size: 1.5rem; }
+    .header p { margin: 0; opacity: 0.92; font-size: 0.95rem; }
+    .header .badge {
+      display: inline-block;
+      margin-top: 8px;
+      background: rgba(255,255,255,0.22);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+    }
+    .header .live-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #fff;
+      margin-right: 6px;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse { 50% { opacity: 0.3; } }
+
+    .theme-toggle {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.9rem;
+      box-shadow: var(--shadow);
+      transition: background 0.2s;
+    }
+    .theme-toggle:hover { background: var(--surface-2); }
+
+    .grid { display: grid; gap: 18px; margin-bottom: 20px; }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+    @media (max-width: 768px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+    .card h2 {
+      font-size: 1.1rem;
+      margin: 0 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card h2 .ico { font-size: 1.3rem; }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-soft);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary {
+      background: var(--accent);
+      color: #1b1200;
+    }
+    .btn-primary:hover:not(:disabled) { opacity: 0.9; }
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+    }
+    .btn-success:hover:not(:disabled) { opacity: 0.9; }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover { background: var(--surface-2); }
+
+    .qr-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      min-height: 220px;
+    }
+    .qr-container #qrcode {
+      background: white;
+      padding: 12px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .qr-container .qr-label {
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: var(--text-soft);
+      text-align: center;
+    }
+    .qr-container .qr-amount {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-top: 4px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .status-badge.pending {
+      background: var(--warn-soft);
+      color: var(--warn);
+    }
+    .status-badge.success {
+      background: var(--success-soft);
+      color: var(--success);
+    }
+    .status-badge.error {
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+    .status-badge.idle {
+      background: var(--surface-2);
+      color: var(--text-soft);
+    }
+
+    .pump-visual {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 16px 0;
+    }
+    .pump-icon {
+      font-size: 4rem;
+      transition: filter 0.5s;
+    }
+    .pump-icon.locked { filter: grayscale(1); opacity: 0.5; }
+    .pump-icon.unlocked {
+      filter: none;
+      animation: pump-glow 1.5s infinite;
+    }
+    @keyframes pump-glow {
+      0%, 100% { filter: drop-shadow(0 0 8px var(--success)); }
+      50% { filter: drop-shadow(0 0 20px var(--success)); }
+    }
+
+    .pump-status-text {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+    .pump-status-text.locked { color: var(--danger); }
+    .pump-status-text.unlocked { color: var(--success); }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--surface-2);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    .progress-bar .fill {
+      height: 100%;
+      border-radius: 4px;
+      background: var(--accent);
+      transition: width 0.5s ease;
+    }
+
+    .timer {
+      font-size: 2rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .history-table th {
+      text-align: left;
+      font-size: 0.8rem;
+      color: var(--text-soft);
+      padding: 8px 6px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+    }
+    .history-table td {
+      padding: 8px 6px;
+      font-size: 0.9rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .history-table tr:last-child td { border-bottom: none; }
+
+    .empty-state {
+      text-align: center;
+      padding: 30px 20px;
+      color: var(--text-soft);
+    }
+    .empty-state .ico { font-size: 2.5rem; margin-bottom: 10px; }
+
+    .flex-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 14px 20px;
+      border-radius: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      color: var(--text);
+      font-size: 0.9rem;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateX(120%);
+      transition: transform 0.3s ease;
+    }
+    .toast.show { transform: translateX(0); }
+    .toast.success { border-left: 4px solid var(--success); }
+    .toast.error { border-left: 4px solid var(--danger); }
+    .toast.info { border-left: 4px solid var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <div class="topbar">
+      <div class="header">
+        <h1>📱 QR Code - Pagamento Pompa</h1>
+        <p>Scansiona il QR con l'app MyZubster per pagare direttamente alla pompa</p>
+        <div class="badge"><span class="live-dot"></span> Sistema Attivo</div>
+      </div>
+      <button class="theme-toggle" onclick="toggleTheme()">🌓 Tema</button>
+    </div>
+
+    <div class="grid grid-2">
+      <!-- Colonna sinistra: QR Code + Pompa -->
+      <div>
+        <!-- QR Code Card -->
+        <div class="card" style="margin-bottom:18px">
+          <h2><span class="ico">📱</span> QR Code di Pagamento</h2>
+          <div class="form-group">
+            <label>🏪 Pompa / Stazione</label>
+            <select id="pumpSelect" onchange="generateQR()">
+              <option value="Pompa-01">Pompa-01 — Benzina</option>
+              <option value="Pompa-02">Pompa-02 — Diesel</option>
+              <option value="Pompa-03">Pompa-03 — GPL</option>
+              <option value="Pompa-04">Pompa-04 — Elettrico</option>
+              <option value="Pompa-05">Pompa-05 — Idrogeno</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>💧 Importo (MYZ)</label>
+            <div class="flex-row">
+              <input type="number" id="amountInput" value="50" min="1" max="10000" style="flex:1" oninput="generateQR()">
+              <button class="btn btn-outline" onclick="setAmount(20)">20</button>
+              <button class="btn btn-outline" onclick="setAmount(50)">50</button>
+              <button class="btn btn-outline" onclick="setAmount(100)">100</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>⛽ Litri Benzina</label>
+            <input type="text" id="litersDisplay" readonly style="background:var(--surface);font-weight:600;font-size:1.1rem">
+          </div>
+          <div class="qr-container" id="qrContainer">
+            <div id="qrcode"></div>
+            <div class="qr-label">Scansiona con l'app MyZubster</div>
+            <div class="qr-amount" id="qrAmountDisplay">50 MYZ</div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:10px">
+            <button class="btn btn-primary" onclick="generateQR()" style="flex:1">🔄 Genera Nuovo QR</button>
+            <button class="btn btn-outline" onclick="downloadQR()">💾 Scarica QR</button>
+          </div>
+        </div>
+
+        <!-- Stato Pompa Card -->
+        <div class="card">
+          <h2><span class="ico">⛽</span> Stato Pompa</h2>
+          <div class="pump-visual">
+            <div class="pump-icon locked" id="pumpIcon">⛽</div>
+            <div>
+              <div class="pump-status-text locked" id="pumpStatusText">🔒 Bloccata</div>
+              <div style="font-size:0.85rem;color:var(--text-soft);margin-top:4px" id="pumpDetail">In attesa di pagamento</div>
+            </div>
+          </div>
+          <div id="pumpTimer" class="timer" style="display:none">--:--</div>
+          <div class="progress-bar" id="progressBar" style="display:none">
+            <div class="fill" id="progressFill" style="width:0%"></div>
+          </div>
+          <div id="pumpActions" style="display:flex;gap:10px;margin-top:10px">
+            <button class="btn btn-success" id="unlockBtn" onclick="simulateUnlock()" disabled>🔓 Sblocca Pompa</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Colonna destra: Scansione + Storico -->
+      <div>
+        <!-- Scansione Card -->
+        <div class="card" style="margin-bottom:18px">
+          <h2><span class="ico">📷</span> Scansione Pagamento</h2>
+          <div id="scanStatus" class="empty-state">
+            <div class="ico">📷</div>
+            <p>In attesa di scansione...</p>
+            <span class="status-badge idle" id="scanBadge">⏳ In attesa</span>
+          </div>
+          <div id="scanDetails" style="display:none">
+            <div class="flex-row" style="margin-bottom:8px">
+              <span class="status-badge pending" id="scanBadge2">⏳ Scansione in corso</span>
+            </div>
+            <div class="progress-bar">
+              <div class="fill" id="scanProgress" style="width:0%"></div>
+            </div>
+            <div style="margin-top:12px;padding:12px;background:var(--surface-2);border-radius:10px;font-size:0.9rem">
+              <div class="flex-row" style="justify-content:space-between">
+                <span>Pompa:</span><span id="detectedPump"><strong>—</strong></span>
+              </div>
+              <div class="flex-row" style="justify-content:space-between;margin-top:4px">
+                <span>Importo:</span><span id="detectedAmount"><strong>0 MYZ</strong></span>
+              </div>
+              <div class="flex-row" style="justify-content:space-between;margin-top:4px">
+                <span>Wallet:</span><span id="detectedWallet"><strong>—</strong></span>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:10px">
+            <button class="btn btn-primary" id="scanBtn" onclick="startScan()">📷 Simula Scansione</button>
+            <button class="btn btn-outline" onclick="resetScan()" id="resetBtn">🔄 Reset</button>
+          </div>
+        </div>
+
+        <!-- Storico Card -->
+        <div class="card">
+          <h2><span class="ico">📋</span> Storico Pagamenti</h2>
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <button class="btn btn-outline" onclick="filterHistory('all')" data-filter="all" style="flex:1">Tutti</button>
+            <button class="btn btn-outline" onclick="filterHistory('success')" data-filter="success" style="flex:1">Completati</button>
+            <button class="btn btn-outline" onclick="filterHistory('error')" data-filter="error" style="flex:1">Falliti</button>
+          </div>
+          <div id="historyContent">
+            <div class="empty-state">
+              <div class="ico">📭</div>
+              <p>Nessun pagamento ancora.</p>
+              <p style="font-size:0.85rem">I pagamenti completati appariranno qui.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- State ----
+    const state = {
+      pumpLocked: true,
+      pumpId: 'Pompa-01',
+      currentAmount: 50,
+      currentPayment: null,
+      scanTimer: null,
+      unlockTimer: null,
+      history: JSON.parse(localStorage.getItem('qrPaymentHistory') || '[]'),
+      filter: 'all'
+    };
+
+    // ---- Theme ----
+    function toggleTheme() {
+      const html = document.documentElement;
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('qr-theme', next);
+    }
+    (function initTheme() {
+      const saved = localStorage.getItem('qr-theme');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
+    })();
+
+    // ---- Exchange Rate ----
+    const EXCHANGE_RATE = 0.42; // MYZ per litro
+
+    // ---- QR Code ----
+    let qrCodeInstance = null;
+
+    function generateQR() {
+      const pump = document.getElementById('pumpSelect').value;
+      const amount = parseInt(document.getElementById('amountInput').value) || 50;
+      state.pumpId = pump;
+      state.currentAmount = amount;
+
+      // Update liters
+      const liters = (amount / EXCHANGE_RATE).toFixed(2);
+      document.getElementById('litersDisplay').value = `${liters} L (${EXCHANGE_RATE} MYZ/L)`;
+      document.getElementById('qrAmountDisplay').textContent = `${amount} MYZ`;
+
+      // Generate QR data: myz://pay?pump=Pompa-01&amount=50
+      const qrData = `myz://pay?pump=${encodeURIComponent(pump)}&amount=${amount}`;
+
+      // Clear old QR
+      const qrContainer = document.getElementById('qrcode');
+      qrContainer.innerHTML = '';
+
+      // Create new QR
+      qrCodeInstance = new QRCode(qrContainer, {
+        text: qrData,
+        width: 180,
+        height: 180,
+        colorDark: '#1f2733',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    }
+
+    function setAmount(val) {
+      document.getElementById('amountInput').value = val;
+      generateQR();
+    }
+
+    function downloadQR() {
+      const canvas = document.querySelector('#qrcode canvas');
+      if (!canvas) { showToast('Genera prima un QR code', 'info'); return; }
+      const link = document.createElement('a');
+      link.download = `qr-${state.pumpId}-${state.currentAmount}myz.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      showToast('✅ QR code scaricato', 'success');
+    }
+
+    // ---- Scan Simulation ----
+    function startScan() {
+      if (state.pumpLocked === false) {
+        showToast('⚠️ La pompa è già sbloccata', 'error');
+        return;
+      }
+
+      const scanBtn = document.getElementById('scanBtn');
+      scanBtn.disabled = true;
+      document.getElementById('scanStatus').querySelector('p').textContent = '📷 Scansione in corso...';
+      document.getElementById('scanBadge').className = 'status-badge pending';
+      document.getElementById('scanBadge').textContent = '⏳ Scansione in corso...';
+
+      document.getElementById('scanDetails').style.display = 'block';
+      document.getElementById('scanBadge2').className = 'status-badge pending';
+      document.getElementById('scanBadge2').textContent = '⏳ Scansione in corso...';
+      document.getElementById('detectedPump').innerHTML = `<strong>${state.pumpId}</strong>`;
+      document.getElementById('detectedAmount').innerHTML = `<strong>${state.currentAmount} MYZ</strong>`;
+      document.getElementById('detectedWallet').innerHTML = `<strong>MyZubster-${state.pumpId.replace('Pompa-', '')}${String(Math.floor(Math.random()*1000)).padStart(3,'0')}</strong>`;
+
+      // Simulate scanning progress
+      let progress = 0;
+      const scanProgress = document.getElementById('scanProgress');
+      state.scanTimer = setInterval(() => {
+        progress += 5;
+        scanProgress.style.width = `${progress}%`;
+        if (progress >= 100) {
+          clearInterval(state.scanTimer);
+          state.scanTimer = null;
+          confirmPayment();
+        }
+      }, 150);
+    }
+
+    function confirmPayment() {
+      document.getElementById('scanBadge').className = 'status-badge success';
+      document.getElementById('scanBadge').textContent = '✅ Pagamento ricevuto!';
+      document.getElementById('scanBadge2').className = 'status-badge success';
+      document.getElementById('scanBadge2').textContent = '✅ Pagamento confermato!';
+      document.getElementById('scanStatus').querySelector('p').textContent = '✅ Pagamento ricevuto con successo!';
+
+      // Add to history
+      const payment = {
+        id: Date.now(),
+        pump: state.pumpId,
+        amount: state.currentAmount,
+        wallet: document.getElementById('detectedWallet').textContent,
+        status: 'success',
+        timestamp: new Date().toISOString()
+      };
+      state.history.unshift(payment);
+      localStorage.setItem('qrPaymentHistory', JSON.stringify(state.history));
+      renderHistory();
+
+      // Enable unlock
+      document.getElementById('unlockBtn').disabled = false;
+      document.getElementById('scanBtn').disabled = false;
+
+      showToast(`✅ Pagamento di ${state.currentAmount} MYZ ricevuto!`, 'success');
+    }
+
+    function resetScan() {
+      if (state.scanTimer) {
+        clearInterval(state.scanTimer);
+        state.scanTimer = null;
+      }
+      document.getElementById('scanDetails').style.display = 'none';
+      document.getElementById('scanStatus').querySelector('p').textContent = 'In attesa di scansione...';
+      document.getElementById('scanBadge').className = 'status-badge idle';
+      document.getElementById('scanBadge').textContent = '⏳ In attesa';
+      document.getElementById('scanProgress').style.width = '0%';
+      document.getElementById('scanBtn').disabled = false;
+    }
+
+    // ---- Pump Unlock ----
+    function simulateUnlock() {
+      const unlockBtn = document.getElementById('unlockBtn');
+      unlockBtn.disabled = true;
+      unlockBtn.textContent = '⏳ Sblocco in corso...';
+
+      // Show progress
+      document.getElementById('progressBar').style.display = 'block';
+      let progress = 0;
+      const fill = document.getElementById('progressFill');
+      const timer = setInterval(() => {
+        progress += 10;
+        fill.style.width = `${progress}%`;
+        document.getElementById('pumpDetail').textContent = `Sblocco: ${progress}%`;
+        if (progress >= 100) {
+          clearInterval(timer);
+          unlockPump();
+        }
+      }, 200);
+    }
+
+    function unlockPump() {
+      state.pumpLocked = false;
+      document.getElementById('pumpIcon').className = 'pump-icon unlocked';
+      document.getElementById('pumpStatusText').className = 'pump-status-text unlocked';
+      document.getElementById('pumpStatusText').textContent = '🔓 Sbloccata';
+      document.getElementById('pumpDetail').textContent = '✅ Pompa sbloccata — Erogazione in corso...';
+      document.getElementById('unlockBtn').textContent = '🔓 Sbloccata ✓';
+      document.getElementById('unlockBtn').disabled = true;
+
+      // Start auto-lock timer
+      document.getElementById('pumpTimer').style.display = 'block';
+      let remaining = 120; // 2 minutes
+      state.unlockTimer = setInterval(() => {
+        remaining--;
+        const mins = Math.floor(remaining / 60);
+        const secs = remaining % 60;
+        document.getElementById('pumpTimer').textContent = `⏱ ${mins}:${String(secs).padStart(2,'0')}`;
+        document.getElementById('pumpDetail').textContent = `Blocco automatico tra ${mins}:${String(secs).padStart(2,'0')}`;
+        if (remaining <= 0) {
+          clearInterval(state.unlockTimer);
+          state.unlockTimer = null;
+          lockPump();
+        }
+      }, 1000);
+
+      showToast('⛽ Pompa sbloccata! Erogazione in corso...', 'success');
+    }
+
+    function lockPump() {
+      state.pumpLocked = true;
+      document.getElementById('pumpIcon').className = 'pump-icon locked';
+      document.getElementById('pumpStatusText').className = 'pump-status-text locked';
+      document.getElementById('pumpStatusText').textContent = '🔒 Bloccata';
+      document.getElementById('pumpDetail').textContent = 'In attesa di pagamento';
+      document.getElementById('pumpTimer').style.display = 'none';
+      document.getElementById('progressBar').style.display = 'none';
+      document.getElementById('progressFill').style.width = '0%';
+      document.getElementById('unlockBtn').textContent = '🔓 Sblocca Pompa';
+      document.getElementById('unlockBtn').disabled = true;
+
+      showToast('🔒 Pompa bloccata automaticamente', 'info');
+    }
+
+    // ---- History ----
+    function renderHistory() {
+      const container = document.getElementById('historyContent');
+      const filtered = state.filter === 'all'
+        ? state.history
+        : state.history.filter(p => p.status === state.filter);
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="ico">📭</div>
+            <p>Nessun pagamento trovato.</p>
+          </div>`;
+        return;
+      }
+
+      let html = `<table class="history-table">
+        <thead><tr>
+          <th>Pompa</th>
+          <th>Importo</th>
+          <th>Stato</th>
+          <th>Data</th>
+        </tr></thead><tbody>`;
+      filtered.forEach(p => {
+        const date = new Date(p.timestamp).toLocaleString('it-IT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+        const statusClass = p.status === 'success' ? 'success' : 'error';
+        const statusIcon = p.status === 'success' ? '✅' : '❌';
+        const statusText = p.status === 'success' ? 'Completato' : 'Fallito';
+        html += `<tr>
+          <td>${p.pump}</td>
+          <td><strong>${p.amount} MYZ</strong></td>
+          <td><span class="status-badge ${statusClass}">${statusIcon} ${statusText}</span></td>
+          <td style="font-size:0.8rem;color:var(--text-soft)">${date}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    function filterHistory(filter) {
+      state.filter = filter;
+      // Update active button
+      document.querySelectorAll('[data-filter]').forEach(btn => {
+        btn.style.borderColor = btn.dataset.filter === filter ? 'var(--accent)' : 'var(--border)';
+      });
+      renderHistory();
+    }
+
+    // ---- Toast ----
+    function showToast(msg, type) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.className = `toast ${type} show`;
+      setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
+    // ---- Init ----
+    generateQR();
+    renderHistory();
+    filterHistory('all');
+  </script>
+</body>
+</html>
