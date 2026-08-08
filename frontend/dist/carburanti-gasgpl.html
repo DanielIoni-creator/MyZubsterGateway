@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⛽ GPL Rifornimento MYZ - MyZubster</title>
+
+  <style>
+    :root {
+      --accent: #4caf50;
+      --accent-2: #00bcd4;
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --surface-2: #eef1f6;
+      --text: #1f2733;
+      --text-soft: #5b6675;
+      --border: #e2e7ee;
+      --shadow: 0 10px 30px rgba(20, 30, 50, 0.08);
+      --radius: 14px;
+      --credit: #22a06b;
+      --debit: #d94f4f;
+      --warn: #d99000;
+    }
+    [data-theme="dark"] {
+      --bg: #10141b;
+      --surface: #171d27;
+      --surface-2: #1f2733;
+      --text: #e8edf4;
+      --text-soft: #94a1b2;
+      --border: #2a3444;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 28px 20px 48px;
+      font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg); color: var(--text);
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; }
+
+    header { display: flex; align-items: center; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+    h1 { font-size: 24px; margin: 0; }
+    .spacer { flex: 1; }
+    .btn {
+      background: var(--surface); color: var(--text); border: 1px solid var(--border);
+      border-radius: 10px; padding: 8px 14px; cursor: pointer; font-size: 14px;
+    }
+    .btn:hover { border-color: var(--accent); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #0f2200; font-weight: 600; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .pill { font-size: 12px; color: var(--text-soft); border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; }
+    .pill.live::before { content: "●"; color: var(--accent-2); margin-right: 6px; }
+    .pill.demo::before { content: "●"; color: var(--warn); margin-right: 6px; }
+
+    .alerts { display: grid; gap: 8px; margin-bottom: 18px; }
+    .alert { border-radius: 10px; padding: 10px 14px; font-size: 14px; border: 1px solid var(--border); background: var(--surface); }
+    .alert.warning { border-left: 4px solid var(--warn); }
+    .alert.error { border-left: 4px solid var(--debit); }
+    .alert.info { border-left: 4px solid var(--accent-2); }
+    .alert.success { border-left: 4px solid var(--credit); }
+
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 18px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; }
+    .card h2 { margin: 0 0 4px; font-size: 14px; color: var(--text-soft); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+    .amount { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; word-break: break-all; }
+    .sub { display: flex; gap: 16px; margin-top: 10px; font-size: 13px; color: var(--text-soft); flex-wrap: wrap; }
+    .sub b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; margin-bottom: 16px; }
+    .panel-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+    .panel-head h2 { margin: 0; font-size: 16px; }
+    select, input, textarea {
+      background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 10px; font-size: 13px; font-family: inherit;
+    }
+    select:focus, input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+    label.lbl { display: block; font-size: 12px; color: var(--text-soft); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+
+    .form-grid { display: grid; gap: 14px; }
+    .form-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
+    .form-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 180px; }
+    .form-field input, .form-field select { width: 100%; }
+
+    .quote { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; margin-top: 14px; padding: 14px; background: var(--surface-2); border-radius: 10px; }
+    .quote .q-label { font-size: 12px; color: var(--text-soft); text-transform: uppercase; letter-spacing: .04em; }
+    .quote .q-val { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    svg.chart { width: 100%; height: 180px; display: block; }
+    .chart-path { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+    .chart-grid { stroke: var(--border); stroke-width: 1; }
+    .chart-axis { fill: var(--text-soft); font-size: 11px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; color: var(--text-soft); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    td { padding: 10px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+    tr:last-child td { border-bottom: none; }
+    .state { font-size: 11px; border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; color: var(--text-soft); }
+    .state.ok { color: var(--credit); border-color: var(--credit); }
+    .state.warn { color: var(--warn); border-color: var(--warn); }
+    .state.bad { color: var(--debit); border-color: var(--debit); }
+    .empty { color: var(--text-soft); padding: 24px 10px; text-align: center; }
+    .scroll { overflow-x: auto; }
+
+    .safety-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+    .safety-item { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); }
+    .safety-item input { width: 18px; height: 18px; accent-color: var(--accent); }
+    .safety-item .s-name { font-weight: 600; font-size: 14px; }
+    .safety-item .s-desc { font-size: 12px; color: var(--text-soft); }
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 50;
+      background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent);
+      border-radius: 10px; padding: 14px 18px; box-shadow: var(--shadow);
+      opacity: 0; transform: translateY(12px); transition: all .25s ease; max-width: 340px;
+    }
+    .toast.show { opacity: 1; transform: none; }
+    .toast.error { border-left-color: var(--debit); }
+    progress { width: 100%; height: 10px; accent-color: var(--accent); border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>⛽ GPL / Gas <span style="color:var(--accent)">Rifornimento</span> con <span style="color:var(--accent-2)">MYZ</span></h1>
+      <span id="source" class="pill demo">…</span>
+      <span class="spacer"></span>
+      <button id="export" class="btn">⬇ Esporta CSV</button>
+      <button id="theme" class="btn">☾ Tema</button>
+    </header>
+
+    <div id="alerts" class="alerts"></div>
+    <div id="cards" class="cards"></div>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>🛢️ Nuovo rifornimento GPL</h2>
+        <span class="spacer"></span>
+        <span id="station-status" class="pill demo">…</span>
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <div class="form-field">
+            <label class="lbl" for="station">Stazione</label>
+            <select id="station"></select>
+          </div>
+          <div class="form-field">
+            <label class="lbl" for="pump">Pompa</label>
+            <select id="pump"></select>
+          </div>
+          <div class="form-field">
+            <label class="lbl" for="liters">Litri</label>
+            <input id="liters" type="number" min="1" step="0.1" value="0" />
+          </div>
+          <div class="form-field">
+            <label class="lbl" for="price">Prezzo €/L</label>
+            <input id="price" type="number" min="0" step="0.001" value="0.897" />
+          </div>
+        </div>
+        <div class="quote">
+          <div><div class="q-label">Totale</div><div class="q-val" id="tot-eur">€ 0,00</div></div>
+          <div><div class="q-label">Tasso</div><div class="q-val" id="tot-rate">1 MYZ = € 0,05</div></div>
+          <div><div class="q-label">In MYZ</div><div class="q-val" id="tot-myz">0,00 MYZ</div></div>
+          <div class="spacer"></div>
+          <button id="refuel" class="btn primary">💳 Paga e rifornisci</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>🛡️ Sicurezza impianto</h2>
+        <span class="spacer"></span>
+        <span id="safety-score" class="pill demo">—</span>
+      </div>
+      <div class="safety-grid" id="safety-list"></div>
+      <div style="margin-top:16px">
+        <label class="lbl" for="safety-progress">Stato di sicurezza</label>
+        <progress id="safety-progress" max="100" value="0"></progress>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>📊 Consumo ultimi 30 giorni</h2>
+        <span class="spacer"></span>
+        <span id="updated" class="pill">—</span>
+      </div>
+      <svg id="chart" class="chart" viewBox="0 0 720 200" preserveAspectRatio="none" role="img" aria-label="Consumo GPL ultimi 30 giorni"></svg>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>📜 Storico rifornimenti</h2>
+        <span class="spacer"></span>
+        <span class="pill">GPL</span>
+      </div>
+      <div class="scroll"><table>
+        <thead><tr><th>Data</th><th>Stazione</th><th>Litri</th><th>Prezzo €/L</th><th>Totale</th><th>Pagato</th><th>Stato</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table></div>
+    </section>
+  </div>
+  <div id="toast" class="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+  var USER = new URLSearchParams(location.search).get('userId') || 'demo-user';
+  var MYZ_EUR = 0.05;                 // 1 MYZ = €0.05
+  var safety = { valve: true, leak: true, cylinder: true, meter: true, ground: true, vents: true };
+  var state = { refuels: [], live: false };
+
+  var STATIONS = [
+    { id: 'st-1', name: 'GPL Italia Nord', pump: 0.897, safety: 96 },
+    { id: 'st-2', name: 'MetanoPiù Centro', pump: 0.912, safety: 88 },
+    { id: 'st-3', name: 'EcoGPL Sud', pump: 0.884, safety: 74 },
+    { id: 'st-4', name: 'AutoGas Toscana', pump: 0.901, safety: 91 }
+  ];
+
+  function el(id) { return document.getElementById(id); }
+  function fmt(n, d) { return n.toLocaleString('it-IT', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+
+  function demoData() {
+    var out = [];
+    var now = Date.now();
+    var names = ['GPL Italia Nord', 'MetanoPiù Centro', 'EcoGPL Sud'];
+    // 30 days of synthetic refuels
+    for (var i = 0; i < 30; i++) {
+      out.push({
+        createdAt: new Date(now - (29 - i) * 86400000).toISOString(),
+        station: names[i % 3],
+        liters: (8 + Math.round(Math.random() * 20 * 10) / 10),
+        price: (0.88 + Math.random() * 0.04),
+        ref: 'GPL-' + (1000 + i)
+      });
+    }
+    return out;
+  }
+
+  function renderCards() {
+    var totalL = 0, totalCost = 0, count = state.refuels.length;
+    state.refuels.forEach(function (r) { totalL += r.liters; totalCost += r.liters * r.price; });
+    var avg = count ? totalL / count : 0;
+    el('cards').innerHTML =
+      '<div class="card"><h2>Rifornimenti</h2><div class="amount">' + count + '</div><div class="sub"><span>Ultimi 30 gg</span></div></div>' +
+      '<div class="card"><h2>Litri erogati</h2><div class="amount">' + fmt(totalL, 1) + ' L</div><div class="sub"><span>Media <b>' + fmt(avg, 1) + ' L</b></span></div></div>' +
+      '<div class="card"><h2>Costo totale</h2><div class="amount">€ ' + fmt(totalCost, 2) + '</div><div class="sub"><span>≈ <b>' + fmt(totalCost / MYZ_EUR, 0) + ' MYZ</b></span></div></div>' +
+      '<div class="card"><h2>Prezzo medio</h2><div class="amount">€ ' + fmt(avg ? totalCost / count / (count ? totalL / count : 1) : 0, 3) + '</div><div class="sub"><span>per litro</span></div></div>';
+  }
+
+  function renderAlerts() {
+    var alerts = [];
+    STATIONS.forEach(function (s) {
+      if (s.safety < 80) alerts.push({ level: 'warning', message: '⚠️ ' + s.name + ' ha un punteggio di sicurezza di ' + s.safety + '/100. Verifica impianto prima del rifornimento.' });
+    });
+    var lowest = STATIONS.reduce(function (a, b) { return (b.pump < a.pump) ? b : a; }, STATIONS[0]);
+    alerts.push({ level: 'info', message: '💡 Prezzo migliore: ' + lowest.name + ' a € ' + fmt(lowest.pump, 3) + '/L.' });
+    el('alerts').innerHTML = alerts.map(function (a) { return '<div class="alert ' + a.level + '">' + a.message + '</div>'; }).join('');
+  }
+
+  function fillStations() {
+    var sel = el('station');
+    sel.innerHTML = STATIONS.map(function (s) { return '<option value="' + s.id + '">' + s.name + ' — € ' + fmt(s.pump, 3) + '/L</option>'; }).join('');
+    sel.addEventListener('change', onStationChange);
+    onStationChange();
+  }
+
+  function currentStation() {
+    return STATIONS.filter(function (s) { return s.id === el('station').value; })[0] || STATIONS[0];
+  }
+
+  function onStationChange() {
+    var s = currentStation();
+    el('price').value = s.pump.toFixed(3);
+    var st = el('station-status');
+    st.className = 'pill ' + (s.safety >= 80 ? 'live' : 'demo');
+    st.textContent = s.safety >= 80 ? 'Sicurezza ' + s.safety + '/100' : 'Attenzione ' + s.safety + '/100';
+    updateQuote();
+  }
+
+  function updateQuote() {
+    var liters = parseFloat(el('liters').value) || 0;
+    var price = parseFloat(el('price').value) || currentStation().pump;
+    var tot = liters * price;
+    el('tot-eur').textContent = '€ ' + fmt(tot, 2);
+    el('tot-myz').textContent = fmt(tot / MYZ_EUR, 2) + ' MYZ';
+    el('refuel').disabled = !(liters > 0);
+  }
+
+  function renderChart() {
+    var pts = state.refuels.slice(-30);
+    if (!pts.length) { el('chart').innerHTML = ''; return; }
+    var max = 0;
+    pts.forEach(function (p) { if (p.liters > max) max = p.liters; });
+    max = max * 1.1 || 1;
+    var W = 720, H = 160, pad = 18;
+    var stepX = (W - pad * 2) / (pts.length - 1 || 1);
+    var d = pts.map(function (p, i) {
+      var x = pad + i * stepX;
+      var y = H - ((p.liters / max) * (H - pad * 2)) - pad;
+      return (i === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1);
+    }).join(' ');
+    var grid = [0.25, 0.5, 0.75].map(function (f) {
+      return '<line class="chart-grid" x1="0" y1="' + (H * f) + '" x2="' + W + '" y2="' + (H * f) + '" />';
+    }).join('');
+    var first = pts[0], last = pts[pts.length - 1];
+    el('chart').innerHTML = grid +
+      '<path class="chart-path" d="' + d + '" />' +
+      '<text class="chart-axis" x="4" y="192">' + first.createdAt.slice(0, 10) + '</text>' +
+      '<text class="chart-axis" x="716" y="192" text-anchor="end">' + last.createdAt.slice(0, 10) + '</text>' +
+      '<text class="chart-axis" x="716" y="16" text-anchor="end">' + fmt(max, 0) + ' L</text>';
+  }
+
+  function renderRows() {
+    var rows = state.refuels.slice().sort(function (a, b) { return a.createdAt < b.createdAt ? 1 : -1; }).slice(0, 25);
+    if (!rows.length) { el('rows').innerHTML = '<tr><td colspan="7" class="empty">Nessun rifornimento</td></tr>'; return; }
+    el('rows').innerHTML = rows.map(function (r) {
+      var paid = r.paid ? fmt(r.paid, 2) + ' MYZ' : '—';
+      var stt = r.state || 'POSTED';
+      return '<tr>'
+        + '<td>' + r.createdAt.slice(0, 16).replace('T', ' ') + '</td>'
+        + '<td>' + r.station + '</td>'
+        + '<td>' + fmt(r.liters, 1) + ' L</td>'
+        + '<td>€ ' + fmt(r.price, 3) + '</td>'
+        + '<td>€ ' + fmt(r.liters * r.price, 2) + '</td>'
+        + '<td>' + paid + '</td>'
+        + '<td><span class="state ok">' + stt + '</span></td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  function renderSafety() {
+    var ITEMS = [
+      ['valve', '🧪 Valvola di sicurezza', 'Pressione massima del serbatoio'],
+      ['leak', '📡 Rilevatore fughe', 'Sensore gas attivo e calibrato'],
+      ['cylinder', '🧯 Bombola omologata', 'Certificazione e data di scadenza'],
+      ['meter', '🎛️ Contatore tarato', 'Misurazione litri certificata'],
+      ['ground', '⚡ Messa a terra', 'Impianto elettrico a norma'],
+      ['vents', '💨 Ventilazione', 'Ricambio aria dell\u2019area di rifornimento']
+    ];
+    el('safety-list').innerHTML = ITEMS.map(function (it) {
+      var c = safety[it[0]] ? 'checked' : '';
+      return '<div class="safety-item"><input type="checkbox" id="s-' + it[0] + '" ' + c + ' data-k="' + it[0] + '">' +
+        '<div><div class="s-name">' + it[1] + '</div><div class="s-desc">' + it[2] + '</div></div></div>';
+    }).join('');
+    ITEMS.forEach(function (it) {
+      el('s-' + it[0]).addEventListener('change', function (e) {
+        safety[e.target.dataset.k] = e.target.checked;
+        updateSafetyScore();
+      });
+    });
+    updateSafetyScore();
+  }
+
+  function updateSafetyScore() {
+    var keys = Object.keys(safety);
+    var on = keys.filter(function (k) { return safety[k]; }).length;
+    var pct = Math.round(on / keys.length * 100);
+    el('safety-progress').value = pct;
+    var score = el('safety-score');
+    score.className = 'pill ' + (pct >= 80 ? 'live' : (pct >= 50 ? 'demo' : 'bad'));
+    score.textContent = pct + '% conforme';
+  }
+
+  function renderAll() {
+    renderCards();
+    renderAlerts();
+    renderChart();
+    renderRows();
+    el('source').className = 'pill ' + (state.live ? 'live' : 'demo');
+    el('source').textContent = state.live ? 'Dati live' : 'Dati dimostrativi';
+    el('updated').textContent = 'Aggiornato ' + new Date().toISOString().slice(11, 19) + ' UTC';
+  }
+
+  function toast(msg, isErr) {
+    var t = el('toast');
+    t.textContent = isErr ? '⚠️ ' + msg : '✅ ' + msg;
+    t.className = 'toast show' + (isErr ? ' error' : '');
+    clearTimeout(t._t);
+    t._t = setTimeout(function () { t.className = 'toast'; }, 3200);
+  }
+
+  function load() {
+    fetch('/api/carburanti/' + encodeURIComponent(USER) + '/refuels?limit=200', { headers: { Accept: 'application/json' } })
+      .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+      .then(function (body) {
+        var items = (body && body.items) || [];
+        state.refuels = items;
+        state.live = true;
+        renderAll();
+      })
+      .catch(function () {
+        if (!state.live && state.refuels.length === 0) { state.refuels = demoData(); renderAll(); }
+      });
+  }
+
+  function doRefuel() {
+    var station = currentStation();
+    var liters = parseFloat(el('liters').value) || 0;
+    var price = parseFloat(el('price').value) || station.pump;
+    if (liters <= 0) { toast('Inserisci un numero di litri valido', true); return; }
+    if (station.safety < 80) { toast('Impianto in condizioni di sicurezza precarie. Rifornimento bloccato.', true); return; }
+    var totalEur = liters * price;
+    var myz = totalEur / MYZ_EUR;
+    el('refuel').disabled = true;
+    el('refuel').textContent = '⏳ Elaborazione...';
+    setTimeout(function () {
+      state.refuels.push({
+        createdAt: new Date().toISOString(),
+        station: station.name,
+        liters: liters,
+        price: price,
+        paid: Math.round(myz * 100) / 100,
+        state: 'POSTED',
+        ref: 'GPL-' + (1000 + Math.floor(Math.random() * 9000))
+      });
+      el('liters').value = 0;
+      el('refuel').disabled = true;
+      el('refuel').textContent = '💳 Paga e rifornisci';
+      renderAll();
+      toast('Rifornimento completato: ' + fmt(liters, 1) + ' L pagati con ' + fmt(myz, 2) + ' MYZ');
+    }, 900);
+  }
+
+  // Events
+  el('refuel').addEventListener('click', doRefuel);
+  el('liters').addEventListener('input', updateQuote);
+  el('price').addEventListener('input', updateQuote);
+  el('export').addEventListener('click', function () {
+    var head = 'Data,Stazione,Litri,Prezzo €/L,Totale €,Pagato MYZ,Stato\n';
+    var csv = head + state.refuels.map(function (r) {
+      return [r.createdAt, '"' + r.station + '"', String(r.liters).replace('.', ','), String(r.price).replace('.', ','), String((r.liters * r.price)).replace('.', ','), r.paid ? String(r.paid).replace('.', ',') : '', r.state || 'POSTED'].join(';');
+    }).join('\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'carburanti-gpl-' + new Date().toISOString().slice(0, 10) + '.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+  });
+  el('theme').addEventListener('click', function () {
+    var root = document.documentElement;
+    root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+  });
+
+  // Init
+  fillStations();
+  renderSafety();
+  state.refuels = demoData();
+  renderAll();
+  load();
+  setInterval(load, 10000);
+})();
+</script>
+</body>
+</html>
