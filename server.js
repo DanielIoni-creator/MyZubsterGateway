@@ -35,6 +35,7 @@ app.use(express.json());
 app.use(limiter);
 
 // Import routes
+const stampa3DMarteRoutes = require('./routes/stampa3DMarte');
 const energiaMarteRoutes = require('./routes/energiaMarte');
 const baseMarteRoutes = require('./routes/baseMarte');
 const evaMarzianoRoutes = require('./routes/evaMarziano');
@@ -84,6 +85,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes API
+app.use('/api/stampa-3d-marte', stampa3DMarteRoutes);
 app.use('/api/energia-marte', energiaMarteRoutes);
 app.use('/api/base-marte', baseMarteRoutes);
 app.use('/api/eva-marziano', evaMarzianoRoutes);
