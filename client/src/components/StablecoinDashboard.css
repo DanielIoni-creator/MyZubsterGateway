@@ -1,0 +1,14 @@
+.stablecoin-dashboard { padding: 20px; max-width: 900px; margin: 0 auto; font-family: system-ui, sans-serif; }
+.sc-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 20px 0; }
+.sc-card { background: #f8f9fa; border-radius: 8px; padding: 20px; text-align: center; border: 1px solid #e0e0e0; }
+.sc-label { display: block; color: #666; font-size: 0.85rem; margin-bottom: 8px; text-transform: uppercase; }
+.sc-value { font-size: 2rem; font-weight: 700; color: #1a73e8; }
+.sc-breakdown { margin: 20px 0; }
+.sc-breakdown table { width: 100%; border-collapse: collapse; }
+.sc-breakdown th, .sc-breakdown td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
+.sc-status { padding: 3px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+.sc-completed { background: #e6f4ea; color: #1e8e3e; }
+.sc-pending { background: #fef7e0; color: #f9ab00; }
+.sc-failed { background: #fce8e6; color: #d93025; }
+.sc-loading, .sc-error { text-align: center; padding: 40px; font-size: 1.1rem; color: #666; }
+.sc-error { color: #d93025; }
