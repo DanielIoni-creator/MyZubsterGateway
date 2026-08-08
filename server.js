@@ -93,7 +93,9 @@ try {
 // Logo routes
 try {
   const logoRoutes = require('./routes/robotLogo');
+const fiatRoutes = require('./routes/fiat.js');
   app.use('/api/robot/logo', logoRoutes);
+app.use('/api/fiat', fiatRoutes);
   console.log('✅ Caricamento routes logo...');
 } catch (err) {
   console.error('❌ Errore caricamento logo:', err.message);
