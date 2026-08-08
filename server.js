@@ -47,6 +47,10 @@ const securityRoutes = require('./routes/security');
 const xmrRoutes = require('./routes/xmr');
 const gl1BridgeRoutes = require('./routes/gl1Bridge');
 const paymentRoutes = require('./routes/payments');
+const schedulerRoutes = require('./routes/scheduler');
+const antennaRoutes = require('./routes/antenna');
+const repeaterRoutes = require('./routes/repeater');
+const repeaterPaymentRoutes = require('./routes/repeaterPayments');
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -71,6 +75,10 @@ app.use('/api/security', securityRoutes);
 app.use('/api/xmr', xmrRoutes);
 app.use('/api/gl1', gl1BridgeRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/scheduler', schedulerRoutes);
+app.use('/api/antenna', antennaRoutes);
+app.use('/api/repeater', repeaterRoutes);
+app.use('/api/repeater/payments', repeaterPaymentRoutes);
 
 // Robot routes
 try {
