@@ -91,6 +91,10 @@ try {
 }
 
 // ---- STATIC PAGES ----
+app.get('/carburanti-multi', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/dist/carburanti-multi.html'));
+});
+
 app.get('/bounty', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/dist/bounty.html'));
 });
