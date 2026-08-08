@@ -14,6 +14,8 @@ import Profile from './pages/Profile';
 import Tokens from './pages/Tokens';
 import CreateToken from "./pages/CreateToken";
 import ReputationNFTs from './pages/ReputationNFTs';
+import BountyBoard from './pages/BountyBoard';
+import BountyDetail from './pages/BountyDetail';
 
 const ProtectedRoute = ({ children }) => {
   const { user } = useAuth();
@@ -39,6 +41,8 @@ function App() {
           <Route path="/tokens" element={<Tokens />} />
 <Route path="/tokens/create" element={<ProtectedRoute><CreateToken /></ProtectedRoute>} />
           <Route path="/reputation" element={<ProtectedRoute><ReputationNFTs /></ProtectedRoute>} />
+          <Route path="/bounties" element={<BountyBoard />} />
+          <Route path="/bounties/:id" element={<BountyDetail />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
