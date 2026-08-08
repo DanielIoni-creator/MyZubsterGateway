@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "data": {
+    "id": "tx-1786203879501",
+    "fromToken": "MYZ",
+    "toToken": "XMR",
+    "amount": 10000,
+    "received": 41.25,
+    "fee": 0.41666666666666663,
+    "rate": 0.004166666666666667,
+    "userId": "eva-team-123",
+    "timestamp": "2026-08-08T15:44:39.501Z",
+    "status": "completed"
+  }
+}

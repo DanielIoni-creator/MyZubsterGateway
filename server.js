@@ -136,3 +136,7 @@ app.listen(PORT, () => {
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🔒 Security: Rate Limiting, Helmet, CORS, Sanitization, XSS, HPP`);
 });
+
+// Seed & Cutting Routes
+const seedRoutes = require("./routes/seedRoutes");
+app.use("/api/seeds", seedRoutes);
