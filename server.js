@@ -1,5 +1,4 @@
 require('dotenv').config();
-app.use('/api/mc-escrow', require('./src/routes/multiCurrencyEscrowRoutes'));
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
@@ -50,6 +49,8 @@ const gl1BridgeRoutes = require('./routes/gl1Bridge');
 const disputeRoutes = require('./routes/disputes');
 const paymentRoutes = require('./routes/payments');
 const escrowRoutes = require('./src/routes/escrowRoutes');
+const multiCurrencyEscrowRoutes = require('./src/routes/multiCurrencyEscrowRoutes');
+const verificationRoutes = require('./routes/verification');
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -76,6 +77,8 @@ app.use('/api/gl1', gl1BridgeRoutes);
 app.use('/api/disputes', disputeRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/escrow', escrowRoutes);
+app.use('/api/multi-currency-escrow', multiCurrencyEscrowRoutes);
+app.use('/api/verification', verificationRoutes);
 
 // Robot routes
 try {
