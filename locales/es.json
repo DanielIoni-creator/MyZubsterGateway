@@ -1,0 +1,22 @@
+{
+  "health": {
+    "message": "¡{{service}} Gateway está funcionando!"
+  },
+  "auth": {
+    "loginEndpoint": "Endpoint de inicio de sesión",
+    "registerEndpoint": "Endpoint de registro",
+    "required": "Autenticación requerida"
+  },
+  "admin": {
+    "required": "Se requieren privilegios de administrador"
+  },
+  "validation": {
+    "targetUrlRequired": "targetUrl es obligatorio"
+  },
+  "webhooks": {
+    "sentWithRetry": "Webhook enviado con reintento automático"
+  },
+  "errors": {
+    "internal": "Error interno del servidor"
+  }
+}
