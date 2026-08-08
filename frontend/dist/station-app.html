@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⛽ App Stazione - MyZubster</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --accent: #2ecc71;
+      --accent-strong: #27ae60;
+      --accent-soft: #d5f5e3;
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --surface-2: #eef1f6;
+      --text: #1f2733;
+      --text-soft: #5b6675;
+      --border: #e3e8ef;
+      --radius: 14px;
+      --shadow: 0 2px 10px rgba(0,0,0,0.06);
+      --success: #2ecc71;
+      --danger: #e74c3c;
+      --warn: #f39c12;
+    }
+    [data-theme="dark"] {
+      --bg: #0f141a;
+      --surface: #1a222c;
+      --surface-2: #232d3a;
+      --text: #e6edf5;
+      --text-soft: #9aa7b8;
+      --border: #2c3947;
+      --shadow: 0 2px 12px rgba(0,0,0,0.35);
+      --accent-soft: #0d3320;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+    .dashboard { max-width: 1200px; margin: 0 auto; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .header {
+      background: linear-gradient(135deg, #2ecc71, #27ae60);
+      padding: 24px 30px;
+      border-radius: var(--radius);
+      color: white;
+      box-shadow: var(--shadow);
+      flex: 1;
+      min-width: 260px;
+    }
+    .header h1 { margin: 0 0 4px; font-size: 1.5rem; }
+    .header p { margin: 0; opacity: 0.92; font-size: 0.95rem; }
+    .header .badge {
+      display: inline-block;
+      margin-top: 8px;
+      background: rgba(255,255,255,0.22);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+    }
+    .header .live-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #fff;
+      margin-right: 6px;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse { 50% { opacity: 0.3; } }
+
+    .theme-toggle {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.9rem;
+      box-shadow: var(--shadow);
+      transition: background 0.2s;
+    }
+    .theme-toggle:hover { background: var(--surface-2); }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--surface-2);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--text-soft);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .tab-btn.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .tab-btn:hover:not(.active) { color: var(--text); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+    .card h2 {
+      font-size: 1.1rem;
+      margin: 0 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card h2 .ico { font-size: 1.3rem; }
+
+    .stat-card {
+      text-align: center;
+      padding: 18px 16px;
+    }
+    .stat-card .value {
+      font-size: 2rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-card .label {
+      font-size: 0.8rem;
+      color: var(--text-soft);
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .stat-card .change {
+      font-size: 0.85rem;
+      margin-top: 6px;
+    }
+    .stat-card .change.up { color: var(--success); }
+    .stat-card .change.down { color: var(--danger); }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-soft);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover:not(:disabled) { opacity: 0.9; }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover { background: var(--surface-2); }
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+    .btn-danger:hover { opacity: 0.9; }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .status-badge.active {
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+    }
+    .status-badge.inactive {
+      background: var(--surface-2);
+      color: var(--text-soft);
+    }
+    .status-badge.pending {
+      background: #fef6e7;
+      color: var(--warn);
+    }
+    [data-theme="dark"] .status-badge.pending {
+      background: #3d2e0e;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    table th {
+      text-align: left;
+      font-size: 0.8rem;
+      color: var(--text-soft);
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+    }
+    table td {
+      padding: 10px 8px;
+      font-size: 0.9rem;
+      border-bottom: 1px solid var(--border);
+    }
+    table tr:last-child td { border-bottom: none; }
+    .text-right { text-align: right; }
+    .text-muted { color: var(--text-soft); font-size: 0.85rem; }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-soft);
+    }
+    .empty-state .ico { font-size: 3rem; margin-bottom: 12px; }
+
+    .rate-display {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 16px;
+      flex-wrap: wrap;
+    }
+    .rate-item {
+      text-align: center;
+    }
+    .rate-item .rate-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .rate-item .rate-label {
+      font-size: 0.8rem;
+      color: var(--text-soft);
+      margin-top: 2px;
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 14px 20px;
+      border-radius: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      color: var(--text);
+      font-size: 0.9rem;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateX(120%);
+      transition: transform 0.3s ease;
+    }
+    .toast.show { transform: translateX(0); }
+    .toast.success { border-left: 4px solid var(--success); }
+    .toast.error { border-left: 4px solid var(--danger); }
+    .toast.info { border-left: 4px solid var(--accent); }
+
+    .flex-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .flex-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    canvas.chart { width: 100% !important; height: 220px !important; }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <div class="topbar">
+      <div class="header">
+        <h1>⛽ App Stazione — Rifornimento MYZ</h1>
+        <p>Gestisci la tua stazione di servizio e accetta pagamenti in MYZ</p>
+        <div class="badge"><span class="live-dot"></span> <span id="stationStatus">Stazione non registrata</span></div>
+      </div>
+      <button class="theme-toggle" onclick="toggleTheme()">🌓 Tema</button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs" id="tabs">
+      <button class="tab-btn active" data-tab="earnings" onclick="switchTab('earnings')">📊 Dashboard</button>
+      <button class="tab-btn" data-tab="register" onclick="switchTab('register')">🏪 Registrazione</button>
+      <button class="tab-btn" data-tab="transactions" onclick="switchTab('transactions')">📋 Transazioni</button>
+      <button class="tab-btn" data-tab="rates" onclick="switchTab('rates')">💱 Tassi</button>
+    </div>
+
+    <!-- Tab: Earnings Dashboard -->
+    <div class="tab-content active" id="tab-earnings">
+      <div class="grid grid-4">
+        <div class="card stat-card">
+          <div class="ico" style="font-size:1.5rem;margin-bottom:4px">💰</div>
+          <div class="value" id="totalEarnings">0</div>
+          <div class="label">MYZ Totali</div>
+          <div class="change up" id="earningsChange">+0%</div>
+        </div>
+        <div class="card stat-card">
+          <div class="ico" style="font-size:1.5rem;margin-bottom:4px">⛽</div>
+          <div class="value" id="totalLiters">0</div>
+          <div class="label">Litri Erogati</div>
+          <div class="change up" id="litersChange">+0%</div>
+        </div>
+        <div class="card stat-card">
+          <div class="ico" style="font-size:1.5rem;margin-bottom:4px">📊</div>
+          <div class="value" id="totalTransactions">0</div>
+          <div class="label">Transazioni</div>
+          <div class="change up" id="txChange">+0</div>
+        </div>
+        <div class="card stat-card">
+          <div class="ico" style="font-size:1.5rem;margin-bottom:4px">⭐</div>
+          <div class="value" id="avgRating">0.0</div>
+          <div class="label">Valutazione</div>
+          <div class="text-muted" id="ratingCount">0 recensioni</div>
+        </div>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="card">
+          <h2><span class="ico">📈</span> Incassi Settimanali</h2>
+          <canvas id="earningsChart"></canvas>
+        </div>
+        <div class="card">
+          <h2><span class="ico">⛽</span> Erogazioni per Carburante</h2>
+          <canvas id="fuelChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="flex-between">
+          <h2><span class="ico">🕐</span> Transazioni Recenti</h2>
+          <button class="btn btn-outline" onclick="switchTab('transactions')">Vedi tutte →</button>
+        </div>
+        <div id="recentTransactions"></div>
+      </div>
+    </div>
+
+    <!-- Tab: Station Registration -->
+    <div class="tab-content" id="tab-register">
+      <div class="grid grid-2">
+        <div class="card">
+          <h2><span class="ico">🏪</span> Dati Stazione</h2>
+          <div class="form-group">
+            <label>Nome Stazione *</label>
+            <input type="text" id="stationName" placeholder="es. Stazione Centrale">
+          </div>
+          <div class="form-group">
+            <label>Indirizzo *</label>
+            <input type="text" id="stationAddress" placeholder="es. Via Roma 123, Milano">
+          </div>
+          <div class="form-group">
+            <label>Città *</label>
+            <input type="text" id="stationCity" placeholder="es. Milano">
+          </div>
+          <div class="form-group">
+            <label>Partita IVA</label>
+            <input type="text" id="stationVat" placeholder="es. IT01234567890">
+          </div>
+          <div class="form-group">
+            <label>Email *</label>
+            <input type="email" id="stationEmail" placeholder="es. info@stazione.it">
+          </div>
+          <div class="form-group">
+            <label>Telefono</label>
+            <input type="tel" id="stationPhone" placeholder="es. +39 02 1234567">
+          </div>
+        </div>
+        <div class="card">
+          <h2><span class="ico">⛽</span> Carburanti Offerti</h2>
+          <div class="form-group">
+            <label>Tipi di Carburante</label>
+            <div style="display:grid;gap:8px">
+              <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface-2);border-radius:8px;cursor:pointer">
+                <input type="checkbox" class="fuel-check" value="Benzina" checked> ⛽ Benzina
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface-2);border-radius:8px;cursor:pointer">
+                <input type="checkbox" class="fuel-check" value="Diesel" checked> 🛢️ Diesel
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface-2);border-radius:8px;cursor:pointer">
+                <input type="checkbox" class="fuel-check" value="GPL"> 🔵 GPL
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface-2);border-radius:8px;cursor:pointer">
+                <input type="checkbox" class="fuel-check" value="Elettrico"> ⚡ Elettrico
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface-2);border-radius:8px;cursor:pointer">
+                <input type="checkbox" class="fuel-check" value="Idrogeno"> 💧 Idrogeno
+              </label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Orari di Apertura</label>
+            <select id="stationHours">
+              <option value="24h">24 ore su 24</option>
+              <option value="06-22">06:00 - 22:00</option>
+              <option value="07-20">07:00 - 20:00</option>
+              <option value="08-18">08:00 - 18:00</option>
+            </select>
+          </div>
+          <div style="margin-top:16px">
+            <button class="btn btn-primary" onclick="registerStation()" id="registerBtn" style="width:100%">
+              📝 Registra Stazione
+            </button>
+          </div>
+          <div id="registrationStatus" style="margin-top:12px;display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Transactions -->
+    <div class="tab-content" id="tab-transactions">
+      <div class="card">
+        <div class="flex-between" style="margin-bottom:14px">
+          <h2><span class="ico">📋</span> Storico Transazioni</h2>
+          <div class="flex-row">
+            <select id="txFilter" onchange="renderTransactions()" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text)">
+              <option value="all">Tutti</option>
+              <option value="benzina">Benzina</option>
+              <option value="diesel">Diesel</option>
+              <option value="gpl">GPL</option>
+              <option value="elettrico">Elettrico</option>
+              <option value="idrogeno">Idrogeno</option>
+            </select>
+            <button class="btn btn-outline" onclick="exportCSV()">📥 CSV</button>
+          </div>
+        </div>
+        <div id="transactionsList"></div>
+      </div>
+    </div>
+
+    <!-- Tab: Exchange Rates -->
+    <div class="tab-content" id="tab-rates">
+      <div class="grid grid-2">
+        <div class="card">
+          <h2><span class="ico">💱</span> Tassi di Cambio</h2>
+          <div class="rate-display">
+            <div class="rate-item">
+              <div class="rate-value" id="rateMyzToEur">0.00</div>
+              <div class="rate-label">MYZ → EUR</div>
+            </div>
+            <div class="rate-item">
+              <div class="rate-value" id="rateMyzToLiter">0.00</div>
+              <div class="rate-label">MYZ → Litro</div>
+            </div>
+            <div class="rate-item">
+              <div class="rate-value" id="rateEurToLiter">0.00</div>
+              <div class="rate-label">EUR → Litro</div>
+            </div>
+            <div class="rate-item">
+              <div class="rate-value" id="rateMyzToUsd">0.00</div>
+              <div class="rate-label">MYZ → USD</div>
+            </div>
+          </div>
+          <div style="font-size:0.85rem;color:var(--text-soft);text-align:center;margin-top:8px">
+            Aggiornato: <span id="rateUpdated">—</span>
+          </div>
+        </div>
+        <div class="card">
+          <h2><span class="ico">📈</span> Andamento Tasso MYZ/EUR</h2>
+          <canvas id="rateChart"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <h2><span class="ico">⚙️</span> Calcolatore</h2>
+        <div class="grid grid-2">
+          <div class="form-group">
+            <label>MYZ</label>
+            <input type="number" id="calcMyz" value="100" min="0" oninput="calcConvert()">
+          </div>
+          <div class="form-group">
+            <label>Litri Benzina</label>
+            <input type="number" id="calcLiters" value="42" min="0" oninput="calcConvert()" readonly style="background:var(--surface);font-weight:600">
+          </div>
+          <div class="form-group">
+            <label>EUR</label>
+            <input type="number" id="calcEur" value="0" min="0" oninput="calcConvert()" readonly style="background:var(--surface);font-weight:600">
+          </div>
+          <div class="form-group">
+            <label>USD</label>
+            <input type="number" id="calcUsd" value="0" min="0" oninput="calcConvert()" readonly style="background:var(--surface);font-weight:600">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- State ----
+    const state = {
+      station: JSON.parse(localStorage.getItem('stationData') || 'null'),
+      transactions: JSON.parse(localStorage.getItem('stationTransactions') || '[]'),
+      rates: {
+        myzToEur: 0.42,
+        myzToLiter: 2.38,
+        eurToLiter: 1.68,
+        myzToUsd: 0.46
+      }
+    };
+
+    // ---- Theme ----
+    function toggleTheme() {
+      const html = document.documentElement;
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('station-theme', next);
+    }
+    (function initTheme() {
+      const saved = localStorage.getItem('station-theme');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
+    })();
+
+    // ---- Station Registration ----
+    function registerStation() {
+      const name = document.getElementById('stationName').value.trim();
+      const address = document.getElementById('stationAddress').value.trim();
+      const city = document.getElementById('stationCity').value.trim();
+      const email = document.getElementById('stationEmail').value.trim();
+
+      if (!name || !address || !city || !email) {
+        showToast('⚠️ Compila tutti i campi obbligatori (*)', 'error');
+        return;
+      }
+
+      const fuels = Array.from(document.querySelectorAll('.fuel-check:checked')).map(cb => cb.value);
+      if (fuels.length === 0) {
+        showToast('⚠️ Seleziona almeno un carburante', 'error');
+        return;
+      }
+
+      state.station = {
+        name,
+        address,
+        city,
+        email,
+        vat: document.getElementById('stationVat').value.trim(),
+        phone: document.getElementById('stationPhone').value.trim(),
+        fuels,
+        hours: document.getElementById('stationHours').value,
+        registeredAt: new Date().toISOString(),
+        active: true
+      };
+      localStorage.setItem('stationData', JSON.stringify(state.station));
+      updateStationUI();
+      showToast('✅ Stazione registrata con successo!', 'success');
+      document.getElementById('registerBtn').textContent = '✅ Registrata';
+      document.getElementById('registerBtn').disabled = true;
+    }
+
+    function updateStationUI() {
+      if (state.station) {
+        document.getElementById('stationStatus').textContent =
+          `✅ ${state.station.name} — ${state.station.city}`;
+        document.getElementById('stationName').value = state.station.name;
+        document.getElementById('stationAddress').value = state.station.address;
+        document.getElementById('stationCity').value = state.station.city;
+        document.getElementById('stationEmail').value = state.station.email;
+        document.getElementById('stationVat').value = state.station.vat || '';
+        document.getElementById('stationPhone').value = state.station.phone || '';
+        document.getElementById('stationHours').value = state.station.hours || '24h';
+        document.querySelectorAll('.fuel-check').forEach(cb => {
+          cb.checked = state.station.fuels.includes(cb.value);
+        });
+        document.getElementById('registerBtn').textContent = '✅ Registrata';
+        document.getElementById('registerBtn').disabled = true;
+      }
+    }
+
+    // ---- Tab Switching ----
+    function switchTab(id) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelector(`[data-tab="${id}"]`).classList.add('active');
+      document.getElementById(`tab-${id}`).classList.add('active');
+
+      if (id === 'earnings') initCharts();
+      if (id === 'rates') initRateChart();
+    }
+
+    // ---- Transactions ----
+    function generateDemoTransactions() {
+      if (state.transactions.length > 0) return;
+      const fuels = ['Benzina', 'Diesel', 'GPL', 'Elettrico', 'Idrogeno'];
+      const stations = ['Pompa-01', 'Pompa-02', 'Pompa-03', 'Pompa-04', 'Pompa-05'];
+      for (let i = 0; i < 25; i++) {
+        const fuel = fuels[Math.floor(Math.random() * fuels.length)];
+        const liters = (Math.random() * 60 + 10).toFixed(1);
+        const rate = state.rates.myzToLiter + (Math.random() - 0.5) * 0.2;
+        const myz = (parseFloat(liters) * rate).toFixed(2);
+        const date = new Date();
+        date.setDate(date.getDate() - Math.floor(Math.random() * 14));
+        date.setHours(Math.floor(Math.random() * 24), Math.floor(Math.random() * 60));
+        state.transactions.push({
+          id: Date.now() + i,
+          pump: stations[Math.floor(Math.random() * stations.length)],
+          fuel,
+          liters: parseFloat(liters),
+          myz: parseFloat(myz),
+          rate: parseFloat(rate.toFixed(3)),
+          timestamp: date.toISOString(),
+          status: 'completed'
+        });
+      }
+      state.transactions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      localStorage.setItem('stationTransactions', JSON.stringify(state.transactions));
+    }
+
+    function renderTransactions() {
+      const container = document.getElementById('transactionsList');
+      const filter = document.getElementById('txFilter').value;
+      const filtered = filter === 'all'
+        ? state.transactions
+        : state.transactions.filter(t => t.fuel.toLowerCase() === filter);
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="empty-state"><div class="ico">📭</div><p>Nessuna transazione trovata.</p></div>`;
+        return;
+      }
+
+      let html = `<table>
+        <thead><tr>
+          <th>Data</th>
+          <th>Pompa</th>
+          <th>Carburante</th>
+          <th>Litri</th>
+          <th class="text-right">Tasso</th>
+          <th class="text-right">Importo (MYZ)</th>
+        </tr></thead><tbody>`;
+      filtered.forEach(t => {
+        const date = new Date(t.timestamp).toLocaleString('it-IT', {
+          day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'
+        });
+        const fuelIcons = { 'Benzina':'⛽', 'Diesel':'🛢️', 'GPL':'🔵', 'Elettrico':'⚡', 'Idrogeno':'💧' };
+        html += `<tr>
+          <td class="text-muted">${date}</td>
+          <td>${t.pump}</td>
+          <td>${fuelIcons[t.fuel] || ''} ${t.fuel}</td>
+          <td>${t.liters} L</td>
+          <td class="text-right">${t.rate} MYZ/L</td>
+          <td class="text-right"><strong>${t.myz} MYZ</strong></td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    function renderRecentTransactions() {
+      const container = document.getElementById('recentTransactions');
+      const recent = state.transactions.slice(0, 8);
+      if (recent.length === 0) {
+        container.innerHTML = `<div class="empty-state"><div class="ico">📭</div><p>Nessuna transazione.</p></div>`;
+        return;
+      }
+      let html = `<table>
+        <thead><tr>
+          <th>Data</th>
+          <th>Pompa</th>
+          <th>Carburante</th>
+          <th class="text-right">Litri</th>
+          <th class="text-right">MYZ</th>
+        </tr></thead><tbody>`;
+      recent.forEach(t => {
+        const date = new Date(t.timestamp).toLocaleString('it-IT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+        html += `<tr>
+          <td class="text-muted">${date}</td>
+          <td>${t.pump}</td>
+          <td>${t.fuel}</td>
+          <td class="text-right">${t.liters} L</td>
+          <td class="text-right"><strong>${t.myz} MYZ</strong></td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    function updateStats() {
+      const txs = state.transactions;
+      const totalMyz = txs.reduce((s, t) => s + t.myz, 0);
+      const totalLiters = txs.reduce((s, t) => s + t.liters, 0);
+
+      document.getElementById('totalEarnings').textContent = totalMyz.toFixed(0);
+      document.getElementById('totalLiters').textContent = totalLiters.toFixed(0) + ' L';
+      document.getElementById('totalTransactions').textContent = txs.length;
+
+      // Rating
+      const ratings = [4.2, 4.5, 4.8, 4.3, 4.6, 4.1, 4.7];
+      const avg = ratings.reduce((s, r) => s + r, 0) / ratings.length;
+      document.getElementById('avgRating').textContent = avg.toFixed(1);
+      document.getElementById('ratingCount').textContent = `${ratings.length} recensioni`;
+
+      // Changes (simulated)
+      const changes = [12.3, 8.7, 15, 0.3];
+      document.getElementById('earningsChange').textContent = `+${changes[0]}%`;
+      document.getElementById('litersChange').textContent = `+${changes[1]}%`;
+      document.getElementById('txChange').textContent = `+${changes[2]}`;
+    }
+
+    // ---- Charts ----
+    let earningsChartInstance = null;
+    let fuelChartInstance = null;
+    let rateChartInstance = null;
+
+    function initCharts() {
+      initEarningsChart();
+      initFuelChart();
+    }
+
+    function initEarningsChart() {
+      const ctx = document.getElementById('earningsChart').getContext('2d');
+      if (earningsChartInstance) { earningsChartInstance.destroy(); }
+
+      const days = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+      const data = days.map(() => Math.floor(Math.random() * 300 + 100));
+
+      earningsChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: days,
+          datasets: [{
+            label: 'MYZ',
+            data,
+            borderColor: '#2ecc71',
+            backgroundColor: 'rgba(46, 204, 113, 0.1)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 4,
+            pointBackgroundColor: '#2ecc71'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(128,128,128,0.1)' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    function initFuelChart() {
+      const ctx = document.getElementById('fuelChart').getContext('2d');
+      if (fuelChartInstance) { fuelChartInstance.destroy(); }
+
+      fuelChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Benzina', 'Diesel', 'GPL', 'Elettrico', 'Idrogeno'],
+          datasets: [{
+            data: [42, 28, 12, 10, 8],
+            backgroundColor: ['#2ecc71', '#3498db', '#f39c12', '#9b59b6', '#e74c3c'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true } }
+          }
+        }
+      });
+    }
+
+    function initRateChart() {
+      const ctx = document.getElementById('rateChart').getContext('2d');
+      if (rateChartInstance) { rateChartInstance.destroy(); }
+
+      const days = [];
+      const data = [];
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        days.push(d.toLocaleDateString('it-IT', { day:'2-digit', month:'2-digit' }));
+        data.push(0.42 + Math.sin(i * 0.3) * 0.05 + (Math.random() - 0.5) * 0.02);
+      }
+
+      rateChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: days,
+          datasets: [{
+            label: 'MYZ/EUR',
+            data,
+            borderColor: '#f7931a',
+            backgroundColor: 'rgba(247, 147, 26, 0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 2,
+            pointBackgroundColor: '#f7931a'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { grid: { color: 'rgba(128,128,128,0.1)' } },
+            x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } }
+          }
+        }
+      });
+    }
+
+    // ---- Exchange Rates ----
+    function updateRates() {
+      document.getElementById('rateMyzToEur').textContent = state.rates.myzToEur.toFixed(4);
+      document.getElementById('rateMyzToLiter').textContent = state.rates.myzToLiter.toFixed(2);
+      document.getElementById('rateEurToLiter').textContent = state.rates.eurToLiter.toFixed(2);
+      document.getElementById('rateMyzToUsd').textContent = state.rates.myzToUsd.toFixed(4);
+      document.getElementById('rateUpdated').textContent = new Date().toLocaleString('it-IT');
+    }
+
+    function calcConvert() {
+      const myz = parseFloat(document.getElementById('calcMyz').value) || 0;
+      const liters = myz / state.rates.myzToLiter;
+      const eur = myz * state.rates.myzToEur;
+      const usd = myz * state.rates.myzToUsd;
+      document.getElementById('calcLiters').value = liters.toFixed(2);
+      document.getElementById('calcEur').value = eur.toFixed(2);
+      document.getElementById('calcUsd').value = usd.toFixed(2);
+    }
+
+    // ---- Export CSV ----
+    function exportCSV() {
+      if (state.transactions.length === 0) {
+        showToast('⚠️ Nessuna transazione da esportare', 'error');
+        return;
+      }
+      let csv = 'Data,Pompa,Carburante,Litri,Tasso,Importo MYZ\n';
+      state.transactions.forEach(t => {
+        const date = new Date(t.timestamp).toISOString();
+        csv += `${date},${t.pump},${t.fuel},${t.liters},${t.rate},${t.myz}\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `transazioni-${state.station?.name || 'stazione'}-${new Date().toISOString().slice(0,10)}.csv`;
+      link.click();
+      showToast('📥 CSV esportato!', 'success');
+    }
+
+    // ---- Toast ----
+    function showToast(msg, type) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.className = `toast ${type} show`;
+      setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
+    // ---- Init ----
+    updateStationUI();
+    generateDemoTransactions();
+    renderTransactions();
+    renderRecentTransactions();
+    updateStats();
+    updateRates();
+    calcConvert();
+    initCharts();
+  </script>
+</body>
+</html>
