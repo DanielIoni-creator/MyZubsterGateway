@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🔔 BENZINA Notifiche - MyZubster</title>
+  <style>
+    :root {
+      --accent: #f7931a;
+      --accent-2: #2ecc71;
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --surface-2: #eef1f6;
+      --text: #1f2733;
+      --text-soft: #5b6675;
+      --border: #e2e7ee;
+      --shadow: 0 10px 30px rgba(20, 30, 50, 0.08);
+      --radius: 14px;
+      --credit: #22a06b;
+      --debit: #d94f4f;
+      --warn: #d99000;
+    }
+    [data-theme="dark"] {
+      --bg: #10141b;
+      --surface: #171d27;
+      --surface-2: #1f2733;
+      --text: #e5e9f0;
+      --text-soft: #8b95a8;
+      --border: #2a3342;
+      --shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 20px; transition: background .3s, color .3s; }
+    .dashboard { max-width: 1200px; margin: 0 auto; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .top-bar h1 { font-size: 1.6rem; display: flex; align-items: center; gap: 8px; }
+    .theme-toggle { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 16px; cursor: pointer; color: var(--text); font-size: .9rem; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .stat-card .stat-label { font-size: .8rem; color: var(--text-soft); text-transform: uppercase; letter-spacing: .5px; }
+    .stat-card .stat-value { font-size: 1.6rem; font-weight: 700; margin-top: 4px; }
+    .stat-card .stat-sub { font-size: .8rem; color: var(--text-soft); margin-top: 2px; }
+
+    .notif-filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .notif-filters .filter-btn { padding: 8px 18px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--text-soft); cursor: pointer; font-size: .85rem; transition: all .2s; }
+    .notif-filters .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .notif-filters .filter-btn:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; background: var(--surface); border-radius: var(--radius); padding: 4px; border: 1px solid var(--border); }
+    .tab { padding: 10px 20px; border-radius: 10px; border: none; background: transparent; color: var(--text-soft); cursor: pointer; font-size: .9rem; font-weight: 500; transition: all .2s; flex: 1; text-align: center; }
+    .tab.active { background: var(--accent); color: white; }
+    .tab:hover:not(.active) { background: var(--surface-2); }
+
+    .notif-list { background: var(--surface); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .notif-item { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; gap: 14px; align-items: flex-start; transition: background .2s; }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item:hover { background: var(--surface-2); }
+    .notif-item.unread { border-left: 3px solid var(--accent); }
+    .notif-icon { font-size: 1.5rem; min-width: 36px; text-align: center; margin-top: 2px; }
+    .notif-content { flex: 1; }
+    .notif-title { font-weight: 600; margin-bottom: 4px; }
+    .notif-desc { font-size: .9rem; color: var(--text-soft); }
+    .notif-time { font-size: .8rem; color: var(--text-soft); margin-top: 6px; display: flex; align-items: center; gap: 8px; }
+    .notif-badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: .7rem; font-weight: 600; }
+    .notif-badge.payment { background: rgba(46,204,113,.15); color: var(--credit); }
+    .notif-badge.receipt { background: rgba(52,152,219,.15); color: #3498db; }
+    .notif-badge.reminder { background: rgba(243,147,26,.15); color: var(--accent); }
+    .notif-actions { display: flex; gap: 6px; margin-top: 8px; }
+    .notif-actions .btn-sm { padding: 4px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font-size: .8rem; transition: all .2s; }
+    .notif-actions .btn-sm:hover { background: var(--accent); color: white; border-color: var(--accent); }
+
+    .receipt-preview { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .receipt-header { text-align: center; margin-bottom: 20px; }
+    .receipt-header h2 { font-size: 1.3rem; }
+    .receipt-header .receipt-id { color: var(--text-soft); font-size: .85rem; }
+    .receipt-details { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .receipt-details .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--border); }
+    .receipt-details .row .label { color: var(--text-soft); }
+    .receipt-details .row .value { font-weight: 600; }
+    .receipt-actions { margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .receipt-actions .btn { padding: 10px 24px; border-radius: 10px; border: none; cursor: pointer; font-size: .9rem; font-weight: 600; transition: opacity .2s; }
+    .receipt-actions .btn:hover { opacity: .85; }
+    .receipt-actions .btn-primary { background: linear-gradient(135deg, #f7931a, #e67e22); color: white; }
+    .receipt-actions .btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+
+    .reminder-settings { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .reminder-settings h3 { margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-row .setting-label { font-weight: 500; }
+    .setting-row .setting-desc { font-size: .8rem; color: var(--text-soft); }
+    .toggle { width: 48px; height: 26px; border-radius: 13px; background: var(--border); cursor: pointer; position: relative; transition: background .2s; }
+    .toggle.on { background: var(--accent); }
+    .toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: white; transition: transform .2s; }
+    .toggle.on::after { transform: translateX(22px); }
+
+    .no-data { text-align: center; padding: 40px; color: var(--text-soft); }
+
+    @media (max-width: 640px) {
+      .receipt-details { grid-template-columns: 1fr; }
+      .tabs { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <div class="top-bar">
+      <h1>🔔 BENZINA Notifiche</h1>
+      <button class="theme-toggle" onclick="toggleTheme()">🌓 Tema</button>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Non lette</div>
+        <div class="stat-value" id="statUnread">0</div>
+        <div class="stat-sub">notifiche</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Ricevute</div>
+        <div class="stat-value" id="statReceipts">0</div>
+        <div class="stat-sub">digitali</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Promemoria</div>
+        <div class="stat-value" id="statReminders">0</div>
+        <div class="stat-sub">attivi</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Totale</div>
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-sub">notifiche</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('notifiche', this)">📩 Notifiche</button>
+      <button class="tab" onclick="switchTab('ricevute', this)">🧾 Ricevute</button>
+      <button class="tab" onclick="switchTab('promemoria', this)">⏰ Promemoria</button>
+    </div>
+
+    <div id="tab-notifiche" class="tab-content">
+      <div class="notif-filters">
+        <button class="filter-btn active" onclick="filterNotifs('all', this)">Tutte</button>
+        <button class="filter-btn" onclick="filterNotifs('payment', this)">💳 Pagamenti</button>
+        <button class="filter-btn" onclick="filterNotifs('receipt', this)">🧾 Ricevute</button>
+        <button class="filter-btn" onclick="filterNotifs('reminder', this)">⏰ Promemoria</button>
+        <button class="filter-btn" onclick="filterNotifs('unread', this)">🔴 Non lette</button>
+      </div>
+      <div class="notif-list" id="notifList"><div class="no-data">Caricamento...</div></div>
+    </div>
+
+    <div id="tab-ricevute" class="tab-content" style="display:none">
+      <div class="receipt-preview" id="receiptArea">
+        <div class="receipt-header">
+          <h2>🧾 Ricevuta Digitale</h2>
+          <div class="receipt-id">Seleziona una notifica di pagamento per visualizzare la ricevuta</div>
+        </div>
+        <div id="receiptDetails" class="receipt-details" style="display:none"></div>
+        <div class="receipt-actions" id="receiptActions" style="display:none">
+          <button class="btn btn-primary" onclick="downloadReceiptPDF()">📥 Scarica PDF</button>
+          <button class="btn btn-secondary" onclick="shareReceipt()">📤 Condividi</button>
+        </div>
+        <div class="no-data" id="receiptNoData">Nessuna ricevuta disponibile</div>
+      </div>
+    </div>
+
+    <div id="tab-promemoria" class="tab-content" style="display:none">
+      <div class="reminder-settings">
+        <h3>⏰ Gestione Promemoria</h3>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Promemoria rifornimento</div>
+            <div class="setting-desc">Ricevi promemoria quando il livello carburante è basso</div>
+          </div>
+          <div class="toggle on" id="toggleFuel" onclick="toggleReminder('fuel')"></div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Promemoria pagamento</div>
+            <div class="setting-desc">Ricevi promemoria per pagamenti MYZ in sospeso</div>
+          </div>
+          <div class="toggle on" id="togglePayment" onclick="toggleReminder('payment')"></div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Promemoria prezzo benzina</div>
+            <div class="setting-desc">Notifica quando il prezzo scende sotto una soglia</div>
+          </div>
+          <div class="toggle" id="togglePrice" onclick="toggleReminder('price')"></div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Notifiche email</div>
+            <div class="setting-desc">Invia notifiche anche via email</div>
+          </div>
+          <div class="toggle on" id="toggleEmail" onclick="toggleReminder('email')"></div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Notifiche SMS</div>
+            <div class="setting-desc">Invia notifiche anche via SMS</div>
+          </div>
+          <div class="toggle" id="toggleSMS" onclick="toggleReminder('sms')"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEMO_NOTIFICATIONS = [
+      { id: 1, type: 'payment', title: '💳 Pagamento ricevuto', desc: 'Hai pagato 50 MYZ per 20.41 L di benzina presso Stazione Rimini Centro', time: '2 min fa', unread: true, receipt: { id: 'RCP-2026-08-001', date: '08/08/2026', time: '14:30', station: 'Stazione Rimini Centro', myz: 50, litri: 20.41, rate: 2.45, method: 'MYZ Wallet', status: 'Completato' } },
+      { id: 2, type: 'receipt', title: '🧾 Ricevuta digitale disponibile', desc: 'Ricevuta per pagamento di 30 MYZ presso Stazione Bologna Nord', time: '15 min fa', unread: true, receipt: { id: 'RCP-2026-08-002', date: '08/08/2026', time: '14:15', station: 'Stazione Bologna Nord', myz: 30, litri: 12.24, rate: 2.45, method: 'MYZ Wallet', status: 'Completato' } },
+      { id: 3, type: 'reminder', title: '⏰ Promemoria: livello carburante basso', desc: 'Il tuo veicolo ha meno di 10 L di carburante. Fai rifornimento presso la stazione più vicina.', time: '1 ora fa', unread: false },
+      { id: 4, type: 'payment', title: '💳 Pagamento automatico effettuato', desc: 'Pagamento ricorrente di 100 MYZ per 40.82 L di benzina', time: '3 ore fa', unread: false, receipt: { id: 'RCP-2026-08-003', date: '08/08/2026', time: '11:00', station: 'Stazione Firenze Ovest', myz: 100, litri: 40.82, rate: 2.45, method: 'Auto-Pay', status: 'Completato' } },
+      { id: 5, type: 'receipt', title: '🧾 Nuova ricevuta disponibile', desc: 'Ricevuta per pagamento di 75 MYZ presso Stazione Milano Est', time: '5 ore fa', unread: false, receipt: { id: 'RCP-2026-08-004', date: '08/08/2026', time: '09:30', station: 'Stazione Milano Est', myz: 75, litri: 30.61, rate: 2.45, method: 'MYZ Wallet', status: 'Completato' } },
+      { id: 6, type: 'reminder', title: '⏰ Promemoria: prezzo benzina in calo', desc: 'Il prezzo della benzina è sceso a 2.38 MYZ/L. È un buon momento per fare rifornimento!', time: 'ieri', unread: false },
+      { id: 7, type: 'payment', title: '💳 Pagamento con XMR ricevuto', desc: 'Hai pagato 0.05 XMR (equivalente a 60 MYZ) per 24.49 L di benzina', time: '2 giorni fa', unread: false, receipt: { id: 'RCP-2026-08-005', date: '06/08/2026', time: '16:45', station: 'Stazione Torino Sud', myz: 60, litri: 24.49, rate: 2.45, method: 'XMR', status: 'Completato' } },
+      { id: 8, type: 'receipt', title: '🧾 Report mensile disponibile', desc: 'Il report delle tue transazioni di Luglio 2026 è pronto', time: '3 giorni fa', unread: false },
+    ];
+
+    let notifications = [...DEMO_NOTIFICATIONS];
+    let reminders = { fuel: true, payment: true, price: false, email: true, sms: false };
+    let currentFilter = 'all';
+    let currentTab = 'notifiche';
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+      localStorage.setItem('myz-theme', current === 'dark' ? 'light' : 'dark');
+    }
+
+    (function() {
+      const saved = localStorage.getItem('myz-theme');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
+      const savedReminders = localStorage.getItem('myz-reminders');
+      if (savedReminders) reminders = JSON.parse(savedReminders);
+      const savedNotifs = localStorage.getItem('myz-notifications');
+      if (savedNotifs) notifications = JSON.parse(savedNotifs);
+    })();
+
+    function updateStats() {
+      const unread = notifications.filter(n => n.unread).length;
+      const receipts = notifications.filter(n => n.receipt).length;
+      const remindersActive = Object.values(reminders).filter(Boolean).length;
+      document.getElementById('statUnread').textContent = unread;
+      document.getElementById('statReceipts').textContent = receipts;
+      document.getElementById('statReminders').textContent = remindersActive;
+      document.getElementById('statTotal').textContent = notifications.length;
+    }
+
+    function switchTab(tab, btn) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+      document.getElementById('tab-' + tab).style.display = 'block';
+      currentTab = tab;
+      if (tab === 'notifiche') renderNotifs();
+    }
+
+    function filterNotifs(filter, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = filter;
+      renderNotifs();
+    }
+
+    function renderNotifs() {
+      const container = document.getElementById('notifList');
+      let filtered = notifications;
+      if (currentFilter !== 'all' && currentFilter !== 'unread') {
+        filtered = filtered.filter(n => n.type === currentFilter);
+      } else if (currentFilter === 'unread') {
+        filtered = filtered.filter(n => n.unread);
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="no-data">Nessuna notifica trovata</div>';
+        return;
+      }
+
+      let html = '';
+      filtered.forEach(n => {
+        const badgeClass = n.type === 'payment' ? 'payment' : n.type === 'receipt' ? 'receipt' : 'reminder';
+        const badgeLabel = n.type === 'payment' ? '💳 Pagamento' : n.type === 'receipt' ? '🧾 Ricevuta' : '⏰ Promemoria';
+        html += `<div class="notif-item ${n.unread ? 'unread' : ''}">
+          <div class="notif-icon">${n.type === 'payment' ? '💳' : n.type === 'receipt' ? '🧾' : '⏰'}</div>
+          <div class="notif-content">
+            <div class="notif-title">${n.title}</div>
+            <div class="notif-desc">${n.desc}</div>
+            <div class="notif-time">
+              <span class="notif-badge ${badgeClass}">${badgeLabel}</span>
+              <span>🕐 ${n.time}</span>
+              ${n.unread ? '<span style="color:var(--accent)">● Non letta</span>' : ''}
+            </div>
+            <div class="notif-actions">
+              ${n.receipt ? `<button class="btn-sm" onclick="viewReceipt(${n.id})">👁 Visualizza Ricevuta</button>` : ''}
+              <button class="btn-sm" onclick="markRead(${n.id})">${n.unread ? '✓ Segna come letta' : '📌'}</button>
+            </div>
+          </div>
+        </div>`;
+      });
+      container.innerHTML = html;
+      updateStats();
+    }
+
+    function markRead(id) {
+      const n = notifications.find(x => x.id === id);
+      if (n) { n.unread = false; localStorage.setItem('myz-notifications', JSON.stringify(notifications)); renderNotifs(); }
+    }
+
+    function viewReceipt(id) {
+      const n = notifications.find(x => x.id === id);
+      if (!n || !n.receipt) return;
+      switchTab('ricevute', document.querySelectorAll('.tab')[1]);
+      const r = n.receipt;
+      document.getElementById('receiptNoData').style.display = 'none';
+      document.getElementById('receiptDetails').style.display = 'grid';
+      document.getElementById('receiptActions').style.display = 'flex';
+      document.querySelector('.receipt-header .receipt-id').textContent = `#${r.id}`;
+      document.getElementById('receiptDetails').innerHTML = `
+        <div class="row"><span class="label">ID Ricevuta</span><span class="value">${r.id}</span></div>
+        <div class="row"><span class="label">Data</span><span class="value">${r.date}</span></div>
+        <div class="row"><span class="label">Ora</span><span class="value">${r.time}</span></div>
+        <div class="row"><span class="label">Stazione</span><span class="value">${r.station}</span></div>
+        <div class="row"><span class="label">Importo MYZ</span><span class="value">${r.myz} MYZ</span></div>
+        <div class="row"><span class="label">Litri benzina</span><span class="value">${r.litri} L</span></div>
+        <div class="row"><span class="label">Tasso</span><span class="value">${r.rate} MYZ/L</span></div>
+        <div class="row"><span class="label">Metodo</span><span class="value">${r.method}</span></div>
+        <div class="row"><span class="label">Stato</span><span class="value" style="color:var(--credit)">${r.status}</span></div>
+      `;
+    }
+
+    function toggleReminder(key) {
+      reminders[key] = !reminders[key];
+      const el = document.getElementById('toggle' + key.charAt(0).toUpperCase() + key.slice(1));
+      if (el) el.classList.toggle('on');
+      localStorage.setItem('myz-reminders', JSON.stringify(reminders));
+      updateStats();
+    }
+
+    function downloadReceiptPDF() {
+      const details = document.getElementById('receiptDetails').innerText;
+      const blob = new Blob(['\uFEFF' + details], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'ricevuta-benzina.txt'; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function shareReceipt() {
+      alert('📤 Condivisione ricevuta: funzione disponibile nella prossima versione.');
+    }
+
+    renderNotifs();
+  </script>
+</body>
+</html>

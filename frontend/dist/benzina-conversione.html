@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⛽ BENZINA Conversione - MyZubster</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --accent: #f7931a;
+      --accent-2: #2ecc71;
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --surface-2: #eef1f6;
+      --text: #1f2733;
+      --text-soft: #5b6675;
+      --border: #e2e7ee;
+      --shadow: 0 10px 30px rgba(20, 30, 50, 0.08);
+      --radius: 14px;
+      --credit: #22a06b;
+      --debit: #d94f4f;
+      --warn: #d99000;
+    }
+    [data-theme="dark"] {
+      --bg: #10141b;
+      --surface: #171d27;
+      --surface-2: #1f2733;
+      --text: #e5e9f0;
+      --text-soft: #8b95a8;
+      --border: #2a3342;
+      --shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 20px; transition: background .3s, color .3s; }
+    .dashboard { max-width: 1200px; margin: 0 auto; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .top-bar h1 { font-size: 1.6rem; display: flex; align-items: center; gap: 8px; }
+    .theme-toggle { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 16px; cursor: pointer; color: var(--text); font-size: .9rem; }
+
+    .hero-card { background: linear-gradient(135deg, #f7931a, #e67e22); border-radius: var(--radius); padding: 28px; color: white; margin-bottom: 24px; }
+    .hero-card h2 { font-size: 1.2rem; opacity: .9; margin-bottom: 4px; }
+    .hero-card .rate { font-size: 2.2rem; font-weight: 700; }
+    .hero-card .update-info { font-size: .85rem; opacity: .7; margin-top: 6px; }
+    .hero-card .rate-change { display: inline-block; margin-left: 10px; font-size: 1rem; padding: 2px 10px; border-radius: 20px; background: rgba(255,255,255,.2); }
+
+    .converter-card { background: var(--surface); border-radius: var(--radius); padding: 28px; margin-bottom: 24px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .converter-card h3 { margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .converter-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: end; }
+    .converter-grid .field { display: flex; flex-direction: column; gap: 6px; }
+    .converter-grid .field label { font-size: .85rem; color: var(--text-soft); font-weight: 600; }
+    .converter-grid .field input { padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); color: var(--text); font-size: 1.1rem; width: 100%; outline: none; transition: border .2s; }
+    .converter-grid .field input:focus { border-color: var(--accent); }
+    .converter-grid .swap-btn { background: var(--surface-2); border: 1px solid var(--border); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; color: var(--text); margin-bottom: 0; transition: background .2s; }
+    .converter-grid .swap-btn:hover { background: var(--accent); color: white; }
+    .converter-result { margin-top: 16px; padding: 16px; background: var(--surface-2); border-radius: 10px; text-align: center; }
+    .converter-result .result-value { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+    .converter-result .result-note { font-size: .85rem; color: var(--text-soft); margin-top: 4px; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .stat-card .stat-label { font-size: .8rem; color: var(--text-soft); text-transform: uppercase; letter-spacing: .5px; }
+    .stat-card .stat-value { font-size: 1.6rem; font-weight: 700; margin-top: 4px; }
+    .stat-card .stat-sub { font-size: .8rem; color: var(--text-soft); margin-top: 2px; }
+
+    .chart-section { background: var(--surface); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .chart-section h3 { margin-bottom: 16px; }
+    .chart-wrapper { position: relative; height: 280px; }
+
+    .history-section { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+    .history-header h3 { display: flex; align-items: center; gap: 6px; }
+    .history-header .btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); cursor: pointer; font-size: .85rem; transition: background .2s; }
+    .history-header .btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 10px 12px; font-size: .8rem; color: var(--text-soft); text-transform: uppercase; letter-spacing: .5px; border-bottom: 2px solid var(--border); }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: .9rem; }
+    tr:hover td { background: var(--surface-2); }
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: .8rem; font-weight: 600; }
+    .badge.success { background: rgba(46,204,113,.15); color: var(--credit); }
+    .badge.pending { background: rgba(243,147,26,.15); color: var(--accent); }
+    .no-data { text-align: center; padding: 40px; color: var(--text-soft); }
+
+    @media (max-width: 640px) {
+      .converter-grid { grid-template-columns: 1fr; }
+      .converter-grid .swap-btn { justify-self: center; transform: rotate(90deg); }
+      .hero-card .rate { font-size: 1.6rem; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <div class="top-bar">
+      <h1>⛽ BENZINA Conversione</h1>
+      <button class="theme-toggle" onclick="toggleTheme()">🌓 Tema</button>
+    </div>
+
+    <div class="hero-card">
+      <h2>💰 Tasso di cambio MYZ / Benzina</h2>
+      <div class="rate" id="rateDisplay">1 MYZ = -- L</div>
+      <div class="update-info" id="rateInfo">⏳ Caricamento...</div>
+    </div>
+
+    <div class="converter-card">
+      <h3>🔄 Convertitore</h3>
+      <div class="converter-grid">
+        <div class="field">
+          <label>MYZ</label>
+          <input type="number" id="myzInput" value="100" min="0" step="0.01" oninput="convertFromMysz()" />
+        </div>
+        <button class="swap-btn" onclick="swapConversion()" title="Inverti">⇄</button>
+        <div class="field">
+          <label>Litri Benzina</label>
+          <input type="number" id="litriInput" value="0" min="0" step="0.01" oninput="convertFromLitri()" />
+        </div>
+      </div>
+      <div class="converter-result">
+        <div class="result-value" id="resultDisplay">100 MYZ = 0.00 L</div>
+        <div class="result-note">💰 Prezzo benzina: <span id="pricePerLiter">--</span> MYZ/L</div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Tasso attuale</div>
+        <div class="stat-value" id="statRate">--</div>
+        <div class="stat-sub">MYZ per L</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Conversioni oggi</div>
+        <div class="stat-value" id="statToday">0</div>
+        <div class="stat-sub">transazioni</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Volume MYZ oggi</div>
+        <div class="stat-value" id="statVolume">0</div>
+        <div class="stat-sub">MYZ</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Ultimo aggiornamento</div>
+        <div class="stat-value" style="font-size:1rem" id="statUpdated">--</div>
+        <div class="stat-sub">prezzo benzina</div>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <h3>📈 Storico tassi di cambio</h3>
+      <div class="chart-wrapper">
+        <canvas id="rateChart"></canvas>
+      </div>
+    </div>
+
+    <div class="history-section">
+      <div class="history-header">
+        <h3>📋 Storico conversioni</h3>
+        <div>
+          <button class="btn" onclick="exportCSV()">📥 Export CSV</button>
+          <button class="btn" onclick="exportJSON()" style="margin-left:4px">📥 Export JSON</button>
+        </div>
+      </div>
+      <div id="historyTable">
+        <div class="no-data">Nessuna conversione registrata. Inizia a convertire!</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // DEMO data
+    const DEMO = {
+      rate: 2.45, // MYZ per litro
+      pricePerLiter: 2.45,
+      history: [
+        { date: '2026-08-01', rate: 2.38, myz: 500, litri: 210.08 },
+        { date: '2026-08-02', rate: 2.40, myz: 300, litri: 125.00 },
+        { date: '2026-08-03', rate: 2.43, myz: 450, litri: 185.19 },
+        { date: '2026-08-04', rate: 2.41, myz: 200, litri: 82.99 },
+        { date: '2026-08-05', rate: 2.44, myz: 350, litri: 143.44 },
+        { date: '2026-08-06', rate: 2.42, myz: 600, litri: 247.93 },
+        { date: '2026-08-07', rate: 2.45, myz: 280, litri: 114.29 },
+      ],
+      conversions: []
+    };
+
+    let state = { rate: DEMO.rate, pricePerLiter: DEMO.pricePerLiter, conversions: [] };
+    let rateChart = null;
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+      localStorage.setItem('myz-theme', current === 'dark' ? 'light' : 'dark');
+      if (rateChart) {
+        rateChart.update();
+      }
+    }
+
+    // Load saved theme
+    (function() {
+      const saved = localStorage.getItem('myz-theme');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
+    })();
+
+    function formatNumber(n, d) { return Number(n).toLocaleString('it-IT', { minimumFractionDigits: d||2, maximumFractionDigits: d||2 }); }
+
+    function updateRateDisplay() {
+      const rate = state.rate;
+      document.getElementById('rateDisplay').textContent = `1 MYZ = ${formatNumber(1/rate, 4)} L`;
+      document.getElementById('pricePerLiter').textContent = formatNumber(rate);
+      document.getElementById('statRate').textContent = formatNumber(rate);
+      document.getElementById('rateInfo').innerHTML = '✅ Aggiornato in tempo reale';
+      document.getElementById('statUpdated').textContent = new Date().toLocaleTimeString('it-IT');
+    }
+
+    function convertFromMysz() {
+      const myz = parseFloat(document.getElementById('myzInput').value) || 0;
+      const litri = myz / state.rate;
+      document.getElementById('litriInput').value = formatNumber(litri, 2);
+      document.getElementById('resultDisplay').textContent = `${formatNumber(myz)} MYZ = ${formatNumber(litri)} L`;
+    }
+
+    function convertFromLitri() {
+      const litri = parseFloat(document.getElementById('litriInput').value) || 0;
+      const myz = litri * state.rate;
+      document.getElementById('myzInput').value = formatNumber(myz, 2);
+      document.getElementById('resultDisplay').textContent = `${formatNumber(myz)} MYZ = ${formatNumber(litri)} L`;
+    }
+
+    function swapConversion() {
+      const myz = document.getElementById('myzInput').value;
+      const litri = document.getElementById('litriInput').value;
+      document.getElementById('myzInput').value = litri;
+      document.getElementById('litriInput').value = myz;
+      if (parseFloat(litri) > 0) convertFromLitri();
+      else convertFromMysz();
+    }
+
+    function addConversion(myz, litri) {
+      const now = new Date();
+      const entry = {
+        id: state.conversions.length + 1,
+        date: now.toLocaleDateString('it-IT'),
+        time: now.toLocaleTimeString('it-IT'),
+        myz: myz,
+        litri: litri,
+        rate: state.rate
+      };
+      state.conversions.unshift(entry);
+      localStorage.setItem('myz-conversions', JSON.stringify(state.conversions));
+      renderHistory();
+      updateStats();
+    }
+
+    function confirmConversion() {
+      const myz = parseFloat(document.getElementById('myzInput').value) || 0;
+      const litri = myz / state.rate;
+      if (myz <= 0) return;
+      addConversion(myz, litri);
+      // Simulate conversion
+      document.getElementById('resultDisplay').textContent = `✅ Convertiti ${formatNumber(myz)} MYZ → ${formatNumber(litri)} L`;
+      setTimeout(() => convertFromMysz(), 1500);
+    }
+
+    function updateStats() {
+      const today = new Date().toLocaleDateString('it-IT');
+      const todayConvs = state.conversions.filter(c => c.date === today);
+      document.getElementById('statToday').textContent = todayConvs.length;
+      const volume = todayConvs.reduce((s, c) => s + c.myz, 0);
+      document.getElementById('statVolume').textContent = formatNumber(volume);
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('historyTable');
+      if (state.conversions.length === 0) {
+        container.innerHTML = '<div class="no-data">Nessuna conversione registrata. Inizia a convertire!</div>';
+        return;
+      }
+      let html = `<table>
+        <thead><tr><th>#</th><th>Data</th><th>Ora</th><th>MYZ</th><th>Litri</th><th>Tasso</th><th>Stato</th></tr></thead><tbody>`;
+      state.conversions.slice(0, 50).forEach(c => {
+        html += `<tr>
+          <td>${c.id}</td>
+          <td>${c.date}</td>
+          <td>${c.time}</td>
+          <td>${formatNumber(c.myz)}</td>
+          <td>${formatNumber(c.litri)}</td>
+          <td>${formatNumber(c.rate)}</td>
+          <td><span class="badge success">✅ Completato</span></td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    function initChart() {
+      const ctx = document.getElementById('rateChart').getContext('2d');
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+      const textColor = isDark ? '#8b95a8' : '#5b6675';
+
+      rateChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: DEMO.history.map(h => h.date),
+          datasets: [{
+            label: 'Tasso MYZ/L',
+            data: DEMO.history.map(h => h.rate),
+            borderColor: '#f7931a',
+            backgroundColor: 'rgba(247,147,26,0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 4,
+            pointBackgroundColor: '#f7931a',
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: textColor } }
+          },
+          scales: {
+            x: { ticks: { color: textColor }, grid: { color: gridColor } },
+            y: { ticks: { color: textColor }, grid: { color: gridColor } }
+          }
+        }
+      });
+    }
+
+    async function loadData() {
+      updateRateDisplay();
+      convertFromMysz();
+
+      // Load saved conversions
+      try {
+        const saved = localStorage.getItem('myz-conversions');
+        if (saved) {
+          state.conversions = JSON.parse(saved);
+          renderHistory();
+          updateStats();
+        }
+      } catch(e) {}
+
+      // Try to fetch real data
+      try {
+        const res = await fetch('/api/benzina/rate');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.rate) {
+            state.rate = data.rate;
+            state.pricePerLiter = data.rate;
+            updateRateDisplay();
+            convertFromMysz();
+          }
+        }
+      } catch(e) {
+        console.log('Using demo data for rate');
+      }
+
+      initChart();
+    }
+
+    // Listen for Enter key on inputs
+    document.getElementById('myzInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') confirmConversion();
+    });
+    document.getElementById('litriInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { convertFromLitri(); confirmConversion(); }
+    });
+
+    // Export CSV
+    function exportCSV() {
+      if (state.conversions.length === 0) return;
+      let csv = 'ID,Data,Ora,MYZ,Litri,Tasso\n';
+      state.conversions.forEach(c => {
+        csv += `${c.id},${c.date},${c.time},${c.myz},${c.litri},${c.rate}\n`;
+      });
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'conversioni-benzina.csv'; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportJSON() {
+      if (state.conversions.length === 0) return;
+      const blob = new Blob([JSON.stringify(state.conversions, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'conversioni-benzina.json'; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Add a "Conferma Conversione" button under the converter
+    document.addEventListener('DOMContentLoaded', function() {
+      const resultDiv = document.querySelector('.converter-result');
+      const btn = document.createElement('button');
+      btn.textContent = '✅ Conferma Conversione';
+      btn.style.cssText = 'margin-top:12px;padding:10px 24px;border-radius:10px;border:none;background:linear-gradient(135deg,#f7931a,#e67e22);color:white;font-size:1rem;font-weight:600;cursor:pointer;transition:opacity .2s;';
+      btn.onmouseover = () => btn.style.opacity = '.9';
+      btn.onmouseout = () => btn.style.opacity = '1';
+      btn.onclick = confirmConversion;
+      resultDiv.appendChild(btn);
+    });
+
+    loadData();
+  </script>
+</body>
+</html>
