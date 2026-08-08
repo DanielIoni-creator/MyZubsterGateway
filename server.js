@@ -35,6 +35,7 @@ app.use(express.json());
 app.use(limiter);
 
 // Import routes
+const robotMilitareRoutes = require('./routes/robotMilitare');
 const robotChiesaRoutes = require('./routes/robotChiesa');
 const centroControlloRoutes = require('./routes/centroControllo');
 const navicellaRoutes = require('./routes/navicella');
@@ -70,6 +71,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes API
+app.use('/api/militare', robotMilitareRoutes);
 app.use('/api/robot-chiesa', robotChiesaRoutes);
 app.use('/api/centri-controllo', centroControlloRoutes);
 app.use('/api/navicelle', navicellaRoutes);
