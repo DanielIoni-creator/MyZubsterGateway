@@ -1,7 +1,7 @@
 // middleware/auth.js - JWT Authentication middleware
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key_here_change_me';
+const JWT_SECRET = process.env.JWT_SECRET || require('crypto').randomBytes(64).toString('hex');
 
 /**
  * Middleware per verificare il token JWT
