@@ -1,4 +1,5 @@
 require('dotenv').config();
+app.use('/api/mc-escrow', require('./src/routes/multiCurrencyEscrowRoutes'));
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
