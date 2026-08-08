@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyZubsterGateway — API Documentation</title>
+<style>
+:root {
+  --bg: #0a0e17; --card: #111827; --border: #1f2937;
+  --text: #e5e7eb; --muted: #9ca3af; --accent: #3b82f6;
+  --green: #10b981; --orange: #f59e0b; --red: #ef4444;
+  --purple: #8b5cf6; --radius: 12px;
+  --method-get: #10b981; --method-post: #3b82f6;
+  --method-put: #f59e0b; --method-delete: #ef4444;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+.sidebar { width: 280px; background: var(--card); border-right: 1px solid var(--border); padding: 20px; overflow-y: auto; position: fixed; top:0; left:0; bottom:0; }
+.sidebar h2 { font-size: 18px; margin-bottom: 16px; color: var(--accent); }
+.sidebar input { width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 13px; margin-bottom: 16px; outline: none; }
+.sidebar input:focus { border-color: var(--accent); }
+.tag { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius); font-size: 13px; cursor: pointer; margin-bottom: 2px; color: var(--muted); transition: all 0.2s; }
+.tag:hover, .tag.active { background: rgba(59,130,246,0.1); color: var(--text); }
+.main { margin-left: 280px; padding: 32px; flex: 1; max-width: 900px; }
+.endpoint { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
+.endpoint-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.method { padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.method.get { background: rgba(16,185,129,0.15); color: var(--method-get); }
+.method.post { background: rgba(59,130,246,0.15); color: var(--method-post); }
+.method.put { background: rgba(245,158,11,0.15); color: var(--method-put); }
+.method.delete { background: rgba(239,68,68,0.15); color: var(--method-delete); }
+.path { font-family: 'Fira Code', 'Cascadia Code', monospace; font-size: 15px; font-weight: 600; }
+.desc { color: var(--muted); font-size: 14px; margin-bottom: 16px; line-height: 1.6; }
+.code-block { background: #0d1117; border: 1px solid var(--border); border-radius: 8px; padding: 16px; overflow-x: auto; margin-bottom: 12px; }
+.code-block pre { font-family: 'Fira Code', monospace; font-size: 13px; line-height: 1.7; color: #c9d1d9; }
+.code-block .key { color: #79c0ff; } .code-block .string { color: #a5d6ff; }
+.code-block .number { color: #79c0ff; } .code-block .comment { color: #8b949e; }
+.tabs { display: flex; gap: 4px; margin-bottom: 8px; }
+.tab { padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; background: transparent; color: var(--muted); border: 1px solid var(--border); transition: all 0.2s; }
+.tab:hover, .tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; padding: 16px; }
+}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <h2>📘 API Docs</h2>
+  <input type="text" placeholder="🔍 Search endpoints..." id="search" oninput="filterEndpoints()">
+  <div id="tag-list">
+    <div class="tag active" onclick="scrollToSection('bookings')">📅 Bookings</div>
+    <div class="tag" onclick="scrollToSection('users')">👥 Users</div>
+    <div class="tag" onclick="scrollToSection('bounties')">💰 Bounties</div>
+    <div class="tag" onclick="scrollToSection('robots')">🤖 Robots</div>
+    <div class="tag" onclick="scrollToSection('payments')">💳 Payments</div>
+    <div class="tag" onclick="scrollToSection('gateway')">🌐 Gateway</div>
+    <div class="tag" onclick="scrollToSection('garden')">🌱 Garden</div>
+  </div>
+</aside>
+
+<main class="main">
+  <h1 style="font-size:28px;margin-bottom:8px">MyZubsterGateway API</h1>
+  <p class="desc" style="margin-bottom:32px">Complete REST API reference for the MyZubster decentralized gateway. All endpoints require authentication via JWT Bearer token except where noted.</p>
+
+  <!-- BOOKINGS -->
+  <h2 id="bookings" style="margin-bottom:16px;margin-top:32px">📅 Bookings</h2>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/bookings</span></div>
+    <p class="desc">Retrieve all bookings. Returns an array of booking objects.</p>
+    <div class="tabs"><button class="tab active">curl</button><button class="tab">JavaScript</button><button class="tab">Python</button></div>
+    <div class="code-block"><pre>curl -X GET https://api.myzubster.com/api/bookings \
+  -H <span class="string">"Authorization: Bearer $TOKEN"</span> \
+  -H <span class="string">"Content-Type: application/json"</span></pre></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method post">POST</span><span class="path">/api/bookings</span></div>
+    <p class="desc">Create a new booking. Required fields: <code>serviceId</code>, <code>userId</code>, <code>date</code>.</p>
+    <div class="code-block"><pre>curl -X POST https://api.myzubster.com/api/bookings \
+  -H <span class="string">"Authorization: Bearer $TOKEN"</span> \
+  -H <span class="string">"Content-Type: application/json"</span> \
+  -d <span class="string">'{"serviceId":"123","userId":"456","date":"2026-08-10"}'</span></pre></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/bookings/:id</span></div>
+    <p class="desc">Get a specific booking by ID. Returns 404 if not found.</p>
+  </div>
+
+  <!-- USERS -->
+  <h2 id="users" style="margin-bottom:16px;margin-top:32px">👥 Users</h2>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/users</span></div>
+    <p class="desc">List all registered users with their profiles and reputation scores.</p>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method post">POST</span><span class="path">/api/auth/login</span></div>
+    <p class="desc">Authenticate and receive a JWT token. Returns token + user profile.</p>
+    <div class="code-block"><pre><span class="comment">// Response 200</span>
+{
+  <span class="key">"token"</span>: <span class="string">"eyJhbGciOiJIUzI1NiIs..."</span>,
+  <span class="key">"user"</span>: {
+    <span class="key">"id"</span>: <span class="string">"usr_abc123"</span>,
+    <span class="key">"username"</span>: <span class="string">"crypto_farmer"</span>,
+    <span class="key">"reputation"</span>: <span class="number">95</span>
+  }
+}</pre></div>
+  </div>
+
+  <!-- BOUNTIES -->
+  <h2 id="bounties" style="margin-bottom:16px;margin-top:32px">💰 Bounties</h2>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/bounties</span></div>
+    <p class="desc">List all available bounties with filtering by category, difficulty, and reward range.</p>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method post">POST</span><span class="path">/api/bounties/:id/claim</span></div>
+    <p class="desc">Claim a bounty. Locks the bounty to your account for 48 hours.</p>
+  </div>
+
+  <!-- GATEWAY -->
+  <h2 id="gateway" style="margin-bottom:16px;margin-top:32px">🌐 Gateway</h2>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/health</span></div>
+    <p class="desc">Health check endpoint. Returns gateway status, uptime, and service metrics. No auth required.</p>
+    <div class="code-block"><pre><span class="comment">// Response 200</span>
+{
+  <span class="key">"status"</span>: <span class="string">"healthy"</span>,
+  <span class="key">"uptime"</span>: <span class="string">"14d 3h 22m"</span>,
+  <span class="key">"version"</span>: <span class="string">"2.4.1"</span>,
+  <span class="key">"services"</span>: {
+    <span class="key">"database"</span>: <span class="string">"ok"</span>,
+    <span class="key">"redis"</span>: <span class="string">"ok"</span>,
+    <span class="key">"tari_node"</span>: <span class="string">"synced"</span>
+  }
+}</pre></div>
+  </div>
+
+  <p style="text-align:center;color:var(--muted);margin-top:48px;font-size:13px">
+    MyZubsterGateway API v2.4 · <a href="https://github.com/MyZubster-Ecosystem/MyZubsterGateway" style="color:var(--accent)">GitHub</a>
+  </p>
+</main>
+
+<script>
+function scrollToSection(id) {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+  document.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+}
+function filterEndpoints() {
+  const q = document.getElementById('search').value.toLowerCase();
+  document.querySelectorAll('.endpoint').forEach(e => {
+    e.style.display = e.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>
