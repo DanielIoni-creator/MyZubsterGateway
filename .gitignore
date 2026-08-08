@@ -2,3 +2,30 @@
 
 # Artefatti dei test di carico (Bounty P5)
 reports/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# Backup
+*.backup
+*.save
+*.old
+
+# Logs
+*.log
+logs/
+
+# Temporary
+tmp/
+temp/
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

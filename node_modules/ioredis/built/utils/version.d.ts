@@ -1,1 +1,0 @@
-export declare const PACKAGE_VERSION = "6.0.0";
