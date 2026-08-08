@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⛽ BENZINA Auto Integrazione - MyZubster</title>
+  <style>
+    :root {
+      --accent: #00b894;
+      --accent-2: #fdcb6e;
+      --accent-3: #0984e3;
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --surface-2: #eef1f6;
+      --text: #1f2733;
+      --text-soft: #5b6675;
+      --border: #e2e7ee;
+      --shadow: 0 10px 30px rgba(20, 30, 50, 0.08);
+      --radius: 14px;
+      --credit: #22a06b;
+      --debit: #d94f4f;
+      --warn: #d99000;
+      --fuel-green: #00b894;
+      --fuel-amber: #fdcb6e;
+      --fuel-red: #e17055;
+      --fuel-blue: #0984e3;
+    }
+    [data-theme="dark"] {
+      --bg: #10141b;
+      --surface: #171d27;
+      --surface-2: #1f2733;
+      --text: #e8edf4;
+      --text-soft: #94a1b2;
+      --border: #2a3444;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 28px 20px 48px;
+      font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg); color: var(--text);
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; }
+
+    header { display: flex; align-items: center; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+    h1 { font-size: 24px; margin: 0; }
+    .spacer { flex: 1; }
+    .btn {
+      background: var(--surface); color: var(--text); border: 1px solid var(--border);
+      border-radius: 10px; padding: 8px 14px; cursor: pointer; font-size: 14px;
+      transition: all 0.2s;
+    }
+    .btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .btn.primary { background: var(--fuel-green); border-color: var(--fuel-green); color: #fff; font-weight: 600; }
+    .btn.primary:hover { background: #00a381; }
+    .btn.amber { background: var(--fuel-amber); border-color: var(--fuel-amber); color: #2d3436; font-weight: 600; }
+    .btn.amber:hover { background: #fdc342; }
+    .btn.blue { background: var(--fuel-blue); border-color: var(--fuel-blue); color: #fff; font-weight: 600; }
+    .btn.blue:hover { background: #0773c9; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .pill { font-size: 12px; color: var(--text-soft); border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; }
+    .pill.connected::before { content: "●"; color: var(--fuel-green); margin-right: 6px; }
+    .pill.disconnected::before { content: "●"; color: var(--fuel-red); margin-right: 6px; }
+    .pill.scanning::before { content: "●"; color: var(--fuel-amber); margin-right: 6px; }
+
+    .alerts { display: grid; gap: 8px; margin-bottom: 18px; }
+    .alert { border-radius: 10px; padding: 10px 14px; font-size: 14px; border: 1px solid var(--border); background: var(--surface); }
+    .alert.warning { border-left: 4px solid var(--warn); }
+    .alert.error { border-left: 4px solid var(--debit); }
+    .alert.info { border-left: 4px solid var(--fuel-blue); }
+    .alert.success { border-left: 4px solid var(--fuel-green); }
+
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 18px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; }
+    .card h2 { margin: 0 0 4px; font-size: 14px; color: var(--text-soft); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+    .card .value { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .card .sub { display: flex; gap: 16px; margin-top: 10px; font-size: 13px; color: var(--text-soft); flex-wrap: wrap; }
+    .card .sub b { color: var(--text); font-weight: 600; }
+    .card .icon { font-size: 32px; margin-bottom: 8px; }
+
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; margin-bottom: 16px; }
+    .panel-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+    .panel-head h2 { margin: 0; font-size: 16px; }
+    select, input {
+      background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 6px 10px; font-size: 13px;
+    }
+    input { width: 100%; max-width: 300px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; color: var(--text-soft); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    td { padding: 10px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+    tr:last-child td { border-bottom: none; }
+    .state { font-size: 11px; border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; color: var(--text-soft); }
+    .state.completed { border-color: var(--fuel-green); color: var(--fuel-green); }
+    .state.pending { border-color: var(--fuel-amber); color: var(--fuel-amber); }
+    .state.failed { border-color: var(--fuel-red); color: var(--fuel-red); }
+    .empty { color: var(--text-soft); padding: 24px 10px; text-align: center; }
+    .scroll { overflow-x: auto; }
+
+    .station-card {
+      background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px;
+      padding: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px;
+      transition: all 0.2s;
+    }
+    .station-card:hover { border-color: var(--fuel-green); }
+    .station-card .info { flex: 1; }
+    .station-card .name { font-weight: 600; font-size: 15px; }
+    .station-card .addr { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+    .station-card .price { font-size: 18px; font-weight: 700; color: var(--fuel-green); }
+    .station-card .dist { font-size: 12px; color: var(--text-soft); }
+    .station-card .badge {
+      font-size: 10px; padding: 2px 8px; border-radius: 999px; font-weight: 600;
+    }
+    .badge.auto { background: rgba(0, 184, 148, 0.15); color: var(--fuel-green); }
+    .badge.lowcost { background: rgba(253, 203, 110, 0.15); color: #d4a017; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .progress-bar {
+      height: 8px; background: var(--surface-2); border-radius: 999px; overflow: hidden; margin: 8px 0;
+    }
+    .progress-bar .fill {
+      height: 100%; border-radius: 999px; transition: width 0.8s ease;
+    }
+    .fill.green { background: var(--fuel-green); }
+    .fill.amber { background: var(--fuel-amber); }
+    .fill.red { background: var(--fuel-red); }
+    .fill.blue { background: var(--fuel-blue); }
+
+    .tip { font-size: 13px; padding: 10px 14px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); margin-bottom: 8px; }
+    .tip .tip-icon { margin-right: 8px; }
+    .tip .tip-title { font-weight: 600; font-size: 14px; }
+    .tip .tip-desc { margin-top: 4px; color: var(--text-soft); }
+
+    .stats-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+    .stat-item { flex: 1; min-width: 120px; }
+    .stat-item .label { font-size: 12px; color: var(--text-soft); text-transform: uppercase; letter-spacing: .04em; }
+    .stat-item .num { font-size: 22px; font-weight: 700; }
+
+    .toggle-wrap { display: flex; align-items: center; gap: 10px; }
+    .toggle {
+      position: relative; width: 44px; height: 24px; background: var(--surface-2);
+      border-radius: 999px; cursor: pointer; border: 1px solid var(--border); transition: all 0.3s;
+    }
+    .toggle.active { background: var(--fuel-green); border-color: var(--fuel-green); }
+    .toggle::after {
+      content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+      background: #fff; border-radius: 50%; transition: all 0.3s;
+    }
+    .toggle.active::after { left: 22px; }
+
+    .badge-fuel { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; margin-right: 4px; }
+    .badge-fuel.verde { background: rgba(0, 184, 148, 0.15); color: var(--fuel-green); }
+    .badge-fuel.azzurro { background: rgba(9, 132, 227, 0.15); color: var(--fuel-blue); }
+    .badge-fuel.ambra { background: rgba(253, 203, 110, 0.15); color: #d4a017; }
+
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 24px; max-width: 480px; width: 90%; box-shadow: var(--shadow);
+    }
+    .modal h2 { margin: 0 0 16px; }
+    .modal .btn-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>⛽ BENZINA <span style="color:var(--fuel-green)">Auto Integrazione</span></h1>
+      <span id="statusBadge" class="pill disconnected">Non connesso</span>
+      <span class="spacer"></span>
+      <button id="btnRefresh" class="btn blue">⟳ Aggiorna</button>
+      <button id="btnTheme" class="btn">☾ Tema</button>
+    </header>
+
+    <div id="alerts" class="alerts"></div>
+
+    <div id="cards" class="cards"></div>
+
+    <!-- Section 1: Auto Station Identification -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>📍 Stazioni di Rifornimento — Identificazione Automatica</h2>
+        <span class="spacer"></span>
+        <button id="btnScanStations" class="btn primary">📡 Scansiona Stazioni</button>
+      </div>
+      <div id="stationsContainer">
+        <div class="empty">Attiva la scansione GPS per trovare le stazioni più vicine abilitate al pagamento automatico MyZubster.</div>
+      </div>
+    </section>
+
+    <!-- Section 2: Auto Payment -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>💳 Pagamento Automatico</h2>
+        <span class="spacer"></span>
+        <span class="pill" id="autoPayStatus">Disabilitato</span>
+      </div>
+      <div class="grid-2">
+        <div>
+          <div class="toggle-wrap" style="margin-bottom:16px;">
+            <div id="toggleAutoPay" class="toggle"></div>
+            <span>Pagamento automatico alla pompa</span>
+          </div>
+          <div class="toggle-wrap" style="margin-bottom:16px;">
+            <div id="toggleNotifyPay" class="toggle active"></div>
+            <span>Notifica alla conferma del pagamento</span>
+          </div>
+          <div style="margin-bottom:8px;">
+            <label style="font-size:13px;color:var(--text-soft);display:block;margin-bottom:4px;">Limite massimo per pagamento automatico</label>
+            <select id="payLimit">
+              <option value="20">20 €</option>
+              <option value="30">30 €</option>
+              <option value="50" selected>50 €</option>
+              <option value="75">75 €</option>
+              <option value="100">100 €</option>
+              <option value="0">Nessun limite</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <div class="stat-item">
+            <div class="label">Ultimo pagamento auto</div>
+            <div class="num" id="lastAutoPay">—</div>
+          </div>
+          <div class="stat-item" style="margin-top:10px;">
+            <div class="label">Risparmio totale auto-pagamento</div>
+            <div class="num" style="color:var(--fuel-green);" id="totalAutoSavings">0,00 €</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Refueling History -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>📋 Storico Rifornimenti</h2>
+        <span class="spacer"></span>
+        <select id="fuelFilter">
+          <option value="all">Tutti i carburanti</option>
+          <option value="Benzina">Benzina</option>
+          <option value="Diesel">Diesel</option>
+          <option value="GPL">GPL</option>
+          <option value="Metano">Metano</option>
+          <option value="Elettrico">Elettrico</option>
+        </select>
+        <button id="btnExportCSV" class="btn">⬇ CSV</button>
+      </div>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Stazione</th>
+              <th>Carburante</th>
+              <th>Litri</th>
+              <th>Prezzo/l</th>
+              <th>Totale</th>
+              <th>Pagamento</th>
+              <th>Stato</th>
+            </tr>
+          </thead>
+          <tbody id="refuelRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Section 4: Consumption Optimization -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>📊 Ottimizzazione Consumi</h2>
+        <span class="spacer"></span>
+        <select id="optPeriod">
+          <option value="7">7 giorni</option>
+          <option value="30" selected>30 giorni</option>
+          <option value="90">90 giorni</option>
+        </select>
+      </div>
+      <div class="stats-row" id="optStats"></div>
+      <div class="progress-bar">
+        <div class="fill green" id="efficiencyBar" style="width:72%"></div>
+      </div>
+      <div style="font-size:13px;color:var(--text-soft);margin-bottom:14px;display:flex;justify-content:space-between;">
+        <span>Efficienza carburante</span>
+        <span><b id="efficiencyLabel">72%</b></span>
+      </div>
+      <h3 style="font-size:14px;margin:0 0 10px;">💡 Consigli per risparmiare</h3>
+      <div id="tipsContainer"></div>
+    </section>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="payModal">
+    <div class="modal">
+      <h2>⛽ Conferma Pagamento Automatico</h2>
+      <p id="payModalBody" style="color:var(--text-soft);line-height:1.5;"></p>
+      <div class="btn-row">
+        <button class="btn" id="payModalCancel">Annulla</button>
+        <button class="btn primary" id="payModalConfirm">✅ Conferma</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+
+  var DB_KEY = 'benzina_auto_integrazione';
+
+  // ---- State ----
+  var state = {
+    stations: [],
+    refuels: [],
+    autoPayEnabled: false,
+    notifyPayEnabled: true,
+    payLimit: 50,
+    efficiency: 72,
+    scanned: false,
+    lastAutoPay: null,
+    totalAutoSavings: 0
+  };
+
+  // ---- Demo data generators ----
+  function demoStations() {
+    var names = [
+      { name: 'Eni Stazione MI-Nord', addr: 'Viale Monza 245, Milano', price: 1.829, dist: 0.8, badge: 'auto' },
+      { name: 'Q8 Easy', addr: 'Via Padova 120, Milano', price: 1.799, dist: 1.2, badge: 'lowcost' },
+      { name: 'Tamoil', addr: 'Corso Buenos Aires 78, Milano', price: 1.849, dist: 1.5, badge: 'auto' },
+      { name: 'IP Blu', addr: 'Via Porpora 55, Milano', price: 1.819, dist: 1.9, badge: '' },
+      { name: 'Esso Self', addr: 'Via Lomellina 32, Milano', price: 1.799, dist: 2.3, badge: 'lowcost' },
+      { name: 'Agip', addr: 'Viale Abruzzi 89, Milano', price: 1.859, dist: 2.7, badge: 'auto' },
+    ];
+    return names.map(function (n, i) {
+      return { id: 's' + i, name: n.name, addr: n.addr, price: n.price, dist: n.dist, badge: n.badge, fuelTypes: ['Benzina', 'Diesel'], autoPay: n.badge === 'auto' };
+    });
+  }
+
+  function demoRefuels() {
+    var out = [];
+    var now = Date.now();
+    var stations = ['Eni Stazione MI-Nord', 'Q8 Easy', 'Tamoil', 'IP Blu', 'Esso Self', 'Agip'];
+    var types = ['Benzina', 'Diesel', 'Benzina', 'Benzina', 'Diesel', 'Benzina'];
+    var prices = [1.829, 1.799, 1.849, 1.819, 1.799, 1.859];
+    var liters = [38.5, 42.1, 35.0, 41.2, 28.7, 44.0];
+    var autoPay = [true, false, true, false, false, true];
+
+    for (var i = 0; i < 18; i++) {
+      var idx = i % stations.length;
+      var daysAgo = i * 2 + Math.floor(Math.random() * 3);
+      out.push({
+        id: 'r' + i,
+        date: new Date(now - daysAgo * 86400000).toISOString(),
+        station: stations[idx],
+        fuelType: types[idx],
+        liters: liters[idx] + (Math.random() - 0.5) * 5,
+        pricePerLiter: prices[idx] + (Math.random() - 0.5) * 0.05,
+        total: 0,
+        payment: autoPay[idx] ? 'Auto' : 'Manuale',
+        status: 'completed',
+        autoPay: autoPay[idx]
+      });
+      out[i].total = +(out[i].liters * out[i].pricePerLiter).toFixed(2);
+    }
+    out.sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+    return out;
+  }
+
+  function demoOptimizationTips() {
+    return [
+      { icon: '🚗', title: 'Mantieni una guida fluida', desc: 'Evita accelerazioni brusche e frenate improvvise. Una guida costante può ridurre i consumi fino al 20%.' },
+      { icon: '🔧', title: 'Controlla la pressione degli pneumatici', desc: 'Pneumatici sgonfi aumentano la resistenza al rotolamento. Gonfiali alla pressione raccomandata per risparmiare fino al 3% di carburante.' },
+      { icon: '❄️', title: 'Usa l\'aria condizionata con moderazione', desc: 'L\'AC aumenta i consumi del 5-20%. Usala solo quando necessario e preferisci la ventilazione naturale in città.' },
+      { icon: '🗑️', title: 'Riduci il carico inutile', desc: 'Ogni 50 kg di carico extra aumentano i consumi del 2%. Rimuovi portapacchi e oggetti pesanti non necessari.' },
+      { icon: '📱', title: 'Usa stazioni con pagamento auto', desc: 'Le stazioni abilitate MyZubster offrono uno sconto del 2% sul prezzo al litro. Risparmi senza fare nulla!' },
+      { icon: '📅', title: 'Rifornisciti nei giorni migliori', desc: 'I prezzi dei carburanti sono generalmente più bassi il lunedì e il martedì. Evita il venerdì e il week-end.' },
+    ];
+  }
+
+  // ---- Helpers ----
+  function el(id) { return document.getElementById(id); }
+
+  function formatEuro(v) {
+    return v.toFixed(2).replace('.', ',') + ' €';
+  }
+
+  function formatDate(iso) {
+    var d = new Date(iso);
+    return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' +
+           d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function formatShortDate(iso) {
+    var d = new Date(iso);
+    return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
+  }
+
+  function loadState() {
+    try {
+      var raw = localStorage.getItem(DB_KEY);
+      if (raw) {
+        var saved = JSON.parse(raw);
+        state.autoPayEnabled = saved.autoPayEnabled || false;
+        state.notifyPayEnabled = saved.notifyPayEnabled !== false;
+        state.payLimit = saved.payLimit || 50;
+        state.lastAutoPay = saved.lastAutoPay || null;
+        state.totalAutoSavings = saved.totalAutoSavings || 0;
+        state.refuels = saved.refuels || [];
+        state.stations = saved.stations || [];
+        state.scanned = saved.scanned || false;
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem(DB_KEY, JSON.stringify({
+        autoPayEnabled: state.autoPayEnabled,
+        notifyPayEnabled: state.notifyPayEnabled,
+        payLimit: state.payLimit,
+        lastAutoPay: state.lastAutoPay,
+        totalAutoSavings: state.totalAutoSavings,
+        refuels: state.refuels,
+        stations: state.stations,
+        scanned: state.scanned
+      }));
+    } catch (e) { /* ignore */ }
+  }
+
+  // ---- Render functions ----
+  function renderCards() {
+    var totalSpent = 0;
+    var totalLiters = 0;
+    var autoCount = 0;
+    state.refuels.forEach(function (r) {
+      totalSpent += r.total;
+      totalLiters += r.liters;
+      if (r.autoPay) autoCount++;
+    });
+
+    var avgPrice = totalLiters > 0 ? (totalSpent / totalLiters) : 0;
+    var autoPct = state.refuels.length > 0 ? Math.round(autoCount / state.refuels.length * 100) : 0;
+
+    el('cards').innerHTML = ''
+      + '<div class="card"><div class="icon">💰</div><h2>Spesa Totale</h2><div class="value">' + formatEuro(totalSpent) + '</div><div class="sub">' + state.refuels.length + ' rifornimenti</div></div>'
+      + '<div class="card"><div class="icon">⛽</div><h2>Carburante Erogato</h2><div class="value">' + totalLiters.toFixed(1) + ' L</div><div class="sub">Prezzo medio <b>' + formatEuro(avgPrice) + '</b>/L</div></div>'
+      + '<div class="card"><div class="icon">🤖</div><h2>Pagamenti Automatici</h2><div class="value">' + autoPct + '%</div><div class="sub">' + autoCount + ' su ' + state.refuels.length + ' rifornimenti</div></div>'
+      + '<div class="card"><div class="icon">📊</div><h2>Efficienza Consumi</h2><div class="value">' + state.efficiency + '%</div><div class="sub">' + (state.efficiency >= 70 ? '👍 Buona' : state.efficiency >= 50 ? '⚠️ Media' : '🔴 Bassa') + '</div></div>';
+  }
+
+  function renderAlerts() {
+    var alerts = [];
+    if (!state.autoPayEnabled) {
+      alerts.push({ level: 'warning', msg: '⚡ Il pagamento automatico è disabilitato. Abilitalo per risparmiare tempo e ottenere sconti del 2% alle stazioni MyZubster.' });
+    }
+    if (state.refuels.length === 0) {
+      alerts.push({ level: 'info', msg: 'ℹ️ Nessun rifornimento registrato. I dati dimostrativi verranno caricati automaticamente.' });
+    }
+    if (state.efficiency < 60) {
+      alerts.push({ level: 'error', msg: '🔴 Efficienza carburante bassa. Consulta i consigli di ottimizzazione per risparmiare.' });
+    }
+    if (state.stations.length > 0) {
+      var autoStationCount = state.stations.filter(function (s) { return s.autoPay; }).length;
+      if (autoStationCount > 0) {
+        alerts.push({ level: 'success', msg: '✅ ' + autoStationCount + ' stazioni con pagamento automatico disponibili nelle vicinanze.' });
+      }
+    }
+
+    el('alerts').innerHTML = alerts.map(function (a) {
+      return '<div class="alert ' + a.level + '">' + a.msg + '</div>';
+    }).join('');
+  }
+
+  function renderStations() {
+    var container = el('stationsContainer');
+    if (!state.scanned || state.stations.length === 0) {
+      container.innerHTML = '<div class="empty">📡 Premi "Scansiona Stazioni" per trovare i distributori nelle vicinanze con supporto MyZubster.</div>';
+      return;
+    }
+
+    container.innerHTML = state.stations.map(function (s) {
+      return '<div class="station-card">'
+        + '<div class="info">'
+        + '<div class="name">' + s.name + '</div>'
+        + '<div class="addr">' + s.addr + ' · ' + s.dist.toFixed(1) + ' km</div>'
+        + '<div>' + s.fuelTypes.map(function (f) {
+          var cls = f === 'Benzina' ? 'verde' : f === 'Diesel' ? 'azzurro' : 'ambra';
+          return '<span class="badge-fuel ' + cls + '">' + f + '</span>';
+        }).join('') + '</div>'
+        + '</div>'
+        + '<div style="text-align:right;">'
+        + '<div class="price">' + s.price.toFixed(3) + ' €/L</div>'
+        + (s.badge ? '<span class="badge ' + s.badge + '">' + (s.badge === 'auto' ? '⚡ Pagamento Auto' : '💰 Low Cost') + '</span>' : '')
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  function renderRefuels() {
+    var filter = el('fuelFilter').value;
+    var filtered = state.refuels;
+    if (filter !== 'all') {
+      filtered = filtered.filter(function (r) { return r.fuelType === filter; });
+    }
+
+    var rows = el('refuelRows');
+    if (filtered.length === 0) {
+      rows.innerHTML = '<tr><td colspan="8" class="empty">Nessun rifornimento trovato</td></tr>';
+      return;
+    }
+
+    rows.innerHTML = filtered.map(function (r) {
+      var statusClass = r.status === 'completed' ? 'completed' : r.status === 'pending' ? 'pending' : 'failed';
+      var statusLabel = r.status === 'completed' ? 'Completato' : r.status === 'pending' ? 'In corso' : 'Fallito';
+      return '<tr>'
+        + '<td>' + formatDate(r.date) + '</td>'
+        + '<td>' + r.station + '</td>'
+        + '<td>' + r.fuelType + '</td>'
+        + '<td>' + r.liters.toFixed(1) + '</td>'
+        + '<td>' + r.pricePerLiter.toFixed(3) + ' €</td>'
+        + '<td><b>' + formatEuro(r.total) + '</b></td>'
+        + '<td>' + (r.autoPay ? '🤖 Auto' : '👆 Manuale') + '</td>'
+        + '<td><span class="state ' + statusClass + '">' + statusLabel + '</span></td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  function renderOptimization() {
+    var period = parseInt(el('optPeriod').value, 10);
+    var cutoff = Date.now() - period * 86400000;
+    var periodRefuels = state.refuels.filter(function (r) { return new Date(r.date).getTime() > cutoff; });
+
+    var totalLiters = 0, totalCost = 0, autoCount = 0;
+    periodRefuels.forEach(function (r) {
+      totalLiters += r.liters;
+      totalCost += r.total;
+      if (r.autoPay) autoCount++;
+    });
+    var avgPrice = totalLiters > 0 ? totalCost / totalLiters : 0;
+    var autoSavings = autoCount * (avgPrice * 0.02 * 40); // ~2% discount on avg 40L fill
+
+    var statsHtml = ''
+      + '<div class="stat-item"><div class="label">Periodo</div><div class="num">' + period + ' giorni</div></div>'
+      + '<div class="stat-item"><div class="label">Rifornimenti</div><div class="num">' + periodRefuels.length + '</div></div>'
+      + '<div class="stat-item"><div class="label">Totale speso</div><div class="num">' + formatEuro(totalCost) + '</div></div>'
+      + '<div class="stat-item"><div class="label">Risparmio auto</div><div class="num" style="color:var(--fuel-green);">' + formatEuro(autoSavings) + '</div></div>';
+
+    el('optStats').innerHTML = statsHtml;
+
+    // Update efficiency bar
+    var eff = state.efficiency;
+    el('efficiencyBar').style.width = eff + '%';
+    el('efficiencyLabel').textContent = eff + '%';
+    var bar = el('efficiencyBar');
+    bar.className = 'fill ' + (eff >= 70 ? 'green' : eff >= 50 ? 'amber' : 'red');
+
+    // Render tips
+    var tips = demoOptimizationTips();
+    var tipsHtml = tips.map(function (t) {
+      return '<div class="tip">'
+        + '<span class="tip-icon">' + t.icon + '</span>'
+        + '<span class="tip-title">' + t.title + '</span>'
+        + '<div class="tip-desc">' + t.desc + '</div>'
+        + '</div>';
+    }).join('');
+    el('tipsContainer').innerHTML = tipsHtml;
+  }
+
+  function renderAll() {
+    renderCards();
+    renderAlerts();
+    renderStations();
+    renderRefuels();
+    renderOptimization();
+    renderAutoPayUI();
+    saveState();
+  }
+
+  function renderAutoPayUI() {
+    var toggle = el('toggleAutoPay');
+    toggle.className = 'toggle' + (state.autoPayEnabled ? ' active' : '');
+    el('autoPayStatus').textContent = state.autoPayEnabled ? 'Abilitato' : 'Disabilitato';
+    el('autoPayStatus').style.color = state.autoPayEnabled ? 'var(--fuel-green)' : 'var(--text-soft)';
+
+    var toggleNotify = el('toggleNotifyPay');
+    toggleNotify.className = 'toggle' + (state.notifyPayEnabled ? ' active' : '');
+
+    if (state.lastAutoPay) {
+      el('lastAutoPay').textContent = formatDate(state.lastAutoPay);
+    }
+    el('totalAutoSavings').textContent = formatEuro(state.totalAutoSavings);
+  }
+
+  // ---- Actions ----
+  function scanStations() {
+    var btn = el('btnScanStations');
+    btn.disabled = true;
+    btn.textContent = '📡 Scansione in corso...';
+    el('statusBadge').className = 'pill scanning';
+    el('statusBadge').textContent = 'Scansione in corso...';
+
+    setTimeout(function () {
+      state.stations = demoStations();
+      state.scanned = true;
+      el('statusBadge').className = 'pill connected';
+      el('statusBadge').textContent = state.stations.length + ' stazioni trovate';
+      btn.disabled = false;
+      btn.textContent = '📡 Scansiona Stazioni';
+      renderAll();
+    }, 1800);
+  }
+
+  function toggleAutoPay() {
+    state.autoPayEnabled = !state.autoPayEnabled;
+    if (state.autoPayEnabled) {
+      // Generate a simulated last auto-pay if none exists
+      if (!state.lastAutoPay) {
+        state.lastAutoPay = new Date(Date.now() - 86400000 * 3).toISOString();
+        state.totalAutoSavings = 4.35;
+      }
+    }
+    renderAll();
+  }
+
+  function toggleNotifyPay() {
+    state.notifyPayEnabled = !state.notifyPayEnabled;
+    renderAll();
+  }
+
+  function loadDemoData() {
+    if (state.refuels.length === 0) {
+      state.refuels = demoRefuels();
+      state.efficiency = 68 + Math.floor(Math.random() * 20);
+    }
+    renderAll();
+  }
+
+  function exportCSV() {
+    if (state.refuels.length === 0) return;
+    var header = 'Data,Stazione,Carburante,Litri,PrezzoL,Totale,Pagamento,Stato';
+    var rows = state.refuels.map(function (r) {
+      return [
+        formatDate(r.date),
+        r.station,
+        r.fuelType,
+        r.liters.toFixed(1),
+        r.pricePerLiter.toFixed(3),
+        r.total.toFixed(2),
+        r.autoPay ? 'Auto' : 'Manuale',
+        r.status
+      ].join(',');
+    });
+    var csv = header + '\n' + rows.join('\n');
+    var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'benzina-storico-' + new Date().toISOString().slice(0, 10) + '.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }
+
+  // ---- Events ----
+  el('btnScanStations').addEventListener('click', scanStations);
+  el('toggleAutoPay').addEventListener('click', toggleAutoPay);
+  el('toggleNotifyPay').addEventListener('click', toggleNotifyPay);
+  el('btnExportCSV').addEventListener('click', exportCSV);
+  el('btnRefresh').addEventListener('click', loadDemoData);
+  el('fuelFilter').addEventListener('change', renderRefuels);
+  el('optPeriod').addEventListener('change', renderOptimization);
+  el('payLimit').addEventListener('change', function () {
+    state.payLimit = parseInt(this.value, 10);
+    saveState();
+  });
+
+  el('btnTheme').addEventListener('click', function () {
+    var root = document.documentElement;
+    root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+  });
+
+  // ---- Init ----
+  loadState();
+  el('payLimit').value = state.payLimit;
+
+  // If we have saved data, render it; otherwise load demo
+  if (state.refuels.length > 0) {
+    renderAll();
+  } else {
+    loadDemoData();
+  }
+})();
+</script>
+</body>
+</html>
