@@ -35,6 +35,7 @@ app.use(express.json());
 app.use(limiter);
 
 // Import routes
+const stampa3DRoutes = require('./routes/stampa3D');
 const baseLunareRoutes = require('./routes/baseLunare');
 const evaLunareRoutes = require('./routes/evaLunare');
 const robotMilitareRoutes = require('./routes/robotMilitare');
@@ -73,6 +74,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes API
+app.use('/api/stampa-3d', stampa3DRoutes);
 app.use('/api/base-lunare', baseLunareRoutes);
 app.use('/api/eva-lunare', evaLunareRoutes);
 app.use('/api/militare', robotMilitareRoutes);
