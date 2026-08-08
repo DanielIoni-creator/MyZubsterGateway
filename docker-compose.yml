@@ -1,0 +1,73 @@
+version: "3.8"
+
+services:
+  gateway:
+    build: .
+    container_name: myzubster-gateway
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - MONGODB_URI=mongodb://mongo:27017/myzubster
+      - TARI_RPC_URL=http://tari-wallet:12021/json_rpc
+      - MONERO_RPC_URL=http://monero-wallet:18082/json_rpc
+      - MONERO_WALLET_RPC=http://monero-wallet:18083/json_rpc
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET}
+      - EMAIL_HOST=${EMAIL_HOST:-smtp.example.com}
+      - EMAIL_PORT=${EMAIL_PORT:-587}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
+    depends_on:
+      - mongo
+    volumes:
+      - .:/app
+      - /app/node_modules
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:7
+    container_name: myzubster-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=myzubster
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+
+  tari-wallet:
+    image: tari-wallet:latest
+    container_name: myzubster-tari-wallet
+    ports:
+      - "12021:12021"
+    environment:
+      - TARI_NETWORK=mainnet
+      - TARI_WALLET_PASSWORD=${TARI_WALLET_PASSWORD:-password}
+    volumes:
+      - tari_data:/home/tari/.tari
+    restart: unless-stopped
+    profiles:
+      - with-wallets
+
+  monero-wallet:
+    image: monero-wallet:latest
+    container_name: myzubster-monero-wallet
+    ports:
+      - "18082:18082"
+      - "18083:18083"
+    environment:
+      - MONERO_WALLET_PASSWORD=${MONERO_WALLET_PASSWORD:-password}
+      - MONERO_DAEMON_ADDRESS=monero-daemon:18081
+    volumes:
+      - monero_data:/home/monero/.bitmonero
+    restart: unless-stopped
+    profiles:
+      - with-wallets
+
+volumes:
+  mongo_data:
+  tari_data:
+  monero_data:
