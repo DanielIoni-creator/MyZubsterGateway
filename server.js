@@ -35,6 +35,7 @@ app.use(express.json());
 app.use(limiter);
 
 // Import routes
+const evaMarzianoRoutes = require('./routes/evaMarziano');
 const trasportoLunareRoutes = require('./routes/trasportoLunare');
 const serreLunariRoutes = require('./routes/serreLunari');
 const cittaLunareRoutes = require('./routes/cittaLunare');
@@ -81,6 +82,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes API
+app.use('/api/eva-marziano', evaMarzianoRoutes);
 app.use('/api/trasporto-lunare', trasportoLunareRoutes);
 app.use('/api/serre-lunari', serreLunariRoutes);
 app.use('/api/citta-lunare', cittaLunareRoutes);
