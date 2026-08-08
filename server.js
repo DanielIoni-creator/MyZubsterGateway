@@ -35,6 +35,7 @@ app.use(express.json());
 app.use(limiter);
 
 // Import routes
+const serreMarteRoutes = require('./routes/serreMarte');
 const trasportoMarteRoutes = require('./routes/trasportoMarte');
 const fabbricaMarteRoutes = require('./routes/fabbricaMarte');
 const estrazioneAcquaMarteRoutes = require('./routes/estrazioneAcquaMarte');
@@ -89,6 +90,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes API
+app.use('/api/serre-marte', serreMarteRoutes);
 app.use('/api/trasporto-marte', trasportoMarteRoutes);
 app.use('/api/fabbrica-marte', fabbricaMarteRoutes);
 app.use('/api/estrazione-acqua-marte', estrazioneAcquaMarteRoutes);
