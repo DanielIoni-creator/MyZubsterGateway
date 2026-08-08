@@ -91,6 +91,10 @@ try {
 }
 
 // ---- STATIC PAGES ----
+app.get('/idrogeno', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/dist/idrogeno.html'));
+});
+
 app.get('/bounty', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/dist/bounty.html'));
 });
