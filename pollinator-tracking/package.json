@@ -1,0 +1,22 @@
+{
+  "name": "pollinator-tracking-api",
+  "version": "1.0.0",
+  "description": "Pollinator tracking API for EVA IONI biodiversity monitoring",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "node tests/test.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0",
+    "supertest": "^6.3.3"
+  },
+  "keywords": ["pollinator", "biodiversity", "api", "eva", "ioni"],
+  "author": "Daniel Ioni",
+  "license": "MIT"
+}

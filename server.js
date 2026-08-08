@@ -35,6 +35,8 @@ app.use(express.json());
 app.use(limiter);
 
 // Import routes
+const centroControlloRoutes = require('./routes/centroControllo');
+const navicellaRoutes = require('./routes/navicella');
 const stazioneRoutes = require('./routes/stazione');
 const autoRoutes = require('./routes/auto');
 const walletRoutes = require('./src/routes/walletRoutes');
@@ -67,6 +69,8 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes API
+app.use('/api/centri-controllo', centroControlloRoutes);
+app.use('/api/navicelle', navicellaRoutes);
 app.use('/api/stazioni', stazioneRoutes);
 app.use('/api/auto', autoRoutes);
 app.use('/api/wallet', walletRoutes);
