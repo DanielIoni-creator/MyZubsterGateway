@@ -93,7 +93,9 @@ try {
 // Logo routes
 try {
   const logoRoutes = require('./routes/robotLogo');
+const escrowMultiStepRoutes = require('./routes/escrow-multistep.js');
   app.use('/api/robot/logo', logoRoutes);
+app.use('/api/escrow-multistep', escrowMultiStepRoutes);
   console.log('✅ Caricamento routes logo...');
 } catch (err) {
   console.error('❌ Errore caricamento logo:', err.message);
