@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const robotLogo = require('../robot_logo_mock');
+const robotLogo = require('../robot_logo');
 const robotBrain = require('../robot_brain');
 
 router.post('/create', async (req, res) => {

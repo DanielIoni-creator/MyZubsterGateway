@@ -66,3 +66,9 @@ router.get('/jobs', (req, res) => {
 });
 
 module.exports = router;
+
+// Middleware di debug per tracciare tutte le richieste a /api/robot/code/*
+router.use((req, res, next) => {
+  console.log(`[DEBUG] robotCode router ha ricevuto: ${req.method} ${req.path}`);
+  next();
+});

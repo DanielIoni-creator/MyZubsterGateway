@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: myzubster-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: myzubster
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: myzubster-backend
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/myzubster
+      - MONERO_RPC_URL=${MONERO_RPC_URL:-http://host.docker.internal:18083}
+      - MONERO_NETWORK=${MONERO_NETWORK:-testnet}
+      - MONERO_MIN_CONFIRMATIONS=${MONERO_MIN_CONFIRMATIONS:-10}
+      - MONERO_WALLET_PASSWORD=${MONERO_WALLET_PASSWORD:-}
+      - MONERO_WALLET_ADDRESS=${MONERO_WALLET_ADDRESS:-}
+      - JWT_SECRET=${JWT_SECRET:-your_jwt_secret_key_here_change_me}
+      - JWT_EXPIRES_IN=7d
+      - BCRYPT_SALT=10
+      - LOG_LEVEL=info
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  postgres_data:

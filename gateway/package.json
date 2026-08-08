@@ -1,0 +1,13 @@
+{
+  "name": "eva-ioni-gateway",
+  "version": "1.0.0",
+  "description": "Gateway per ricevere dati dai sensori EVA IONI",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.0",
+    "axios": "^1.6.0"
+  }
+}

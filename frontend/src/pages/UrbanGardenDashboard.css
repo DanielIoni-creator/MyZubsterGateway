@@ -1,0 +1,142 @@
+.urban-garden-dashboard {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  border-radius: 12px;
+  color: white;
+}
+
+.dashboard-header h1 {
+  font-size: 2.5rem;
+  margin: 0;
+}
+
+.dashboard-header p {
+  margin: 10px 0 0;
+  opacity: 0.9;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.stat-card.ph {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+}
+
+.stat-card.ec {
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+}
+
+.stat-card.temperature {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+}
+
+.stat-card.humidity {
+  background: linear-gradient(135deg, #1abc9c, #16a085);
+}
+
+.stat-card h3 {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.stat-card .value {
+  font-size: 2.5rem;
+  font-weight: bold;
+}
+
+.stat-card .range {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-top: 8px;
+}
+
+.history-section, .stats-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.history-section h2, .stats-section h2 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table th {
+  background: #f8f9fa;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+}
+
+table tr:hover {
+  background: #f8f9fa;
+}
+
+.stats-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.stats-details div {
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.loading {
+  text-align: center;
+  font-size: 1.5rem;
+  padding: 50px;
+  color: #2c3e50;
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .dashboard-header h1 {
+    font-size: 1.8rem;
+  }
+}
