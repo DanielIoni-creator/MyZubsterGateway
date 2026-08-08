@@ -103,8 +103,12 @@ app.get('/wallet-dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/dist/wallet-dashboard.html'));
 });
 
-app.get('/hospital', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend/dist/hospital.html'));
+app.get('/benzina', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/dist/benzina-auto-integrazione.html'));
+});
+
+app.get('/carburanti-ricarica-elettrica', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/dist/carburanti-ricarica-elettrica.html'));
 });
 
 // Static frontend
