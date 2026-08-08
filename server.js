@@ -1,4 +1,5 @@
 require('dotenv').config();
+app.use('/api/wallet', require('./src/routes/walletRoutes'));
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
