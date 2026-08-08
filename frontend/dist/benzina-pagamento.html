@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⛽ Pagamento Benzina - MyZubster</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- QRCode.js -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+  <style>
+    :root {
+      --accent: #2ecc71;
+      --accent-strong: #27ae60;
+      --accent-soft: #d5f5e3;
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --surface-2: #eef1f6;
+      --text: #1f2733;
+      --text-soft: #5b6675;
+      --border: #e3e8ef;
+      --radius: 14px;
+      --shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    }
+    [data-theme="dark"] {
+      --bg: #0f141a;
+      --surface: #1a222c;
+      --surface-2: #232d3a;
+      --text: #e6edf5;
+      --text-soft: #9aa7b8;
+      --border: #2c3947;
+      --shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+    .dashboard { max-width: 1280px; margin: 0 auto; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .header {
+      background: linear-gradient(135deg, #2ecc71, #27ae60);
+      padding: 24px 30px;
+      border-radius: var(--radius);
+      color: white;
+      box-shadow: var(--shadow);
+      flex: 1;
+      min-width: 260px;
+    }
+    .header h1 { margin: 0 0 4px; font-size: 1.5rem; }
+    .header p { margin: 0; opacity: 0.92; font-size: 0.95rem; }
+    .header .live-badge {
+      display: inline-block;
+      margin-top: 8px;
+      background: rgba(255, 255, 255, 0.22);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+    }
+    .header .live-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse { 50% { opacity: 0.3; } }
+
+    .theme-toggle {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.9rem;
+      box-shadow: var(--shadow);
+      transition: background 0.2s;
+    }
+    .theme-toggle:hover { background: var(--surface-2); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+    .card h2 {
+      font-size: 1.1rem;
+      margin: 0 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card h2 .badge {
+      font-size: 0.7rem;
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .kpi {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+    .kpi .label { font-size: 0.8rem; color: var(--text-soft); }
+    .kpi .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 4px 0 0;
+    }
+    .kpi .value.green { color: #2ecc71; }
+    .kpi .value.orange { color: #f39c12; }
+    .kpi .value.blue { color: #3498db; }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-soft);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.95rem;
+      transition: border 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .input-row {
+      display: flex;
+      gap: 12px;
+      align-items: end;
+    }
+    .input-row .form-group { flex: 1; }
+    .input-row .form-group:last-child { flex: 0 0 100px; }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: linear-gradient(135deg, #2ecc71, #27ae60);
+      color: white;
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-secondary {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-success {
+      background: #2ecc71;
+      color: white;
+    }
+    .btn-success:hover { opacity: 0.9; }
+
+    .qr-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+    }
+    .qr-container {
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .qr-container img, .qr-container canvas {
+      display: block;
+      image-rendering: pixelated;
+    }
+    .qr-amount {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--accent-strong);
+      margin-top: 8px;
+    }
+    .qr-address {
+      font-size: 0.75rem;
+      color: var(--text-soft);
+      max-width: 280px;
+      word-break: break-all;
+      text-align: center;
+    }
+    .qr-status {
+      font-size: 0.85rem;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .qr-status.pending {
+      background: #fef3cd;
+      color: #856404;
+    }
+    .qr-status.confirmed {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .full-width { grid-column: 1 / -1; }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    th {
+      text-align: left;
+      padding: 10px 12px;
+      color: var(--text-soft);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    tr:hover { background: var(--surface-2); }
+    .status-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .status-badge.completed { background: #d4edda; color: #155724; }
+    .status-badge.pending { background: #fef3cd; color: #856404; }
+    .status-badge.failed { background: #f8d7da; color: #721c24; }
+
+    .receipt {
+      background: var(--surface-2);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-top: 12px;
+      display: none;
+    }
+    .receipt.show { display: block; }
+    .receipt h3 { margin: 0 0 10px; font-size: 1rem; }
+    .receipt-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px dashed var(--border);
+      font-size: 0.85rem;
+    }
+    .receipt-row:last-child { border-bottom: none; font-weight: 700; }
+    .receipt-row .label { color: var(--text-soft); }
+
+    .history-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 768px) {
+      .grid { grid-template-columns: 1fr; }
+      .input-row { flex-direction: column; }
+      .input-row .form-group:last-child { flex: 1; }
+      body { padding: 12px; }
+      .kpi-row { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="dashboard">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="header">
+      <h1>💰 Pagamento Benzina in MYZ</h1>
+      <p>Paga la benzina con MyZubster token — veloce, sicuro, tracciabile</p>
+      <div class="live-badge">
+        <span class="live-dot" style="background:#fff"></span>
+        Tasso: <span id="liveRate">1 MYZ = 0.042 L</span>
+      </div>
+    </div>
+    <button class="theme-toggle" id="themeToggle">🌓 Tema</button>
+  </div>
+
+  <!-- KPI Row -->
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="label">Saldo MYZ</div>
+      <div class="value green" id="walletBalance">1,250.00 MYZ</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Tasso di cambio</div>
+      <div class="value orange" id="exchangeRate">1 MYZ = 0.042 L</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Prezzo benzina</div>
+      <div class="value blue" id="fuelPrice">€ 1.85 / L</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Pagamenti oggi</div>
+      <div class="value" id="todayPayments">7</div>
+    </div>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="grid">
+
+    <!-- Left: Payment Form -->
+    <div class="card">
+      <h2>🛢️ Nuovo pagamento</h2>
+      <div class="form-group">
+        <label>Stazione di servizio</label>
+        <select id="stationSelect">
+          <option value="st1">⛽ Stazione Centrale — Via Roma 12</option>
+          <option value="st2">⛽ Stazione Nord — Via Milano 45</option>
+          <option value="st3">⛽ Stazione Est — Corso Europa 78</option>
+          <option value="st4">⛽ Stazione Ovest — Viale Torino 23</option>
+        </select>
+      </div>
+      <div class="input-row">
+        <div class="form-group">
+          <label>Quantità benzina (L)</label>
+          <input type="number" id="litersInput" min="0.1" step="0.1" value="10" placeholder="es. 10" />
+        </div>
+        <div class="form-group">
+          <label>o MYZ</label>
+          <input type="number" id="myzInput" min="0.01" step="0.01" placeholder="es. 238" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Totale MYZ da pagare</label>
+        <input type="text" id="totalMyzDisplay" readonly value="238.10 MYZ" style="font-weight:700;font-size:1.1rem;color:var(--accent-strong)" />
+      </div>
+      <div class="form-group">
+        <label>Metodo di pagamento</label>
+        <select id="paymentMethod">
+          <option value="myz-wallet">💳 Wallet MYZ</option>
+          <option value="qrcode">📱 QR Code (app mobile)</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" id="payBtn">💳 Paga con MYZ</button>
+    </div>
+
+    <!-- Right: QR Code / Payment Status -->
+    <div class="card" id="qrCard">
+      <h2>📱 QR Code pagamento</h2>
+      <div class="qr-section" id="qrSection">
+        <div class="qr-container" id="qrContainer">
+          <div id="qrcode" style="width:200px;height:200px;display:flex;align-items:center;justify-content:center;color:var(--text-soft);font-size:0.85rem">
+            Inserisci un importo e clicca "Paga con MYZ"
+          </div>
+        </div>
+        <div class="qr-amount" id="qrAmount">—</div>
+        <div class="qr-address" id="qrAddress">MYZ Gateway: mz_gateway_1a2b3c4d5e</div>
+        <div class="qr-status pending" id="qrStatus">⏳ In attesa di pagamento</div>
+      </div>
+    </div>
+
+    <!-- Full width: Conversion Calculator -->
+    <div class="card full-width">
+      <h2>🔄 Convertitore MYZ ↔ Benzina</h2>
+      <div class="input-row">
+        <div class="form-group">
+          <label>MYZ</label>
+          <input type="number" id="convMyz" min="0" step="0.01" value="100" />
+        </div>
+        <div class="form-group">
+          <label>= Litri benzina</label>
+          <input type="text" id="convLiters" readonly style="font-weight:700;color:var(--accent-strong)" />
+        </div>
+        <div class="form-group">
+          <label>= EUR</label>
+          <input type="text" id="convEur" readonly style="font-weight:700" />
+        </div>
+      </div>
+      <div style="margin-top:10px;position:relative;height:200px">
+        <canvas id="rateChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Full width: Payment History -->
+    <div class="card full-width">
+      <h2>📋 Storico pagamenti</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Stazione</th>
+              <th>Litri</th>
+              <th>MYZ</th>
+              <th>QR</th>
+              <th>Stato</th>
+              <th>Ricevuta</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+      <div class="history-actions">
+        <button class="btn btn-secondary" id="exportCsvBtn">📥 Esporta CSV</button>
+        <button class="btn btn-secondary" id="clearHistoryBtn">🗑️ Cancella storico</button>
+      </div>
+    </div>
+
+    <!-- Receipt -->
+    <div class="card full-width" id="receiptContainer">
+      <div class="receipt" id="receipt">
+        <h3>🧾 Ricevuta digitale</h3>
+        <div id="receiptContent"></div>
+        <button class="btn btn-secondary" id="printReceiptBtn" style="margin-top:10px">🖨️ Stampa ricevuta</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ---- DEMO DATA ----
+  let walletBalance = 1250.00;
+  let exchangeRate = 0.042; // 1 MYZ = 0.042 liters
+  let fuelPriceEur = 1.85;  // per liter
+  let myzToEur = 0.0777;    // 1 MYZ = €0.0777
+  let paymentHistory = [];
+  let paymentId = 1001;
+
+  // ---- DOM refs ----
+  const stationSelect = document.getElementById('stationSelect');
+  const litersInput = document.getElementById('litersInput');
+  const myzInput = document.getElementById('myzInput');
+  const totalMyzDisplay = document.getElementById('totalMyzDisplay');
+  const payBtn = document.getElementById('payBtn');
+  const paymentMethod = document.getElementById('paymentMethod');
+  const qrContainer = document.getElementById('qrcode');
+  const qrAmount = document.getElementById('qrAmount');
+  const qrAddress = document.getElementById('qrAddress');
+  const qrStatus = document.getElementById('qrStatus');
+  const historyBody = document.getElementById('historyBody');
+  const receipt = document.getElementById('receipt');
+  const receiptContent = document.getElementById('receiptContent');
+  const convMyz = document.getElementById('convMyz');
+  const convLiters = document.getElementById('convLiters');
+  const convEur = document.getElementById('convEur');
+  const walletBalanceEl = document.getElementById('walletBalance');
+  const exchangeRateEl = document.getElementById('exchangeRate');
+  const fuelPriceEl = document.getElementById('fuelPrice');
+  const liveRate = document.getElementById('liveRate');
+
+  // ---- Exchange rate simulation ----
+  function updateRateDisplay() {
+    const litersPerMyz = exchangeRate;
+    exchangeRateEl.textContent = `1 MYZ = ${litersPerMyz.toFixed(3)} L`;
+    liveRate.textContent = `1 MYZ = ${litersPerMyz.toFixed(3)} L`;
+    fuelPriceEl.textContent = `€ ${fuelPriceEur.toFixed(2)} / L`;
+    walletBalanceEl.textContent = walletBalance.toFixed(2) + ' MYZ';
+  }
+
+  function recalc(changeSource) {
+    const liters = parseFloat(litersInput.value) || 0;
+    const myz = parseFloat(myzInput.value) || 0;
+    let totalMyz = 0;
+    if (changeSource === 'liters' || !changeSource) {
+      totalMyz = liters / exchangeRate;
+      myzInput.value = totalMyz.toFixed(2);
+    } else {
+      totalMyz = myz;
+      litersInput.value = (myz * exchangeRate).toFixed(1);
+    }
+    totalMyzDisplay.value = totalMyz.toFixed(2) + ' MYZ';
+    return totalMyz;
+  }
+
+  litersInput.addEventListener('input', () => recalc('liters'));
+  myzInput.addEventListener('input', () => recalc('myz'));
+
+  // Conversion calculator
+  function updateConv() {
+    const myz = parseFloat(convMyz.value) || 0;
+    convLiters.value = (myz * exchangeRate).toFixed(3) + ' L';
+    convEur.value = '€ ' + (myz * myzToEur).toFixed(2);
+  }
+  convMyz.addEventListener('input', updateConv);
+
+  // ---- QR Code generation ----
+  function generateQR(address, amountMyz) {
+    qrContainer.innerHTML = '';
+    const qrData = `myz:${address}?amount=${amountMyz.toFixed(2)}&memo=benzina`;
+    try {
+      new QRCode(qrContainer, {
+        text: qrData,
+        width: 200,
+        height: 200,
+        colorDark: '#1a222c',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    } catch(e) {
+      qrContainer.textContent = 'QR: ' + qrData;
+    }
+    qrAmount.textContent = amountMyz.toFixed(2) + ' MYZ';
+    qrAddress.textContent = 'Gateway: ' + address;
+    qrStatus.textContent = '⏳ In attesa di pagamento...';
+    qrStatus.className = 'qr-status pending';
+  }
+
+  // ---- Payment simulation ----
+  function simulatePayment(amountMyz, station, method) {
+    const address = 'mz_gateway_' + Math.random().toString(36).substring(2, 12);
+    if (method === 'qrcode') {
+      generateQR(address, amountMyz);
+    }
+
+    // Simulate confirmation after 3 seconds
+    setTimeout(() => {
+      if (walletBalance >= amountMyz) {
+        walletBalance -= amountMyz;
+        walletBalanceEl.textContent = walletBalance.toFixed(2) + ' MYZ';
+
+        const id = paymentId++;
+        const liters = amountMyz * exchangeRate;
+        const record = {
+          id, date: new Date().toISOString(),
+          station: stationSelect.options[stationSelect.selectedIndex].text,
+          stationVal: station,
+          liters: liters.toFixed(1),
+          myz: amountMyz.toFixed(2),
+          method: method === 'qrcode' ? 'QR Code' : 'Wallet',
+          status: 'completed',
+          receipt: `RCT-${id}-${Date.now().toString(36).toUpperCase()}`
+        };
+        paymentHistory.unshift(record);
+        renderHistory();
+
+        qrStatus.textContent = '✅ Pagamento confermato!';
+        qrStatus.className = 'qr-status confirmed';
+
+        showReceipt(record);
+        document.getElementById('todayPayments').textContent = parseInt(document.getElementById('todayPayments').textContent) + 1;
+      } else {
+        qrStatus.textContent = '❌ Saldo MYZ insufficiente!';
+        qrStatus.className = 'qr-status failed';
+      }
+    }, 3000);
+  }
+
+  // ---- Payment button ----
+  payBtn.addEventListener('click', () => {
+    const totalText = totalMyzDisplay.value;
+    const amountMyz = parseFloat(totalText) || 0;
+    if (amountMyz <= 0) { alert('Inserisci un importo valido.'); return; }
+    const station = stationSelect.value;
+    const method = paymentMethod.value;
+    payBtn.disabled = true;
+    payBtn.textContent = '⏳ Elaborazione...';
+    simulatePayment(amountMyz, station, method);
+    setTimeout(() => {
+      payBtn.disabled = false;
+      payBtn.textContent = '💳 Paga con MYZ';
+    }, 3500);
+  });
+
+  // ---- Receipt ----
+  function showReceipt(r) {
+    const d = new Date(r.date);
+    receiptContent.innerHTML = `
+      <div class="receipt-row"><span class="label">Ricevuta</span><span>${r.receipt}</span></div>
+      <div class="receipt-row"><span class="label">Data</span><span>${d.toLocaleDateString('it-IT')} ${d.toLocaleTimeString('it-IT')}</span></div>
+      <div class="receipt-row"><span class="label">Stazione</span><span>${r.station}</span></div>
+      <div class="receipt-row"><span class="label">Benzina</span><span>${r.liters} L</span></div>
+      <div class="receipt-row"><span class="label">Pagato</span><span>${r.myz} MYZ</span></div>
+      <div class="receipt-row"><span class="label">Metodo</span><span>${r.method}</span></div>
+      <div class="receipt-row"><span class="label">Tasso</span><span>1 MYZ = ${exchangeRate.toFixed(3)} L</span></div>
+      <div class="receipt-row"><span class="label">Stato</span><span>✅ Completato</span></div>
+    `;
+    receipt.classList.add('show');
+  }
+
+  document.getElementById('printReceiptBtn').addEventListener('click', () => {
+    window.print();
+  });
+
+  // ---- History ----
+  function renderHistory() {
+    if (paymentHistory.length === 0) {
+      historyBody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-soft);padding:30px">Nessun pagamento effettuato</td></tr>';
+      return;
+    }
+    historyBody.innerHTML = paymentHistory.map(r => {
+      const d = new Date(r.date);
+      return `<tr>
+        <td>${d.toLocaleDateString('it-IT')} ${d.toLocaleTimeString('it-IT', {hour:'2-digit',minute:'2-digit'})}</td>
+        <td>${r.station.split('—')[0].trim()}</td>
+        <td>${r.liters} L</td>
+        <td>${r.myz} MYZ</td>
+        <td>${r.method}</td>
+        <td><span class="status-badge ${r.status}">${r.status === 'completed' ? '✅ Completato' : r.status}</span></td>
+        <td><a href="#" onclick="viewReceipt('${r.receipt}');return false;" style="color:var(--accent)">🧾 ${r.receipt}</a></td>
+      </tr>`;
+    }).join('');
+  }
+
+  window.viewReceipt = function(receiptId) {
+    const r = paymentHistory.find(p => p.receipt === receiptId);
+    if (r) showReceipt(r);
+  };
+
+  document.getElementById('exportCsvBtn').addEventListener('click', () => {
+    if (paymentHistory.length === 0) { alert('Nessun dato da esportare.'); return; }
+    const headers = 'Data,Stazione,Litri,MYZ,Metodo,Stato,Ricevuta\n';
+    const rows = paymentHistory.map(r => {
+      const d = new Date(r.date);
+      return `${d.toISOString()},"${r.station}",${r.liters},${r.myz},${r.method},${r.status},${r.receipt}`;
+    }).join('\n');
+    const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `pagamenti-benzina-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+    if (paymentHistory.length === 0) return;
+    if (confirm('Cancellare tutto lo storico dei pagamenti?')) {
+      paymentHistory = [];
+      renderHistory();
+    }
+  });
+
+  // ---- Rate chart ----
+  let rateChart = null;
+  function initRateChart() {
+    const ctx = document.getElementById('rateChart').getContext('2d');
+    const labels = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+    const rateData = [0.040, 0.041, 0.0405, 0.042, 0.0415, 0.042, 0.042];
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    rateChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Tasso MYZ → L',
+          data: rateData,
+          borderColor: '#2ecc71',
+          backgroundColor: 'rgba(46, 204, 113, 0.08)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 4,
+          pointBackgroundColor: '#2ecc71',
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: isDark ? '#e6edf5' : '#1f2733' } }
+        },
+        scales: {
+          x: { ticks: { color: isDark ? '#9aa7b8' : '#5b6675' }, grid: { color: isDark ? '#2c3947' : '#e3e8ef' } },
+          y: { ticks: { color: isDark ? '#9aa7b8' : '#5b6675' }, grid: { color: isDark ? '#2c3947' : '#e3e8ef' } }
+        }
+      }
+    });
+  }
+
+  // ---- Theme ----
+  const themeToggle = document.getElementById('themeToggle');
+  const savedTheme = localStorage.getItem('benzina-pagamento-theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  themeToggle.textContent = savedTheme === 'dark' ? '☀️ Chiaro' : '🌓 Tema';
+
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('benzina-pagamento-theme', next);
+    themeToggle.textContent = next === 'dark' ? '☀️ Chiaro' : '🌓 Tema';
+    if (rateChart) {
+      rateChart.destroy();
+      initRateChart();
+    }
+  });
+
+  // ---- Init ----
+  updateRateDisplay();
+  recalc('liters');
+  updateConv();
+  renderHistory();
+  initRateChart();
+
+  // ---- Seed demo data ----
+  const stations = ['⛽ Stazione Centrale — Via Roma 12', '⛽ Stazione Nord — Via Milano 45', '⛽ Stazione Est — Corso Europa 78'];
+  for (let i = 0; i < 5; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    paymentHistory.push({
+      id: paymentId++,
+      date: d.toISOString(),
+      station: stations[i % 3],
+      stationVal: 'st' + (i % 3 + 1),
+      liters: (Math.random() * 30 + 5).toFixed(1),
+      myz: (Math.random() * 500 + 100).toFixed(2),
+      method: i % 2 === 0 ? 'QR Code' : 'Wallet',
+      status: 'completed',
+      receipt: `RCT-${1000 - i}-${d.getTime().toString(36).toUpperCase()}`
+    });
+  }
+  renderHistory();
+
+})();
+</script>
+</body>
+</html>
