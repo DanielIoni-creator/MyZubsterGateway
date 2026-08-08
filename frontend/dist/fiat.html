@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>💵 Fiat Dashboard - USD/EUR/GBP - MyZubster</title>
+  <style>
+    :root {
+      --accent: #1a73e8;
+      --accent-2: #0d9488;
+      --accent-3: #7c3aed;
+      --bg: #10141b;
+      --surface: #171d27;
+      --surface-2: #1f2733;
+      --text: #e8edf4;
+      --text-soft: #94a1b2;
+      --border: #2a3444;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      --radius: 14px;
+      --green: #22a06b;
+      --red: #d94f4f;
+      --warn: #d99000;
+    }
+    [data-theme="light"] {
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --surface-2: #eef1f6;
+      --text: #1f2733;
+      --text-soft: #5b6675;
+      --border: #e2e7ee;
+      --shadow: 0 10px 30px rgba(20, 30, 50, 0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      margin: 0; padding: 28px 20px 48px;
+      font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg); color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; }
+    header { display: flex; align-items: center; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+    h1 { font-size: 24px; margin: 0; }
+    .spacer { flex: 1; }
+    .btn {
+      background: var(--surface); color: var(--text); border: 1px solid var(--border);
+      border-radius: 10px; padding: 8px 14px; cursor: pointer; font-size: 14px;
+      transition: border-color 0.2s;
+    }
+    .btn:hover { border-color: var(--accent); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+    .btn.primary:hover { opacity: 0.9; }
+    .btn.export { background: var(--green); border-color: var(--green); color: #fff; }
+    .btn.export:hover { opacity: 0.9; }
+
+    .pill { font-size: 12px; color: var(--text-soft); border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; }
+    .pill.live::before { content: "●"; color: var(--green); margin-right: 6px; }
+    .pill.demo::before { content: "●"; color: var(--warn); margin-right: 6px; }
+
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .kpi-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px; display: flex; align-items: center; gap: 16px;
+      box-shadow: var(--shadow); transition: transform 0.2s;
+    }
+    .kpi-card:hover { transform: translateY(-2px); }
+    .kpi-icon { font-size: 1.8rem; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 12px; flex-shrink: 0; }
+    .kpi-icon.usd { background: rgba(26,115,232,0.15); color: #1a73e8; }
+    .kpi-icon.eur { background: rgba(13,148,136,0.15); color: #0d9488; }
+    .kpi-icon.gbp { background: rgba(124,58,237,0.15); color: #7c3aed; }
+    .kpi-icon.total { background: rgba(34,160,107,0.15); color: #22a06b; }
+    .kpi-info h3 { font-size: 0.85rem; color: var(--text-soft); margin-bottom: 4px; }
+    .kpi-value { font-size: 1.5rem; font-weight: 700; }
+    .kpi-sub { font-size: 0.8rem; color: var(--text-soft); margin-top: 2px; }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow); }
+    .card h2 { font-size: 1.1rem; margin-bottom: 16px; color: var(--text); }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+    .card-header h2 { margin-bottom: 0; }
+
+    .converter-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; }
+    .conv-group { display: flex; flex-direction: column; gap: 6px; }
+    .conv-group label { font-size: 0.85rem; color: var(--text-soft); }
+    .conv-group select, .conv-group input {
+      padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px;
+      background: var(--surface-2); color: var(--text); font-size: 1rem;
+    }
+    .conv-group select:focus, .conv-group input:focus { outline: none; border-color: var(--accent); }
+    .conv-swap { font-size: 1.5rem; color: var(--text-soft); cursor: pointer; padding: 10px; }
+    .conv-swap:hover { color: var(--accent); }
+    .conv-result { margin-top: 12px; padding: 12px; background: var(--surface-2); border-radius: 10px; text-align: center; font-size: 1.1rem; }
+    .conv-rate { font-size: 0.85rem; color: var(--text-soft); margin-top: 8px; text-align: center; }
+    .conv-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .conv-tab {
+      padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border);
+      background: transparent; color: var(--text-soft); cursor: pointer; font-size: 13px;
+      transition: all 0.2s;
+    }
+    .conv-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    .gateway-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px; }
+    .gateway-card {
+      background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
+      padding: 20px; text-align: center; transition: transform 0.2s;
+    }
+    .gateway-card:hover { transform: translateY(-2px); }
+    .gateway-icon { font-size: 2rem; margin-bottom: 10px; }
+    .gateway-card h3 { font-size: 1rem; margin-bottom: 6px; }
+    .gateway-card p { font-size: 0.85rem; color: var(--text-soft); margin-bottom: 12px; }
+    .gateway-status { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+    .gateway-status.active { background: rgba(34,160,107,0.15); color: var(--green); }
+    .gateway-status.inactive { background: rgba(217,79,79,0.15); color: var(--red); }
+    .gateway-status.pending { background: rgba(217,144,0,0.15); color: var(--warn); }
+
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { padding: 12px; text-align: left; font-weight: 600; white-space: nowrap; border-bottom: 1px solid var(--border); color: var(--text-soft); }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    tr:hover { background: var(--surface-2); }
+    .cur-badge { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+    .cur-badge .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .dot.usd { background: #1a73e8; }
+    .dot.eur { background: #0d9488; }
+    .dot.gbp { background: #7c3aed; }
+    .tx-type { padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+    .tx-type.in { background: rgba(34,160,107,0.15); color: var(--green); }
+    .tx-type.out { background: rgba(217,79,79,0.15); color: var(--red); }
+    .tx-status { padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; }
+    .tx-status.confirmed { background: rgba(34,160,107,0.15); color: var(--green); }
+    .tx-status.pending { background: rgba(217,144,0,0.15); color: var(--warn); }
+    .tx-status.failed { background: rgba(217,79,79,0.15); color: var(--red); }
+    .filter-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .filter-row select, .filter-row input {
+      padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
+      background: var(--surface-2); color: var(--text); font-size: 13px;
+    }
+
+    .rates-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .rate-card { background: var(--surface-2); border-radius: 10px; padding: 14px; text-align: center; }
+    .rate-card h4 { font-size: 0.85rem; color: var(--text-soft); margin-bottom: 6px; }
+    .rate-card .rate { font-size: 1.3rem; font-weight: 700; }
+    .rate-card .change { font-size: 0.8rem; margin-top: 4px; }
+    .rate-card .change.up { color: var(--green); }
+    .rate-card .change.down { color: var(--red); }
+
+    .chart-container { position: relative; height: 200px; margin: 16px 0; }
+    .chart-container svg { width: 100%; height: 100%; }
+
+    .loading { text-align: center; font-size: 1.5rem; padding: 50px; }
+    .error { text-align: center; padding: 40px; color: var(--red); }
+    .empty { text-align: center; padding: 30px; color: var(--text-soft); }
+    .last-update { text-align: right; color: var(--text-soft); font-size: 0.85rem; margin-top: 8px; }
+
+    @media (max-width: 768px) {
+      header { flex-direction: column; align-items: stretch; }
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      .converter-grid { grid-template-columns: 1fr; }
+      .conv-swap { text-align: center; }
+      .gateway-grid { grid-template-columns: 1fr; }
+      body { padding: 16px 12px 32px; }
+      h1 { font-size: 20px; }
+    }
+    @media (max-width: 480px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <header>
+    <h1>💵 Fiat Dashboard</h1>
+    <span class="pill demo" id="modePill">Demo</span>
+    <span class="spacer"></span>
+    <button class="btn" onclick="toggleTheme()" id="themeBtn">☀️ Light</button>
+    <button class="btn primary" onclick="loadData()">🔄 Aggiorna</button>
+    <button class="btn export" onclick="exportCSV()">📥 CSV</button>
+  </header>
+
+  <div class="kpi-grid" id="kpiGrid">
+    <div class="kpi-card"><div class="kpi-icon usd">$</div><div class="kpi-info"><h3>USD Saldo</h3><div class="kpi-value" id="kpiUsd">$0.00</div><div class="kpi-sub">Disponibile</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon eur">€</div><div class="kpi-info"><h3>EUR Saldo</h3><div class="kpi-value" id="kpiEur">€0.00</div><div class="kpi-sub">Disponibile</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon gbp">£</div><div class="kpi-info"><h3>GBP Saldo</h3><div class="kpi-value" id="kpiGbp">£0.00</div><div class="kpi-sub">Disponibile</div></div></div>
+    <div class="kpi-card"><div class="kpi-icon total">∑</div><div class="kpi-info"><h3>Valore Totale (USD)</h3><div class="kpi-value" id="kpiTotal">$0.00</div><div class="kpi-sub">+ MYZ equivalente</div></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h2>🌐 Gateway Fiat</h2></div>
+    <div class="gateway-grid" id="gatewayGrid">
+      <div class="gateway-card">
+        <div class="gateway-icon">🏦</div>
+        <h3>Bonifico Bancario</h3>
+        <p>Trasferimenti SEPA/ACH</p>
+        <span class="gateway-status active">● Attivo</span>
+      </div>
+      <div class="gateway-card">
+        <div class="gateway-icon">💳</div>
+        <h3>Carta di Credito</h3>
+        <p>Visa, Mastercard, Amex</p>
+        <span class="gateway-status active">● Attivo</span>
+      </div>
+      <div class="gateway-card">
+        <div class="gateway-icon">🔄</div>
+        <h3>Exchange</h3>
+        <p>Cambio valuta automatico</p>
+        <span class="gateway-status pending">● In fase di attivazione</span>
+      </div>
+      <div class="gateway-card">
+        <div class="gateway-icon">📱</div>
+        <h3>PayPal / Stripe</h3>
+        <p>Pagamenti digitali</p>
+        <span class="gateway-status inactive">● Non attivo</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h2>🔄 Convertitore Valute</h2></div>
+    <div class="conv-tabs" id="convTabs">
+      <button class="conv-tab active" data-pair="usd-eur">USD ↔ EUR</button>
+      <button class="conv-tab" data-pair="usd-gbp">USD ↔ GBP</button>
+      <button class="conv-tab" data-pair="eur-gbp">EUR ↔ GBP</button>
+      <button class="conv-tab" data-pair="fiat-myz">Fiat ↔ MYZ</button>
+    </div>
+    <div class="converter-grid">
+      <div class="conv-group">
+        <label>Da</label>
+        <select id="convFrom"><option value="USD">$ USD</option><option value="EUR">€ EUR</option><option value="GBP">£ GBP</option><option value="MYZ">MYZ</option></select>
+        <input type="number" id="convAmount" value="100" min="0" step="0.01" oninput="convert()">
+      </div>
+      <div class="conv-swap" onclick="swapConv()">⇄</div>
+      <div class="conv-group">
+        <label>A</label>
+        <select id="convTo"><option value="EUR">€ EUR</option><option value="USD">$ USD</option><option value="GBP">£ GBP</option><option value="MYZ">MYZ</option></select>
+        <input type="text" id="convResult" readonly placeholder="Risultato">
+      </div>
+    </div>
+    <div class="conv-rate" id="convRate">Tasso: 1 USD = 0.92 EUR</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h2>📊 Tassi di Cambio</h2></div>
+    <div class="rates-grid" id="ratesGrid">
+      <div class="rate-card"><h4>USD/EUR</h4><div class="rate" id="rateUsdEur">0.9245</div><div class="change up">+0.12%</div></div>
+      <div class="rate-card"><h4>USD/GBP</h4><div class="rate" id="rateUsdGbp">0.7832</div><div class="change up">+0.08%</div></div>
+      <div class="rate-card"><h4>EUR/GBP</h4><div class="rate" id="rateEurGbp">0.8470</div><div class="change down">-0.05%</div></div>
+      <div class="rate-card"><h4>USD/MYZ</h4><div class="rate" id="rateUsdMyz">0.12</div><div class="change up">+0.03%</div></div>
+    </div>
+    <div class="chart-container" id="chartContainer">
+      <svg viewBox="0 0 600 180" id="rateChart">
+        <polyline fill="none" stroke="#1a73e8" stroke-width="2" id="chartLine"/>
+        <polyline fill="url(#chartGrad)" stroke="none" id="chartFill"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>📋 Transazioni Recenti</h2>
+      <div class="filter-row">
+        <select id="filterCoin" onchange="renderTransactions()">
+          <option value="all">Tutte</option>
+          <option value="USD">$ USD</option>
+          <option value="EUR">€ EUR</option>
+          <option value="GBP">£ GBP</option>
+        </select>
+        <select id="filterType" onchange="renderTransactions()">
+          <option value="all">Tutti</option>
+          <option value="in">Entrata</option>
+          <option value="out">Uscita</option>
+        </select>
+        <select id="filterStatus" onchange="renderTransactions()">
+          <option value="all">Tutti</option>
+          <option value="confirmed">Confermato</option>
+          <option value="pending">In attesa</option>
+          <option value="failed">Fallito</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-container" id="txTable"></div>
+  </div>
+
+  <div class="last-update" id="lastUpdate"></div>
+</div>
+
+<script>
+  const DEMO = {
+    balances: { USD: 45280.50, EUR: 12350.75, GBP: 8900.00 },
+    rates: { 'USD-EUR': 0.9245, 'USD-GBP': 0.7832, 'EUR-USD': 1.0816, 'EUR-GBP': 0.8470, 'GBP-USD': 1.2768, 'GBP-EUR': 1.1806, 'USD-MYZ': 0.12, 'EUR-MYZ': 0.11, 'GBP-MYZ': 0.094, 'MYZ-USD': 8.33, 'MYZ-EUR': 9.09, 'MYZ-GBP': 10.64 },
+    changes: { 'USD-EUR': '+0.12', 'USD-GBP': '+0.08', 'EUR-GBP': '-0.05', 'USD-MYZ': '+0.03' },
+    txs: [
+      { id: 'fx1', cur: 'USD', type: 'in', amount: 5000.00, method: 'Bonifico Bancario', status: 'confirmed', date: '2026-11-08 14:32', ref: 'TRX-2026-001' },
+      { id: 'fx2', cur: 'EUR', type: 'out', amount: 2500.00, method: 'Carta di Credito', status: 'confirmed', date: '2026-11-08 12:15', ref: 'TRX-2026-002' },
+      { id: 'fx3', cur: 'GBP', type: 'in', amount: 1500.00, method: 'Exchange', status: 'pending', date: '2026-11-08 10:48', ref: 'TRX-2026-003' },
+      { id: 'fx4', cur: 'USD', type: 'out', amount: 1200.00, method: 'Bonifico Bancario', status: 'confirmed', date: '2026-11-07 22:10', ref: 'TRX-2026-004' },
+      { id: 'fx5', cur: 'EUR', type: 'in', amount: 3000.00, method: 'Bonifico Bancario', status: 'confirmed', date: '2026-11-07 18:45', ref: 'TRX-2026-005' },
+      { id: 'fx6', cur: 'GBP', type: 'out', amount: 800.00, method: 'Carta di Credito', status: 'failed', date: '2026-11-07 15:30', ref: 'TRX-2026-006' },
+      { id: 'fx7', cur: 'USD', type: 'in', amount: 10000.00, method: 'Exchange', status: 'pending', date: '2026-11-07 09:00', ref: 'TRX-2026-007' },
+      { id: 'fx8', cur: 'EUR', type: 'out', amount: 500.00, method: 'Bonifico Bancario', status: 'confirmed', date: '2026-11-06 20:30', ref: 'TRX-2026-008' },
+      { id: 'fx9', cur: 'GBP', type: 'in', amount: 2000.00, method: 'Exchange', status: 'confirmed', date: '2026-11-06 14:00', ref: 'TRX-2026-009' },
+      { id: 'fx10', cur: 'USD', type: 'out', amount: 3500.00, method: 'Carta di Credito', status: 'confirmed', date: '2026-11-05 08:15', ref: 'TRX-2026-010' },
+    ],
+    chartData: [0.9200, 0.9220, 0.9215, 0.9230, 0.9245, 0.9235, 0.9240, 0.9245, 0.9242, 0.9245],
+  };
+
+  let state = { data: DEMO, mode: 'demo' };
+
+  function fmt(v) { return v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function sym(c) { return c === 'USD' ? '$' : c === 'EUR' ? '€' : c === 'GBP' ? '£' : ''; }
+
+  function renderKPI() {
+    const d = state.data;
+    const totalUsd = d.balances.USD + d.balances.EUR * d.rates['EUR-USD'] + d.balances.GBP * d.rates['GBP-USD'];
+    document.getElementById('kpiUsd').textContent = '$' + fmt(d.balances.USD);
+    document.getElementById('kpiEur').textContent = '€' + fmt(d.balances.EUR);
+    document.getElementById('kpiGbp').textContent = '£' + fmt(d.balances.GBP);
+    document.getElementById('kpiTotal').textContent = '$' + fmt(totalUsd);
+  }
+
+  function renderChart() {
+    const data = state.data.chartData;
+    const svg = document.getElementById('rateChart');
+    const w = 600, h = 180, pad = 20;
+    const min = Math.min(...data), max = Math.max(...data), range = max - min || 1;
+    const xStep = (w - pad * 2) / (data.length - 1);
+    const points = data.map((v, i) => `${pad + i * xStep},${h - pad - ((v - min) / range) * (h - pad * 2)}`).join(' ');
+
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    const grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+    grad.id = 'chartGrad';
+    grad.setAttribute('x1', '0'); grad.setAttribute('y1', '0');
+    grad.setAttribute('x2', '0'); grad.setAttribute('y2', '1');
+    const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop1.setAttribute('offset', '0%'); stop1.setAttribute('stop-color', '#1a73e8'); stop1.setAttribute('stop-opacity', '0.3');
+    const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop2.setAttribute('offset', '100%'); stop2.setAttribute('stop-color', '#1a73e8'); stop2.setAttribute('stop-opacity', '0');
+    grad.appendChild(stop1); grad.appendChild(stop2); defs.appendChild(grad);
+    svg.prepend(defs);
+
+    document.getElementById('chartLine').setAttribute('points', points);
+    const fillPoints = points + ` ${w - pad},${h - pad} ${pad},${h - pad}`;
+    document.getElementById('chartFill').setAttribute('points', fillPoints);
+  }
+
+  function renderRates() {
+    const d = state.data;
+    document.getElementById('rateUsdEur').textContent = d.rates['USD-EUR'].toFixed(4);
+    document.getElementById('rateUsdGbp').textContent = d.rates['USD-GBP'].toFixed(4);
+    document.getElementById('rateEurGbp').textContent = d.rates['EUR-GBP'].toFixed(4);
+    document.getElementById('rateUsdMyz').textContent = d.rates['USD-MYZ'].toFixed(2);
+    ['UsdEur', 'UsdGbp', 'EurGbp', 'UsdMyz'].forEach(k => {
+      const el = document.getElementById('rate' + k);
+      const key = k.replace(/([A-Z])/g, '-$1').substring(1).toUpperCase();
+      const ch = document.getElementById('rate' + k).nextElementSibling;
+      if (d.changes[key]) {
+        const val = parseFloat(d.changes[key]);
+        ch.textContent = (val >= 0 ? '+' : '') + d.changes[key] + '%';
+        ch.className = 'change ' + (val >= 0 ? 'up' : 'down');
+      }
+    });
+  }
+
+  function renderTransactions() {
+    const coin = document.getElementById('filterCoin').value;
+    const type = document.getElementById('filterType').value;
+    const status = document.getElementById('filterStatus').value;
+    let txs = state.data.txs;
+    if (coin !== 'all') txs = txs.filter(t => t.cur === coin);
+    if (type !== 'all') txs = txs.filter(t => t.type === type);
+    if (status !== 'all') txs = txs.filter(t => t.status === status);
+
+    if (!txs.length) {
+      document.getElementById('txTable').innerHTML = '<div class="empty">Nessuna transazione trovata</div>';
+      return;
+    }
+    const dots = { USD: 'usd', EUR: 'eur', GBP: 'gbp' };
+    let html = '<table><thead><tr><th>Data</th><th>Valuta</th><th>Tipo</th><th>Importo</th><th>Metodo</th><th>Riferimento</th><th>Stato</th></tr></thead><tbody>';
+    txs.forEach(t => {
+      html += `<tr>
+        <td>${t.date}</td>
+        <td><span class="cur-badge"><span class="dot ${dots[t.cur]}"></span>${t.cur}</span></td>
+        <td><span class="tx-type ${t.type}">${t.type === 'in' ? '⬇ Entrata' : '⬆ Uscita'}</span></td>
+        <td>${sym(t.cur)}${fmt(t.amount)}</td>
+        <td style="font-size:0.85rem">${t.method}</td>
+        <td style="font-size:0.8rem;color:var(--text-soft)">${t.ref}</td>
+        <td><span class="tx-status ${t.status}">${t.status === 'confirmed' ? '✅ Confermato' : t.status === 'pending' ? '⏳ In attesa' : '❌ Fallito'}</span></td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    document.getElementById('txTable').innerHTML = html;
+  }
+
+  function convert() {
+    const from = document.getElementById('convFrom').value;
+    const to = document.getElementById('convTo').value;
+    const amt = parseFloat(document.getElementById('convAmount').value) || 0;
+    const p = state.data.rates;
+    const key = from + '-' + to;
+    const rate = p[key];
+    if (rate) {
+      const result = amt * rate;
+      document.getElementById('convResult').value = (to === 'MYZ' ? result.toFixed(0) : result.toFixed(2));
+      document.getElementById('convRate').textContent = `Tasso: 1 ${from} = ${rate.toFixed(4)} ${to}`;
+    } else {
+      document.getElementById('convResult').value = '';
+      document.getElementById('convRate').textContent = 'Tasso non disponibile';
+    }
+  }
+
+  function swapConv() {
+    const f = document.getElementById('convFrom');
+    const t = document.getElementById('convTo');
+    [f.value, t.value] = [t.value, f.value];
+    convert();
+  }
+
+  function setupConvTabs() {
+    document.querySelectorAll('.conv-tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.conv-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        const pair = this.dataset.pair;
+        if (pair === 'fiat-myz') {
+          document.getElementById('convFrom').value = 'USD';
+          document.getElementById('convTo').value = 'MYZ';
+        } else {
+          const [from, to] = pair.split('-');
+          document.getElementById('convFrom').value = from.toUpperCase();
+          document.getElementById('convTo').value = to.toUpperCase();
+        }
+        convert();
+      });
+    });
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('themeBtn').textContent = isDark ? '🌙 Dark' : '☀️ Light';
+    try { localStorage.setItem('fiat-theme', isDark ? 'light' : 'dark'); } catch(e) {}
+  }
+
+  function exportCSV() {
+    const rows = [['Data','Valuta','Tipo','Importo','Metodo','Riferimento','Stato']];
+    state.data.txs.forEach(t => rows.push([t.date, t.cur, t.type, t.amount, t.method, t.ref, t.status]));
+    const bom = '\uFEFF';
+    const csv = bom + rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'fiat-transazioni.csv';
+    a.click();
+  }
+
+  async function loadData() {
+    document.getElementById('modePill').className = 'pill live';
+    document.getElementById('modePill').textContent = 'Live';
+    try {
+      const res = await fetch('/api/payments');
+      if (res.ok) {
+        state.data = JSON.parse(JSON.stringify(DEMO));
+        Object.keys(state.data.rates).forEach(k => {
+          state.data.rates[k] *= (1 + (Math.random() - 0.5) * 0.005);
+        });
+      }
+    } catch(e) {
+      state.data = JSON.parse(JSON.stringify(DEMO));
+      document.getElementById('modePill').className = 'pill demo';
+      document.getElementById('modePill').textContent = 'Demo';
+    }
+    renderAll();
+    document.getElementById('lastUpdate').textContent = 'Ultimo aggiornamento: ' + new Date().toLocaleString('it-IT');
+  }
+
+  function renderAll() {
+    renderKPI();
+    renderChart();
+    renderRates();
+    renderTransactions();
+    convert();
+  }
+
+  try {
+    const saved = localStorage.getItem('fiat-theme');
+    if (saved) document.documentElement.setAttribute('data-theme', saved);
+  } catch(e) {}
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.getElementById('themeBtn').textContent = isDark ? '☀️ Light' : '🌙 Dark';
+
+  document.getElementById('convFrom').addEventListener('change', convert);
+  document.getElementById('convTo').addEventListener('change', convert);
+  setupConvTabs();
+  renderAll();
+  document.getElementById('lastUpdate').textContent = 'Ultimo aggiornamento: ' + new Date().toLocaleString('it-IT');
+</script>
+</body>
+</html>
