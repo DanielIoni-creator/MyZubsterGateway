@@ -7,12 +7,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : 'http://localhost:3000', credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // MongoDB connection
-mongoose.connect('mongodb://myzubster-mongodb:27017/myzubster', {
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://myzubster-mongodb:27017/myzubster', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
