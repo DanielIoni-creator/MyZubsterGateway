@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🏷️ BENZINA Promozioni - MyZubster</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --accent: #f7931a;
+      --accent-2: #2ecc71;
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --surface-2: #eef1f6;
+      --text: #1f2733;
+      --text-soft: #5b6675;
+      --border: #e2e7ee;
+      --shadow: 0 10px 30px rgba(20, 30, 50, 0.08);
+      --radius: 14px;
+      --credit: #22a06b;
+      --debit: #d94f4f;
+      --warn: #d99000;
+    }
+    [data-theme="dark"] {
+      --bg: #10141b;
+      --surface: #171d27;
+      --surface-2: #1f2733;
+      --text: #e5e9f0;
+      --text-soft: #8b95a8;
+      --border: #2a3342;
+      --shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 20px; transition: background .3s, color .3s; }
+    .dashboard { max-width: 1200px; margin: 0 auto; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .top-bar h1 { font-size: 1.6rem; display: flex; align-items: center; gap: 8px; }
+    .theme-toggle { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 16px; cursor: pointer; color: var(--text); font-size: .9rem; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .stat-card .stat-label { font-size: .8rem; color: var(--text-soft); text-transform: uppercase; letter-spacing: .5px; }
+    .stat-card .stat-value { font-size: 1.6rem; font-weight: 700; margin-top: 4px; }
+    .stat-card .stat-sub { font-size: .8rem; color: var(--text-soft); margin-top: 2px; }
+
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; background: var(--surface); border-radius: var(--radius); padding: 4px; border: 1px solid var(--border); overflow-x: auto; }
+    .tab { padding: 10px 20px; border-radius: 10px; border: none; background: transparent; color: var(--text-soft); cursor: pointer; font-size: .9rem; font-weight: 500; transition: all .2s; white-space: nowrap; }
+    .tab.active { background: var(--accent); color: white; }
+    .tab:hover:not(.active) { background: var(--surface-2); }
+
+    .promo-card { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 16px; display: flex; gap: 16px; align-items: flex-start; }
+    .promo-card .promo-icon { font-size: 2rem; min-width: 48px; text-align: center; }
+    .promo-card .promo-body { flex: 1; }
+    .promo-card .promo-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 4px; }
+    .promo-card .promo-desc { color: var(--text-soft); font-size: .9rem; margin-bottom: 8px; }
+    .promo-card .promo-meta { display: flex; gap: 12px; flex-wrap: wrap; font-size: .85rem; color: var(--text-soft); }
+    .promo-card .promo-meta span { display: flex; align-items: center; gap: 4px; }
+    .promo-card .promo-actions { margin-top: 10px; display: flex; gap: 8px; }
+    .promo-card .promo-actions .btn-sm { padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); cursor: pointer; font-size: .8rem; transition: all .2s; }
+    .promo-card .promo-actions .btn-sm:hover { background: var(--accent); color: white; border-color: var(--accent); }
+    .promo-card .promo-actions .btn-sm.primary { background: linear-gradient(135deg, #f7931a, #e67e22); color: white; border: none; }
+    .promo-card.expired { opacity: .6; }
+
+    .loyalty-card { background: linear-gradient(135deg, #f7931a, #e67e22); border-radius: var(--radius); padding: 28px; color: white; margin-bottom: 24px; }
+    .loyalty-level { font-size: 1.8rem; font-weight: 700; }
+    .loyalty-progress { margin-top: 12px; background: rgba(255,255,255,.2); border-radius: 10px; height: 12px; overflow: hidden; }
+    .loyalty-progress-bar { height: 100%; background: white; border-radius: 10px; transition: width .5s ease; }
+    .loyalty-points { display: flex; gap: 20px; margin-top: 12px; flex-wrap: wrap; }
+    .loyalty-points span { font-size: .9rem; opacity: .9; }
+
+    .code-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .code-card { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .code-card .code-value { font-family: monospace; font-size: 1.3rem; font-weight: 700; color: var(--accent); letter-spacing: 2px; padding: 8px 12px; background: var(--surface-2); border-radius: 8px; text-align: center; margin-bottom: 8px; }
+    .code-card .code-desc { font-size: .9rem; color: var(--text-soft); }
+    .code-card .code-meta { display: flex; justify-content: space-between; margin-top: 8px; font-size: .85rem; }
+    .code-card .code-actions { margin-top: 10px; display: flex; gap: 6px; }
+    .code-card .code-actions .btn-sm { padding: 5px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); cursor: pointer; font-size: .8rem; transition: all .2s; }
+    .code-card .code-actions .btn-sm:hover { background: var(--accent); color: white; border-color: var(--accent); }
+
+    .form-card { background: var(--surface); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 20px; }
+    .form-card h3 { margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .form-row .field { display: flex; flex-direction: column; gap: 4px; }
+    .form-row .field label { font-size: .85rem; color: var(--text-soft); font-weight: 600; }
+    .form-row .field input, .form-row .field select, .form-row .field textarea { padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); color: var(--text); font-size: .9rem; outline: none; width: 100%; }
+    .form-row .field input:focus, .form-row .field select:focus, .form-row .field textarea:focus { border-color: var(--accent); }
+    .form-row .field textarea { resize: vertical; min-height: 60px; }
+    .form-actions { display: flex; gap: 10px; margin-top: 16px; }
+    .form-actions .btn { padding: 10px 24px; border-radius: 10px; border: none; cursor: pointer; font-size: .9rem; font-weight: 600; transition: opacity .2s; }
+    .form-actions .btn:hover { opacity: .85; }
+    .form-actions .btn-primary { background: linear-gradient(135deg, #f7931a, #e67e22); color: white; }
+    .form-actions .btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+
+    .chart-section { background: var(--surface); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .chart-wrapper { position: relative; height: 260px; }
+
+    .no-data { text-align: center; padding: 40px; color: var(--text-soft); }
+
+    @media (max-width: 640px) {
+      .form-row { grid-template-columns: 1fr; }
+      .promo-card { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <div class="top-bar">
+      <h1>🏷️ BENZINA Promozioni</h1>
+      <button class="theme-toggle" onclick="toggleTheme()">🌓 Tema</button>
+    </div>
+
+    <div class="loyalty-card">
+      <div style="font-size:.9rem;opacity:.8">💎 Il tuo programma fedeltà</div>
+      <div class="loyalty-level" id="loyaltyLevel">Bronze</div>
+      <div class="loyalty-progress"><div class="loyalty-progress-bar" id="loyaltyBar" style="width:0%"></div></div>
+      <div class="loyalty-points">
+        <span>⭐ <span id="loyaltyPoints">0</span> punti</span>
+        <span>🎯 <span id="loyaltyNext">500</span> al livello successivo</span>
+        <span>💰 <span id="loyaltyCashback">0</span> MYZ cashback accumulato</span>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Promozioni attive</div>
+        <div class="stat-value" id="statActive">0</div>
+        <div class="stat-sub">offerte</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Codici sconto</div>
+        <div class="stat-value" id="statCodes">0</div>
+        <div class="stat-sub">attivi</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Cashback erogato</div>
+        <div class="stat-value" id="statCashback">0</div>
+        <div class="stat-sub">MYZ</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Utenti fedeltà</div>
+        <div class="stat-value" id="statUsers">0</div>
+        <div class="stat-sub">membri</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('promozioni', this)">🎁 Promozioni</button>
+      <button class="tab" onclick="switchTab('codici', this)">🔑 Codici Sconto</button>
+      <button class="tab" onclick="switchTab('cashback', this)">💰 Cashback</button>
+      <button class="tab" onclick="switchTab('crea', this)">➕ Crea</button>
+    </div>
+
+    <div id="tab-promozioni" class="tab-content">
+      <div id="promoList"><div class="no-data">Caricamento...</div></div>
+    </div>
+
+    <div id="tab-codici" class="tab-content" style="display:none">
+      <div class="code-grid" id="codeGrid"><div class="no-data">Nessun codice sconto disponibile</div></div>
+    </div>
+
+    <div id="tab-cashback" class="tab-content" style="display:none">
+      <div class="chart-section">
+        <h3>📈 Andamento cashback (ultimi 7 giorni)</h3>
+        <div class="chart-wrapper"><canvas id="cashbackChart"></canvas></div>
+      </div>
+      <div id="cashbackList"><div class="no-data">Nessuna transazione cashback</div></div>
+    </div>
+
+    <div id="tab-crea" class="tab-content" style="display:none">
+      <div class="form-card">
+        <h3>➕ Crea nuova promozione</h3>
+        <div class="form-row">
+          <div class="field"><label>Titolo</label><input type="text" id="formTitle" placeholder="Es. Sconto Estate 2026" /></div>
+          <div class="field"><label>Tipo</label>
+            <select id="formType"><option value="sconto">💲 Sconto percentuale</option><option value="cashback">💰 Cashback MYZ</option><option value="buono">🎁 Buono omaggio</option><option value="fedelta">💎 Punti fedeltà</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Sconto (%)</label><input type="number" id="formDiscount" value="10" min="0" max="100" /></div>
+          <div class="field"><label>Scadenza</label><input type="date" id="formExpiry" /></div>
+        </div>
+        <div class="form-row">
+          <div class="field" style="grid-column:1/-1"><label>Descrizione</label><textarea id="formDesc" placeholder="Descrivi la promozione..."></textarea></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="createPromo()">✅ Crea promozione</button>
+          <button class="btn btn-secondary" onclick="clearForm()">🗑 Cancella</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEMO = {
+      promos: [
+        { id: 1, title: '🚀 Estate 2026 - 20% di sconto', desc: '20% di sconto su tutti i rifornimenti con MYZ fino al 31/08', type: 'sconto', value: 20, active: true, expiry: '31/08/2026', used: 145 },
+        { id: 2, title: '💰 Cashback 5% MYZ', desc: 'Ricevi il 5% di cashback in MYZ su ogni rifornimento', type: 'cashback', value: 5, active: true, expiry: '31/12/2026', used: 320 },
+        { id: 3, title: '🎁 Buono benvenuto 50 MYZ', desc: 'Buono omaggio di 50 MYZ per i nuovi utenti', type: 'buono', value: 50, active: true, expiry: '30/09/2026', used: 88 },
+        { id: 4, title: '💎 Fedeltà - Rifornimento gratis', desc: 'Ogni 10 rifornimenti, 1 gratuito fino a 20 L', type: 'fedelta', value: 10, active: true, expiry: '31/12/2026', used: 67 },
+        { id: 5, title: '⛽ Sconto weekend - 15%', desc: '15% di sconto sui rifornimenti del sabato e domenica', type: 'sconto', value: 15, active: false, expiry: '31/07/2026', used: 203 },
+      ],
+      codes: [
+        { code: 'MYZ20', desc: '20% di sconto sul primo rifornimento', discount: 20, used: 45, max: 100, active: true },
+        { code: 'CASHBACK10', desc: '10% cashback su rifornimenti > 50 MYZ', discount: 10, used: 78, max: 200, active: true },
+        { code: 'BENZINA5', desc: '5 MYZ di sconto su rifornimenti > 20 L', discount: 5, used: 120, max: 500, active: true },
+        { code: 'WELCOME50', desc: '50 MYZ di buono benvenuto', discount: 50, used: 88, max: 500, active: true },
+      ],
+      cashbackHistory: [120, 180, 95, 210, 150, 300, 240],
+      cashbackLabels: ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'],
+      users: 1240,
+      totalCashback: 4580,
+      loyaltyPoints: 1250,
+      loyaltyLevel: 'Silver',
+      loyaltyNext: 2500,
+    };
+
+    let state = { promos: [...DEMO.promos], codes: [...DEMO.codes], cashbackTotal: DEMO.totalCashback, users: DEMO.users, promoId: 6 };
+    let cashbackChart = null;
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+      localStorage.setItem('myz-theme', current === 'dark' ? 'light' : 'dark');
+      if (cashbackChart) { cashbackChart.update(); }
+    }
+
+    (function() {
+      const saved = localStorage.getItem('myz-theme');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
+      const savedPromos = localStorage.getItem('myz-promos');
+      if (savedPromos) { state.promos = JSON.parse(savedPromos); state.promoId = Math.max(...state.promos.map(p=>p.id), 0) + 1; }
+      const savedCodes = localStorage.getItem('myz-codes');
+      if (savedCodes) state.codes = JSON.parse(savedCodes);
+    })();
+
+    function updateStats() {
+      const active = state.promos.filter(p => p.active).length;
+      const activeCodes = state.codes.filter(c => c.active).length;
+      document.getElementById('statActive').textContent = active;
+      document.getElementById('statCodes').textContent = activeCodes;
+      document.getElementById('statCashback').textContent = state.cashbackTotal.toLocaleString('it-IT');
+      document.getElementById('statUsers').textContent = state.users.toLocaleString('it-IT');
+      document.getElementById('loyaltyPoints').textContent = DEMO.loyaltyPoints;
+      document.getElementById('loyaltyLevel').textContent = DEMO.loyaltyLevel;
+      document.getElementById('loyaltyNext').textContent = DEMO.loyaltyNext;
+      document.getElementById('loyaltyCashback').textContent = DEMO.totalCashback;
+      const pct = Math.min(100, (DEMO.loyaltyPoints / DEMO.loyaltyNext) * 100);
+      document.getElementById('loyaltyBar').style.width = pct + '%';
+    }
+
+    function switchTab(tab, btn) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+      document.getElementById('tab-' + tab).style.display = 'block';
+      if (tab === 'promozioni') renderPromos();
+      if (tab === 'codici') renderCodes();
+      if (tab === 'cashback') { renderCashback(); initCashbackChart(); }
+    }
+
+    function renderPromos() {
+      const container = document.getElementById('promoList');
+      if (state.promos.length === 0) { container.innerHTML = '<div class="no-data">Nessuna promozione creata</div>'; return; }
+      let html = '';
+      state.promos.forEach(p => {
+        const icon = p.type === 'sconto' ? '💲' : p.type === 'cashback' ? '💰' : p.type === 'buono' ? '🎁' : '💎';
+        const status = p.active ? '🟢 Attiva' : '🔴 Scaduta';
+        html += `<div class="promo-card ${p.active ? '' : 'expired'}">
+          <div class="promo-icon">${icon}</div>
+          <div class="promo-body">
+            <div class="promo-title">${p.title}</div>
+            <div class="promo-desc">${p.desc}</div>
+            <div class="promo-meta">
+              <span>📅 Scade: ${p.expiry}</span>
+              <span>👥 ${p.used} utilizzi</span>
+              <span>${status}</span>
+            </div>
+            <div class="promo-actions">
+              <button class="btn-sm primary" onclick="usePromo(${p.id})">🎯 Usa ora</button>
+              ${p.active ? `<button class="btn-sm" onclick="togglePromo(${p.id})">⏸ Disattiva</button>` : `<button class="btn-sm" onclick="togglePromo(${p.id})">▶ Attiva</button>`}
+            </div>
+          </div>
+        </div>`;
+      });
+      container.innerHTML = html;
+      updateStats();
+    }
+
+    function renderCodes() {
+      const container = document.getElementById('codeGrid');
+      if (state.codes.length === 0) { container.innerHTML = '<div class="no-data">Nessun codice sconto disponibile</div>'; return; }
+      let html = '';
+      state.codes.forEach(c => {
+        const pct = c.max > 0 ? ((c.used / c.max) * 100).toFixed(0) : 0;
+        html += `<div class="code-card">
+          <div class="code-value">${c.code}</div>
+          <div class="code-desc">${c.desc}</div>
+          <div class="code-meta">
+            <span>💲 ${c.discount}%</span>
+            <span>👥 ${c.used}/${c.max} utilizzi (${pct}%)</span>
+          </div>
+          <div class="code-actions">
+            <button class="btn-sm" onclick="copyCode('${c.code}')">📋 Copia</button>
+            <button class="btn-sm" onclick="shareCode('${c.code}')">📤 Condividi</button>
+          </div>
+        </div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    function renderCashback() {
+      const container = document.getElementById('cashbackList');
+      const items = [
+        { date: '08/08/2026', desc: 'Cashback rifornimento Stazione Rimini Centro', myz: 15, pct: 5 },
+        { date: '07/08/2026', desc: 'Cashback rifornimento Stazione Bologna Nord', myz: 10, pct: 5 },
+        { date: '06/08/2026', desc: 'Cashback rifornimento Stazione Milano Est', myz: 20, pct: 5 },
+        { date: '05/08/2026', desc: 'Cashback rifornimento Stazione Firenze Ovest', myz: 8, pct: 5 },
+        { date: '04/08/2026', desc: 'Cashback rifornimento Stazione Torino Sud', myz: 12, pct: 5 },
+      ];
+      let html = `<table><thead><tr><th>Data</th><th>Descrizione</th><th>Cashback</th><th>%</th></tr></thead><tbody>`;
+      items.forEach(i => {
+        html += `<tr><td>${i.date}</td><td>${i.desc}</td><td style="color:var(--credit)">+${i.myz} MYZ</td><td>${i.pct}%</td></tr>`;
+      });
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    function initCashbackChart() {
+      const ctx = document.getElementById('cashbackChart').getContext('2d');
+      if (cashbackChart) { cashbackChart.destroy(); }
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+      const textColor = isDark ? '#8b95a8' : '#5b6675';
+      cashbackChart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: DEMO.cashbackLabels, datasets: [{ label: 'Cashback MYZ', data: DEMO.cashbackHistory, backgroundColor: 'rgba(247,147,26,0.7)', borderColor: '#f7931a', borderWidth: 1, borderRadius: 4 }] },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: textColor } } },
+          scales: { x: { ticks: { color: textColor }, grid: { color: gridColor } }, y: { ticks: { color: textColor }, grid: { color: gridColor } } }
+        }
+      });
+    }
+
+    function createPromo() {
+      const title = document.getElementById('formTitle').value.trim();
+      const type = document.getElementById('formType').value;
+      const discount = parseInt(document.getElementById('formDiscount').value) || 0;
+      const expiry = document.getElementById('formExpiry').value;
+      const desc = document.getElementById('formDesc').value.trim();
+      if (!title || !expiry) { alert('⚠️ Compila titolo e scadenza'); return; }
+      const icons = { sconto: '💲', cashback: '💰', buono: '🎁', fedelta: '💎' };
+      const typeLabels = { sconto: 'Sconto percentuale', cashback: 'Cashback MYZ', buono: 'Buono omaggio', fedelta: 'Punti fedeltà' };
+      const promo = { id: state.promoId++, title: `${icons[type]} ${title}`, desc: `${typeLabels[type]}: ${desc || 'Nessuna descrizione'}`, type, value: discount, active: true, expiry: expiry.split('-').reverse().join('/'), used: 0 };
+      state.promos.unshift(promo);
+      localStorage.setItem('myz-promos', JSON.stringify(state.promos));
+      clearForm();
+      switchTab('promozioni', document.querySelectorAll('.tab')[0]);
+      renderPromos();
+      alert('✅ Promozione creata con successo!');
+    }
+
+    function clearForm() {
+      document.getElementById('formTitle').value = '';
+      document.getElementById('formType').value = 'sconto';
+      document.getElementById('formDiscount').value = '10';
+      document.getElementById('formExpiry').value = '';
+      document.getElementById('formDesc').value = '';
+    }
+
+    function usePromo(id) {
+      const p = state.promos.find(x => x.id === id);
+      if (!p || !p.active) return;
+      p.used = (p.used || 0) + 1;
+      localStorage.setItem('myz-promos', JSON.stringify(state.promos));
+      renderPromos();
+      alert(`✅ Promozione "${p.title}" applicata con successo!`);
+    }
+
+    function togglePromo(id) {
+      const p = state.promos.find(x => x.id === id);
+      if (p) { p.active = !p.active; localStorage.setItem('myz-promos', JSON.stringify(state.promos)); renderPromos(); }
+    }
+
+    function copyCode(code) {
+      navigator.clipboard.writeText(code).then(() => alert(`📋 Copiato: ${code}`)).catch(() => alert('❌ Errore copia'));
+    }
+
+    function shareCode(code) {
+      alert(`📤 Condividi codice: ${code}`);
+    }
+
+    renderPromos();
+    updateStats();
+  </script>
+</body>
+</html>
