@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyZubster - Design System</title>
+  <style>
+    /* ============================================================
+       MyZubster Design System v1.0 — CSS Variables & Tokens
+       ============================================================ */
+    :root {
+      /* --- Brand Colors --- */
+      --brand-primary: #4A90D9;
+      --brand-primary-dark: #357ABD;
+      --brand-primary-light: #6AABF0;
+      --brand-secondary: #9B59B6;
+      --brand-secondary-dark: #7D3C98;
+      --brand-accent: #1ABC9C;
+      --brand-accent-dark: #16A085;
+
+      /* --- Neutral Colors --- */
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --bg-card-hover: #263548;
+      --bg-surface: #0f172a;
+      --bg-input: #1e293b;
+      --border-default: #334155;
+      --border-hover: #475569;
+      --text-primary: #e2e8f0;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --text-inverse: #0f172a;
+
+      /* --- Semantic Colors --- */
+      --color-success: #34d399;
+      --color-success-bg: #064e3b;
+      --color-warning: #fbbf24;
+      --color-warning-bg: #78350f;
+      --color-error: #f87171;
+      --color-error-bg: #7f1d1d;
+      --color-info: #38bdf8;
+      --color-info-bg: #0c4a6e;
+
+      /* --- Gradients --- */
+      --gradient-brand: linear-gradient(45deg, #4A90D9, #9B59B6, #1ABC9C);
+      --gradient-dark: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0f3460 100%);
+      --gradient-blue: linear-gradient(135deg, #4A90D9, #357ABD);
+      --gradient-green: linear-gradient(135deg, #2ecc71, #27ae60);
+      --gradient-purple: linear-gradient(135deg, #9B59B6, #7D3C98);
+      --gradient-card: linear-gradient(135deg, #1e293b, #0f172a);
+
+      /* --- Typography --- */
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', monospace;
+      --font-display: system-ui, 'Segoe UI', Roboto, sans-serif;
+
+      /* --- Spacing --- */
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 16px;
+      --space-lg: 24px;
+      --space-xl: 32px;
+      --space-2xl: 48px;
+
+      /* --- Border Radius --- */
+      --radius-sm: 6px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-xl: 16px;
+      --radius-full: 9999px;
+
+      /* --- Shadows --- */
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.3);
+      --shadow-lg: 0 10px 25px rgba(0,0,0,0.4);
+      --shadow-glow-blue: 0 0 20px rgba(74, 144, 217, 0.3);
+      --shadow-glow-purple: 0 0 20px rgba(155, 89, 182, 0.3);
+
+      /* --- Transitions --- */
+      --transition-fast: 150ms ease;
+      --transition-normal: 250ms ease;
+    }
+
+    /* ============================================================
+       Design System Page Styles
+       ============================================================ */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* --- Header --- */
+    .ds-header {
+      background: var(--gradient-dark);
+      padding: 48px 32px 40px;
+      text-align: center;
+      border-bottom: 1px solid var(--border-default);
+      position: relative;
+      overflow: hidden;
+    }
+    .ds-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 50% 50%, rgba(74,144,217,0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .ds-header h1 {
+      font-size: 2.8rem;
+      font-weight: 700;
+      background: var(--gradient-brand);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+      position: relative;
+    }
+    .ds-header .subtitle {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      position: relative;
+    }
+    .ds-header .version-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 4px 16px;
+      background: rgba(74,144,217,0.15);
+      border: 1px solid rgba(74,144,217,0.3);
+      border-radius: var(--radius-full);
+      font-size: 0.85rem;
+      color: var(--brand-primary);
+      position: relative;
+    }
+
+    /* --- Container --- */
+    .ds-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* --- Section --- */
+    .ds-section {
+      margin-bottom: 48px;
+    }
+    .ds-section-title {
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--border-default);
+    }
+    .ds-section-title .section-icon {
+      margin-right: 8px;
+    }
+    .ds-section-desc {
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      font-size: 1rem;
+    }
+
+    /* --- Section Grid --- */
+    .ds-grid {
+      display: grid;
+      gap: 20px;
+    }
+    .ds-grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .ds-grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .ds-grid-4 { grid-template-columns: repeat(4, 1fr); }
+    .ds-grid-5 { grid-template-columns: repeat(5, 1fr); }
+    .ds-grid-6 { grid-template-columns: repeat(6, 1fr); }
+    .ds-grid-auto { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+
+    /* --- Card --- */
+    .ds-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      transition: border-color var(--transition-normal), transform var(--transition-normal);
+    }
+    .ds-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+    }
+    .ds-card-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .ds-card-value {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+    }
+
+    /* ============================================================
+       1. COLOR SYSTEM
+       ============================================================ */
+    .color-swatch {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .color-swatch-preview {
+      width: 100%;
+      height: 60px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-default);
+    }
+    .color-swatch-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .color-swatch-hex {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    /* --- Gradient Preview --- */
+    .gradient-swatch {
+      width: 100%;
+      height: 60px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-default);
+    }
+
+    /* ============================================================
+       2. TYPOGRAPHY
+       ============================================================ */
+    .typo-sample {
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(51,65,85,0.5);
+    }
+    .typo-sample:last-child { border-bottom: none; }
+    .typo-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .typo-text {
+      color: var(--text-primary);
+    }
+
+    /* ============================================================
+       3. UI COMPONENTS
+       ============================================================ */
+    .component-showcase {
+      padding: 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      margin-bottom: 16px;
+    }
+    .component-showcase .component-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+    .component-showcase .component-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      font-family: var(--font-mono);
+    }
+
+    /* --- Buttons --- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: var(--radius-md);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      border: none;
+      text-decoration: none;
+      font-family: var(--font-sans);
+    }
+    .btn-primary {
+      background: var(--brand-primary);
+      color: white;
+    }
+    .btn-primary:hover {
+      background: var(--brand-primary-dark);
+      box-shadow: var(--shadow-glow-blue);
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--brand-primary);
+      border: 1px solid var(--brand-primary);
+    }
+    .btn-secondary:hover {
+      background: rgba(74,144,217,0.1);
+    }
+    .btn-success {
+      background: var(--brand-accent);
+      color: white;
+    }
+    .btn-success:hover {
+      background: var(--brand-accent-dark);
+      box-shadow: 0 0 15px rgba(26,188,156,0.3);
+    }
+    .btn-danger {
+      background: var(--color-error-bg);
+      color: var(--color-error);
+      border: 1px solid rgba(248,113,113,0.3);
+    }
+    .btn-danger:hover {
+      background: rgba(127,29,29,0.8);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border-default);
+    }
+    .btn-ghost:hover {
+      background: var(--bg-card-hover);
+      color: var(--text-primary);
+    }
+    .btn-sm {
+      padding: 6px 14px;
+      font-size: 0.8rem;
+    }
+    .btn-lg {
+      padding: 14px 28px;
+      font-size: 1rem;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* --- Cards --- */
+    .demo-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: all var(--transition-normal);
+    }
+    .demo-card:hover {
+      border-color: var(--brand-primary);
+      box-shadow: var(--shadow-glow-blue);
+      transform: translateY(-4px);
+    }
+    .demo-card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-default);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .demo-card-body {
+      padding: 20px;
+    }
+    .demo-card-footer {
+      padding: 12px 20px;
+      border-top: 1px solid var(--border-default);
+      background: rgba(0,0,0,0.1);
+    }
+
+    /* --- Inputs --- */
+    .ds-input {
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-default);
+      background: var(--bg-input);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      font-family: var(--font-sans);
+      transition: border-color var(--transition-fast);
+      width: 100%;
+      max-width: 320px;
+    }
+    .ds-input:focus {
+      outline: none;
+      border-color: var(--brand-primary);
+      box-shadow: 0 0 0 3px rgba(74,144,217,0.2);
+    }
+    .ds-input::placeholder {
+      color: var(--text-muted);
+    }
+    .ds-select {
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-default);
+      background: var(--bg-input);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      font-family: var(--font-sans);
+      transition: border-color var(--transition-fast);
+    }
+    .ds-select:focus {
+      outline: none;
+      border-color: var(--brand-primary);
+    }
+    .ds-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+    .ds-textarea {
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-default);
+      background: var(--bg-input);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      font-family: var(--font-sans);
+      resize: vertical;
+      min-height: 80px;
+      width: 100%;
+      max-width: 400px;
+    }
+    .ds-textarea:focus {
+      outline: none;
+      border-color: var(--brand-primary);
+      box-shadow: 0 0 0 3px rgba(74,144,217,0.2);
+    }
+
+    /* --- Badges --- */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .badge-primary {
+      background: rgba(74,144,217,0.15);
+      color: var(--brand-primary);
+      border: 1px solid rgba(74,144,217,0.3);
+    }
+    .badge-success {
+      background: var(--color-success-bg);
+      color: var(--color-success);
+    }
+    .badge-warning {
+      background: var(--color-warning-bg);
+      color: var(--color-warning);
+    }
+    .badge-error {
+      background: var(--color-error-bg);
+      color: var(--color-error);
+    }
+    .badge-info {
+      background: var(--color-info-bg);
+      color: var(--color-info);
+    }
+    .badge-secondary {
+      background: rgba(148,163,184,0.15);
+      color: var(--text-secondary);
+    }
+
+    /* --- Tables --- */
+    .ds-table-wrapper {
+      overflow-x: auto;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-default);
+    }
+    .ds-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg-card);
+    }
+    .ds-table th {
+      background: var(--bg-dark);
+      padding: 14px 16px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-default);
+    }
+    .ds-table td {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border-default);
+      font-size: 0.9rem;
+    }
+    .ds-table tr:hover td {
+      background: var(--bg-card-hover);
+    }
+
+    /* --- Alerts --- */
+    .alert {
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      font-size: 0.9rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .alert-success {
+      background: var(--color-success-bg);
+      color: var(--color-success);
+      border: 1px solid rgba(52,211,153,0.3);
+    }
+    .alert-warning {
+      background: var(--color-warning-bg);
+      color: var(--color-warning);
+      border: 1px solid rgba(251,191,36,0.3);
+    }
+    .alert-error {
+      background: var(--color-error-bg);
+      color: var(--color-error);
+      border: 1px solid rgba(248,113,113,0.3);
+    }
+    .alert-info {
+      background: var(--color-info-bg);
+      color: var(--color-info);
+      border: 1px solid rgba(56,189,248,0.3);
+    }
+
+    /* --- Loading Spinner --- */
+    .spinner {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border: 3px solid var(--border-default);
+      border-top-color: var(--brand-primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    .spinner-sm {
+      width: 16px;
+      height: 16px;
+      border-width: 2px;
+    }
+    .spinner-lg {
+      width: 40px;
+      height: 40px;
+      border-width: 4px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* --- Loading Skeleton --- */
+    .skeleton {
+      background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-card-hover) 50%, var(--bg-card) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s ease-in-out infinite;
+      border-radius: var(--radius-sm);
+    }
+    .skeleton-text {
+      height: 14px;
+      margin-bottom: 8px;
+      width: 100%;
+    }
+    .skeleton-text:last-child { width: 60%; }
+    .skeleton-title {
+      height: 20px;
+      width: 40%;
+      margin-bottom: 12px;
+    }
+    .skeleton-card {
+      height: 120px;
+      width: 100%;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* --- Tabs --- */
+    .ds-tabs {
+      display: flex;
+      gap: 2px;
+      background: var(--bg-card);
+      padding: 4px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-default);
+      width: fit-content;
+    }
+    .ds-tab {
+      padding: 8px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      border: none;
+      background: transparent;
+      font-family: var(--font-sans);
+    }
+    .ds-tab:hover {
+      color: var(--text-primary);
+      background: rgba(148,163,184,0.1);
+    }
+    .ds-tab.active {
+      background: var(--brand-primary);
+      color: white;
+    }
+
+    /* --- Progress Bar --- */
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-card-hover);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      transition: width 0.5s ease;
+    }
+    .progress-bar-fill.primary {
+      background: var(--brand-primary);
+    }
+    .progress-bar-fill.success {
+      background: var(--color-success);
+    }
+    .progress-bar-fill.warning {
+      background: var(--color-warning);
+    }
+
+    /* --- Tooltip --- */
+    .tooltip-demo {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+      border-bottom: 1px dashed var(--text-muted);
+    }
+    .tooltip-demo .tooltip-text {
+      visibility: hidden;
+      width: 160px;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      text-align: center;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-default);
+      position: absolute;
+      z-index: 10;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 0.8rem;
+      box-shadow: var(--shadow-lg);
+    }
+    .tooltip-demo:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    /* --- Avatar --- */
+    .avatar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--gradient-brand);
+      color: white;
+      font-weight: 700;
+    }
+    .avatar-sm {
+      width: 32px;
+      height: 32px;
+      font-size: 0.85rem;
+    }
+    .avatar-md {
+      width: 48px;
+      height: 48px;
+      font-size: 1.1rem;
+    }
+    .avatar-lg {
+      width: 64px;
+      height: 64px;
+      font-size: 1.5rem;
+    }
+
+    /* --- Divider --- */
+    .ds-divider {
+      height: 1px;
+      background: var(--border-default);
+      margin: 24px 0;
+      border: none;
+    }
+
+    /* --- Status Dot --- */
+    .status-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+    .status-dot.online {
+      background: var(--color-success);
+      box-shadow: 0 0 8px rgba(52,211,153,0.5);
+      animation: pulse 2s infinite;
+    }
+    .status-dot.offline {
+      background: var(--text-muted);
+    }
+    .status-dot.warning {
+      background: var(--color-warning);
+      box-shadow: 0 0 8px rgba(251,191,36,0.5);
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .status-dot.pulse {
+      animation: pulse 2s infinite;
+    }
+
+    /* --- Code Block --- */
+    .code-block {
+      background: #0d1117;
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: #c9d1d9;
+      overflow-x: auto;
+      line-height: 1.5;
+    }
+    .code-block .comment {
+      color: #8b949e;
+    }
+    .code-block .keyword {
+      color: #ff7b72;
+    }
+    .code-block .string {
+      color: #a5d6ff;
+    }
+    .code-block .variable {
+      color: #ffa657;
+    }
+    .code-block .function {
+      color: #d2a8ff;
+    }
+
+    /* --- ToC (Table of Contents) --- */
+    .ds-toc {
+      position: sticky;
+      top: 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 32px;
+    }
+    .ds-toc-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .ds-toc-list {
+      list-style: none;
+    }
+    .ds-toc-list li {
+      margin-bottom: 6px;
+    }
+    .ds-toc-list a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color var(--transition-fast);
+    }
+    .ds-toc-list a:hover {
+      color: var(--brand-primary);
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 768px) {
+      .ds-grid-2, .ds-grid-3, .ds-grid-4, .ds-grid-5, .ds-grid-6 {
+        grid-template-columns: 1fr;
+      }
+      .ds-header h1 { font-size: 2rem; }
+      .ds-header { padding: 32px 20px 28px; }
+      .ds-container { padding: 20px 16px; }
+    }
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .ds-grid-3, .ds-grid-4, .ds-grid-5, .ds-grid-6 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       HEADER
+       ============================================================ -->
+  <header class="ds-header">
+    <h1>🎨 MyZubster Design System</h1>
+    <p class="subtitle">Sistema di design e componenti UI per l'ecosistema MyZubster</p>
+    <span class="version-badge">v1.0 &middot; 250 MYZ Bounty</span>
+  </header>
+
+  <div class="ds-container">
+
+    <!-- ============================================================
+         TABLE OF CONTENTS
+         ============================================================ -->
+    <div class="ds-toc">
+      <div class="ds-toc-title">📑 Indice</div>
+      <ul class="ds-toc-list">
+        <li><a href="#colors">1. Colori (Color System)</a></li>
+        <li><a href="#typography">2. Tipografia (Typography)</a></li>
+        <li><a href="#components">3. Componenti UI</a></li>
+        <li><a href="#styleguide">4. Style Guide</a></li>
+      </ul>
+    </div>
+
+    <!-- ============================================================
+         1. COLOR SYSTEM
+         ============================================================ -->
+    <section class="ds-section" id="colors">
+      <h2 class="ds-section-title"><span class="section-icon">🎨</span> Color System</h2>
+      <p class="ds-section-desc">
+        Palette colori completa per MyZubster, con variabili CSS per facile manutenzione.
+      </p>
+
+      <h3 style="color:var(--text-secondary);font-size:1.1rem;margin-bottom:14px;font-weight:500;">Brand Colors</h3>
+      <div class="ds-grid ds-grid-auto" style="margin-bottom:28px;">
+        <div class="color-swatch">
+          <div class="color-swatch-preview" style="background:var(--brand-primary);"></div>
+          <div class="color-swatch-name">Primary</div>
+          <div class="color-swatch-hex">#4A90D9</div>
+          <div class="color-swatch-hex" style="color:var(--text-muted);">--brand-primary</div>
+        </div>
+        <div class="color-swatch">
+          <div class="color-swatch-preview" style="background:var(--brand-primary-dark);"></div>
+          <div class="color-swatch-name">Primary Dark</div>
+          <div class="color-swatch-hex">#357ABD</div>
+          <div class="color-swatch-hex" style="color:var(--text-muted);">--brand-primary-dark</div>
+        </div>
+        <div class="color-swatch">
+          <div class="color-swatch-preview" style="background:var(--brand-primary-light);"></div>
+          <div class="color-swatch-name">Primary Light</div>
+          <div class="color-swatch-hex">#6AABF0</div>
+          <div class="color-swatch-hex" style="color:var(--text-muted);">--brand-primary-light</div>
+        </div>
+        <div class="color-swatch">
+          <div class="color-swatch-preview" style="background:var(--brand-secondary);"></div>
+          <div class="color-swatch-name">Secondary</div>
+          <div class="color-swatch-hex">#9B59B6</div>
+          <div class="color-swatch-hex" style="color:var(--text-muted);">--brand-secondary</div>
+        </div>
+        <div class="color-swatch">
+          <div class="color-swatch-preview" style="background:var(--brand-accent);"></div>
+          <div class="color-swatch-name">Accent</div>
+          <div class="color-swatch-hex">#1ABC9C</div>
+          <div class="color-swatch-hex" style="color:var(--text-muted);">--brand-accent</div>
+        </div>
+      </div>
+
+      <h3 style="color:var(--text-secondary);font-size:1.1rem;margin-bottom:14px;font-weight:500;">Neutral Colors</h3>
+      <div class="ds-grid ds-grid-auto" style="margin-bottom:28px;">
+        <div class="color-swatch">
+          <div class="color-swatch-preview" style="background:var(--bg-dark);"></div>
+          <div class="color-swatch-name">Background Dark</div>
+          <div class="color-swatch-hex">#0f172a</div>
+          <div class="color-swatch-hex" style="color:var(--text-muted);">--bg-dark</div>
+        </div>
+        <div class="color-swatch">
+          <div class="color-swatch-preview" style="background:var(--bg-card);"></div>
+          <div class="color-swatch-name">Card Background</div>
+          <div class="color-swatch-hex">#1e293b</div>
+          <div class="color-swatch-hex" style="color:var(--text-muted);">--bg-card</div>
+        </div>
+        <div class="color-swatch">
+          <div class="color-swatch-preview" style="background:var(--bg-card-hover);"></div>
+          <div class="color-swatch-name">Card Hover</div>
+          <div class="color-swatch-hex">#263548</div>
+          <div class="color-swatch-hex" style="color:var(--text-muted);">--bg-card-hover</div>
+        </div>
+        <div class="color-swatch">
+          <div class="color-swatch-preview" style="background:var(--border-default);"></div>
+          <div class="color-swatch-name">Border Default</div>
+          <div class="color-swatch-hex">#334155</div>
+          <div class="color-swatch-hex" style="color:var(--text-muted);">--border-default</div>
+        </div>
+        <div class="color-swatch">
+          <div class="color-swatch-preview" style="background:var(--text-primary);"></div>
+          <div class="color-swatch-name">Text Primary</div>
+          <div class="color-swatch-hex">#e2e8f0</div>
+          <div class="color-swatch-hex" style="color:var(--text-muted);">--text-primary</div>
+        </div>
+        <div class="color-swatch">
+          <div class="color-swatch-preview" style="background:var(--text-secondary);"></div>
+          <div class="color-swatch-name">Text Secondary</div>
+          <div class="color-swatch-hex">#94a3b8</div>
+          <div class="color-swatch-hex" style="color:var(--text-muted);">--text-secondary</div>
+        </div>
+        <div class="color-swatch">
+          <div class="color-swatch-preview" style="background:var(--text-muted);"></div>
+          <div class="color-swatch-name">Text Muted</div>
+          <div class="color-swatch-hex">#64748b</div>
+          <div class="color-swatch-hex" style="color:var(--text-muted);">--text-muted</div>
+        </div>
+      </div>
+
+      <h3 style="color:var(--text-secondary);font-size:1.1rem;margin-bottom:14px;font-weight:500;">Semantic Colors</h3>
+      <div class="ds-grid ds-grid-auto" style="margin-bottom:28px;">
+        <div class="color-swatch">
+          <div class="color-swatch-preview" style="background:var(--color-success);"></div>
+          <div class="color-swatch-name">Success</div>
+          <div class="color-swatch-hex">#34d399</div>
+        </div>
+        <div class="color-swatch">
+          <div class="color-swatch-preview" style="background:var(--color-warning);"></div>
+          <div class="color-swatch-name">Warning</div>
+          <div class="color-swatch-hex">#fbbf24</div>
+        </div>
+        <div class="color-swatch">
+          <div class="color-swatch-preview" style="background:var(--color-error);"></div>
+          <div class="color-swatch-name">Error</div>
+          <div class="color-swatch-hex">#f87171</div>
+        </div>
+        <div class="color-swatch">
+          <div class="color-swatch-preview" style="background:var(--color-info);"></div>
+          <div class="color-swatch-name">Info</div>
+          <div class="color-swatch-hex">#38bdf8</div>
+        </div>
+      </div>
+
+      <h3 style="color:var(--text-secondary);font-size:1.1rem;margin-bottom:14px;font-weight:500;">Gradients</h3>
+      <div class="ds-grid ds-grid-2" style="margin-bottom:16px;">
+        <div>
+          <div class="gradient-swatch" style="background:var(--gradient-brand);"></div>
+          <div class="color-swatch-name" style="margin-top:6px;">Brand Gradient</div>
+          <div class="color-swatch-hex">--gradient-brand</div>
+        </div>
+        <div>
+          <div class="gradient-swatch" style="background:var(--gradient-dark);"></div>
+          <div class="color-swatch-name" style="margin-top:6px;">Dark Gradient</div>
+          <div class="color-swatch-hex">--gradient-dark</div>
+        </div>
+        <div>
+          <div class="gradient-swatch" style="background:var(--gradient-blue);"></div>
+          <div class="color-swatch-name" style="margin-top:6px;">Blue Gradient</div>
+          <div class="color-swatch-hex">--gradient-blue</div>
+        </div>
+        <div>
+          <div class="gradient-swatch" style="background:var(--gradient-green);"></div>
+          <div class="color-swatch-name" style="margin-top:6px;">Green Gradient</div>
+          <div class="color-swatch-hex">--gradient-green</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         2. TYPOGRAPHY
+         ============================================================ -->
+    <section class="ds-section" id="typography">
+      <h2 class="ds-section-title"><span class="section-icon">🔤</span> Typography</h2>
+      <p class="ds-section-desc">
+        Sistema tipografico con font stack e gerarchie predefinite.
+      </p>
+
+      <div class="ds-card" style="margin-bottom:24px;">
+        <div class="ds-card-label">Font Stack</div>
+        <div class="ds-card-value">-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif</div>
+        <div style="margin-top:12px;">
+          <div class="ds-card-label">Monospace Stack</div>
+          <div class="ds-card-value" style="font-family:var(--font-mono);">ui-monospace, 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', monospace</div>
+        </div>
+      </div>
+
+      <div class="typo-sample">
+        <div class="typo-label">Display — h1</div>
+        <div class="typo-text" style="font-size:2.5rem;font-weight:700;font-family:var(--font-display);">
+          MyZubster Dashboard
+        </div>
+      </div>
+      <div class="typo-sample">
+        <div class="typo-label">Heading — h2</div>
+        <div class="typo-text" style="font-size:1.8rem;font-weight:600;font-family:var(--font-display);">
+          Dashboard Rewards & Analytics
+        </div>
+      </div>
+      <div class="typo-sample">
+        <div class="typo-label">Heading — h3</div>
+        <div class="typo-text" style="font-size:1.3rem;font-weight:600;font-family:var(--font-display);">
+          Statistiche in tempo reale
+        </div>
+      </div>
+      <div class="typo-sample">
+        <div class="typo-label">Body — Large</div>
+        <div class="typo-text" style="font-size:1.05rem;font-weight:400;color:var(--text-primary);">
+          MyZubster è un ecosistema decentralizzato di robot che opera sulla blockchain Tari.
+        </div>
+      </div>
+      <div class="typo-sample">
+        <div class="typo-label">Body — Default</div>
+        <div class="typo-text" style="font-size:0.9rem;font-weight:400;color:var(--text-secondary);">
+          I robot monitorano orti urbani, gestiscono pagamenti e forniscono servizi automatici. Ogni operazione è tracciata sulla blockchain.
+        </div>
+      </div>
+      <div class="typo-sample">
+        <div class="typo-label">Small / Caption</div>
+        <div class="typo-text" style="font-size:0.75rem;font-weight:400;color:var(--text-muted);">
+          Ultimo aggiornamento: 2 minuti fa · 120 MYZ totali
+        </div>
+      </div>
+      <div class="typo-sample">
+        <div class="typo-label">Monospace / Code</div>
+        <div class="typo-text" style="font-family:var(--font-mono);font-size:0.85rem;color:var(--brand-primary-light);">
+          GET /api/rewards?userId=user-123&amp;status=paid
+        </div>
+      </div>
+      <div class="typo-sample">
+        <div class="typo-label">Font Weights</div>
+        <div class="typo-text" style="display:flex;gap:24px;flex-wrap:wrap;">
+          <span style="font-weight:300;">Light 300</span>
+          <span style="font-weight:400;">Regular 400</span>
+          <span style="font-weight:500;">Medium 500</span>
+          <span style="font-weight:600;">SemiBold 600</span>
+          <span style="font-weight:700;">Bold 700</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         3. UI COMPONENTS
+         ============================================================ -->
+    <section class="ds-section" id="components">
+      <h2 class="ds-section-title"><span class="section-icon">🧩</span> UI Components</h2>
+      <p class="ds-section-desc">
+        Componenti UI riutilizzabili con varianti per ogni stato.
+      </p>
+
+      <!-- --- Buttons --- -->
+      <h3 style="color:var(--text-primary);font-size:1.2rem;margin-bottom:14px;font-weight:500;">Pulsanti (Buttons)</h3>
+      <div class="component-showcase">
+        <div class="component-label">&lt;button class="btn btn-primary"&gt;</div>
+        <div class="component-row">
+          <button class="btn btn-primary">Primary</button>
+          <button class="btn btn-secondary">Secondary</button>
+          <button class="btn btn-success">Success</button>
+          <button class="btn btn-danger">Danger</button>
+          <button class="btn btn-ghost">Ghost</button>
+          <button class="btn btn-primary" disabled>Disabled</button>
+        </div>
+      </div>
+      <div class="component-showcase">
+        <div class="component-label">Dimensioni (Sizes)</div>
+        <div class="component-row">
+          <button class="btn btn-primary btn-sm">Small</button>
+          <button class="btn btn-primary">Default</button>
+          <button class="btn btn-primary btn-lg">Large</button>
+        </div>
+      </div>
+
+      <!-- --- Cards --- -->
+      <h3 style="color:var(--text-primary);font-size:1.2rem;margin-bottom:14px;margin-top:24px;font-weight:500;">Carte (Cards)</h3>
+      <div class="ds-grid ds-grid-2">
+        <div class="demo-card">
+          <div class="demo-card-header">
+            <span style="font-weight:600;">🤖 Robot Status</span>
+            <span class="badge badge-success">Online</span>
+          </div>
+          <div class="demo-card-body">
+            <div style="color:var(--text-secondary);font-size:0.9rem;">MYZ Spesi: <strong style="color:var(--text-primary);">1,250</strong></div>
+            <div style="color:var(--text-secondary);font-size:0.9rem;margin-top:6px;">Commissioni: <strong style="color:var(--text-primary);">85 MYZ</strong></div>
+          </div>
+          <div class="demo-card-footer">
+            <span style="color:var(--text-muted);font-size:0.8rem;">Ultimo aggiornamento: 2 min fa</span>
+          </div>
+        </div>
+        <div class="demo-card">
+          <div class="demo-card-header">
+            <span style="font-weight:600;">📊 Daily Stats</span>
+            <span class="badge badge-info">+12%</span>
+          </div>
+          <div class="demo-card-body">
+            <div style="font-size:2rem;font-weight:700;color:var(--brand-primary);">3,420</div>
+            <div style="color:var(--text-secondary);font-size:0.85rem;">Transazioni totali oggi</div>
+          </div>
+          <div class="demo-card-footer">
+            <span style="color:var(--text-muted);font-size:0.8rem;">vs ieri: +18%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- --- Inputs --- -->
+      <h3 style="color:var(--text-primary);font-size:1.2rem;margin-bottom:14px;margin-top:24px;font-weight:500;">Campi di Input (Form Fields)</h3>
+      <div class="component-showcase">
+        <div class="component-label">Input, Select, Textarea</div>
+        <div style="display:flex;flex-direction:column;gap:14px;max-width:500px;">
+          <div>
+            <label class="ds-label">Email</label>
+            <input class="ds-input" type="email" placeholder="utente@myzubster.com" value="demo@myzubster.com">
+          </div>
+          <div>
+            <label class="ds-label">Stato Robot</label>
+            <select class="ds-select">
+              <option>Attivo</option>
+              <option>In manutenzione</option>
+              <option>Offline</option>
+            </select>
+          </div>
+          <div>
+            <label class="ds-label">Descrizione</label>
+            <textarea class="ds-textarea" placeholder="Inserisci una descrizione...">Robot per monitoraggio orti urbani</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- --- Badges --- -->
+      <h3 style="color:var(--text-primary);font-size:1.2rem;margin-bottom:14px;margin-top:24px;font-weight:500;">Badge / Tag</h3>
+      <div class="component-showcase">
+        <div class="component-label">Varianti Badge</div>
+        <div class="component-row">
+          <span class="badge badge-primary">Primary</span>
+          <span class="badge badge-success">Pagato</span>
+          <span class="badge badge-warning">In attesa</span>
+          <span class="badge badge-error">Fallito</span>
+          <span class="badge badge-info">Info</span>
+          <span class="badge badge-secondary">Bozza</span>
+        </div>
+      </div>
+
+      <!-- --- Status Dots --- -->
+      <h3 style="color:var(--text-primary);font-size:1.2rem;margin-bottom:14px;margin-top:24px;font-weight:500;">Stati (Status Dots)</h3>
+      <div class="component-showcase">
+        <div class="component-label">Indicatori di stato</div>
+        <div class="component-row">
+          <span><span class="status-dot online"></span>Online</span>
+          <span><span class="status-dot offline"></span>Offline</span>
+          <span><span class="status-dot warning"></span>Manutenzione</span>
+        </div>
+      </div>
+
+      <!-- --- Tables --- -->
+      <h3 style="color:var(--text-primary);font-size:1.2rem;margin-bottom:14px;margin-top:24px;font-weight:500;">Tabelle (Tables)</h3>
+      <div class="ds-table-wrapper">
+        <table class="ds-table">
+          <thead>
+            <tr>
+              <th>Robot</th>
+              <th>Stato</th>
+              <th>MYZ Spesi</th>
+              <th>Commissioni</th>
+              <th>Ultimo Aggiornamento</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>OrtoBot #001</strong></td>
+              <td><span class="badge badge-success">Online</span></td>
+              <td>1,250 MYZ</td>
+              <td>85 MYZ</td>
+              <td style="color:var(--text-muted);font-size:0.85rem;">2 min fa</td>
+            </tr>
+            <tr>
+              <td><strong>IrrigaBot #007</strong></td>
+              <td><span class="badge badge-warning">Manutenzione</span></td>
+              <td>890 MYZ</td>
+              <td>42 MYZ</td>
+              <td style="color:var(--text-muted);font-size:0.85rem;">15 min fa</td>
+            </tr>
+            <tr>
+              <td><strong>RaccoltaBot #042</strong></td>
+              <td><span class="badge badge-success">Online</span></td>
+              <td>3,420 MYZ</td>
+              <td>210 MYZ</td>
+              <td style="color:var(--text-muted);font-size:0.85rem;">1 min fa</td>
+            </tr>
+            <tr>
+              <td><strong>SensoreBot #X9</strong></td>
+              <td><span class="badge badge-error">Offline</span></td>
+              <td>0 MYZ</td>
+              <td>0 MYZ</td>
+              <td style="color:var(--text-muted);font-size:0.85rem;">2 ore fa</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- --- Alerts --- -->
+      <h3 style="color:var(--text-primary);font-size:1.2rem;margin-bottom:14px;margin-top:24px;font-weight:500;">Alert / Notifiche</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="alert alert-success">
+          <span>✅</span>
+          <span>Pagamento di 120 MYZ completato con successo!</span>
+        </div>
+        <div class="alert alert-warning">
+          <span>⚠️</span>
+          <span>Il robot OrtoBot #001 richiede manutenzione programmata.</span>
+        </div>
+        <div class="alert alert-error">
+          <span>❌</span>
+          <span>Errore di connessione: SensoreBot #X9 non risponde.</span>
+        </div>
+        <div class="alert alert-info">
+          <span>ℹ️</span>
+          <span>Nuovo aggiornamento disponibile per il gateway v1.2.</span>
+        </div>
+      </div>
+
+      <!-- --- Loading & Progress --- -->
+      <h3 style="color:var(--text-primary);font-size:1.2rem;margin-bottom:14px;margin-top:24px;font-weight:500;">Caricamento (Loading & Progress)</h3>
+      <div class="ds-grid ds-grid-2">
+        <div class="component-showcase">
+          <div class="component-label">Spinner</div>
+          <div class="component-row">
+            <div class="spinner spinner-sm"></div>
+            <div class="spinner"></div>
+            <div class="spinner spinner-lg"></div>
+          </div>
+          <div style="margin-top:12px;">
+            <div class="component-label">Loading Text</div>
+            <div style="color:var(--text-muted);"><span class="spinner spinner-sm" style="vertical-align:middle;margin-right:8px;"></span>Caricamento dashboard...</div>
+          </div>
+        </div>
+        <div class="component-showcase">
+          <div class="component-label">Skeleton Loading</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-text"></div>
+            <div class="skeleton skeleton-text"></div>
+            <div class="skeleton skeleton-text" style="width:40%;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="component-showcase" style="margin-top:10px;">
+        <div class="component-label">Progress Bar</div>
+        <div style="display:flex;flex-direction:column;gap:14px;max-width:400px;">
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--text-secondary);margin-bottom:6px;">
+              <span>Avanzamento</span>
+              <span>75%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-bar-fill primary" style="width:75%;"></div>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--text-secondary);margin-bottom:6px;">
+              <span>Completato</span>
+              <span>100%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-bar-fill success" style="width:100%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- --- Tabs + Tooltips + Avatars --- -->
+      <h3 style="color:var(--text-primary);font-size:1.2rem;margin-bottom:14px;margin-top:24px;font-weight:500;">Altri Componenti</h3>
+      <div class="ds-grid ds-grid-2">
+        <div class="component-showcase">
+          <div class="component-label">Tabs</div>
+          <div class="ds-tabs">
+            <button class="ds-tab active">Dashboard</button>
+            <button class="ds-tab">Rewards</button>
+            <button class="ds-tab">Robot</button>
+            <button class="ds-tab">Settings</button>
+          </div>
+        </div>
+        <div class="component-showcase">
+          <div class="component-label">Avatar</div>
+          <div class="component-row">
+            <div class="avatar avatar-sm">M</div>
+            <div class="avatar avatar-md">MZ</div>
+            <div class="avatar avatar-lg">MZ</div>
+          </div>
+          <div style="margin-top:12px;">
+            <div class="component-label">Tooltip</div>
+            <div class="tooltip-demo" style="color:var(--brand-primary);">
+              Hover su di me
+              <span class="tooltip-text">Ecco un tooltip!</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- --- Divider --- -->
+      <hr class="ds-divider">
+    </section>
+
+    <!-- ============================================================
+         4. STYLE GUIDE
+         ============================================================ -->
+    <section class="ds-section" id="styleguide">
+      <h2 class="ds-section-title"><span class="section-icon">📖</span> Style Guide</h2>
+      <p class="ds-section-desc">
+        Linee guida per l'uso coerente del design system nei progetti MyZubster.
+      </p>
+
+      <div class="ds-card" style="margin-bottom:20px;">
+        <div class="ds-card-label" style="font-size:0.9rem;text-transform:none;letter-spacing:0;color:var(--text-primary);font-weight:600;margin-bottom:12px;">
+          🎯 Principi di Design
+        </div>
+        <ul style="color:var(--text-secondary);font-size:0.9rem;line-height:2;padding-left:20px;">
+          <li><strong style="color:var(--text-primary);">Coerenza:</strong> Usa sempre le variabili CSS per colori, spazi e font.</li>
+          <li><strong style="color:var(--text-primary);">Accessibilità:</strong> Contrasto minimo 4.5:1 per testo normale, 3:1 per testo grande.</li>
+          <li><strong style="color:var(--text-primary);">Responsive:</strong> Tutti i componenti devono funzionare su mobile, tablet e desktop.</li>
+          <li><strong style="color:var(--text-primary);">Performance:</strong> Preferisci CSS nativo a librerie esterne quando possibile.</li>
+          <li><strong style="color:var(--text-primary);">Chiarezza:</strong> Usa etichette chiare e stati visivi per ogni interazione.</li>
+        </ul>
+      </div>
+
+      <div class="ds-card" style="margin-bottom:20px;">
+        <div class="ds-card-label" style="font-size:0.9rem;text-transform:none;letter-spacing:0;color:var(--text-primary);font-weight:600;margin-bottom:12px;">
+          📐 Spaziatura
+        </div>
+        <div class="ds-grid ds-grid-auto">
+          <div><span class="badge badge-secondary">--space-xs</span> <span style="color:var(--text-muted);margin-left:8px;">4px</span></div>
+          <div><span class="badge badge-secondary">--space-sm</span> <span style="color:var(--text-muted);margin-left:8px;">8px</span></div>
+          <div><span class="badge badge-secondary">--space-md</span> <span style="color:var(--text-muted);margin-left:8px;">16px</span></div>
+          <div><span class="badge badge-secondary">--space-lg</span> <span style="color:var(--text-muted);margin-left:8px;">24px</span></div>
+          <div><span class="badge badge-secondary">--space-xl</span> <span style="color:var(--text-muted);margin-left:8px;">32px</span></div>
+          <div><span class="badge badge-secondary">--space-2xl</span> <span style="color:var(--text-muted);margin-left:8px;">48px</span></div>
+        </div>
+      </div>
+
+      <div class="ds-card" style="margin-bottom:20px;">
+        <div class="ds-card-label" style="font-size:0.9rem;text-transform:none;letter-spacing:0;color:var(--text-primary);font-weight:600;margin-bottom:12px;">
+          🔲 Border Radius
+        </div>
+        <div class="ds-grid ds-grid-auto">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;background:var(--brand-primary);border-radius:var(--radius-sm);"></div>
+            <span><span class="badge badge-secondary">--radius-sm</span> <span style="color:var(--text-muted);margin-left:6px;">6px</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;background:var(--brand-primary);border-radius:var(--radius-md);"></div>
+            <span><span class="badge badge-secondary">--radius-md</span> <span style="color:var(--text-muted);margin-left:6px;">8px</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;background:var(--brand-primary);border-radius:var(--radius-lg);"></div>
+            <span><span class="badge badge-secondary">--radius-lg</span> <span style="color:var(--text-muted);margin-left:6px;">12px</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;background:var(--brand-primary);border-radius:var(--radius-xl);"></div>
+            <span><span class="badge badge-secondary">--radius-xl</span> <span style="color:var(--text-muted);margin-left:6px;">16px</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;background:var(--brand-primary);border-radius:var(--radius-full);"></div>
+            <span><span class="badge badge-secondary">--radius-full</span> <span style="color:var(--text-muted);margin-left:6px;">9999px</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ds-card" style="margin-bottom:20px;">
+        <div class="ds-card-label" style="font-size:0.9rem;text-transform:none;letter-spacing:0;color:var(--text-primary);font-weight:600;margin-bottom:12px;">
+          💻 Codice di Esempio
+        </div>
+        <div class="code-block">
+          <span class="comment">/* MyZubster — Esempio di utilizzo del design system */</span>
+          <br><br>
+          <span class="comment">/* Importa le variabili nel tuo CSS */</span>
+          <br>
+          <span class="keyword">@import</span> <span class="string">"design-system.css"</span>;
+          <br><br>
+          <span class="comment">/* Usa le variabili nei tuoi componenti */</span>
+          <br>
+          <span class="variable">.my-dashboard</span> {
+          <br>
+          &nbsp;&nbsp;<span class="keyword">background</span>: <span class="function">var</span>(<span class="variable">--bg-dark</span>);
+          <br>
+          &nbsp;&nbsp;<span class="keyword">color</span>: <span class="function">var</span>(<span class="variable">--text-primary</span>);
+          <br>
+          &nbsp;&nbsp;<span class="keyword">border</span>: 1px solid <span class="function">var</span>(<span class="variable">--border-default</span>);
+          <br>
+          }
+          <br><br>
+          <span class="comment">/* Usa i componenti con classi predefinite */</span>
+          <br>
+          &lt;<span class="keyword">button</span> <span class="variable">class</span>=<span class="string">"btn btn-primary"</span>&gt;Salva&lt;/<span class="keyword">button</span>&gt;
+          <br>
+          &lt;<span class="keyword">span</span> <span class="variable">class</span>=<span class="string">"badge badge-success"</span>&gt;Pagato&lt;/<span class="keyword">span</span>&gt;
+        </div>
+      </div>
+
+      <div class="ds-card">
+        <div class="ds-card-label" style="font-size:0.9rem;text-transform:none;letter-spacing:0;color:var(--text-primary);font-weight:600;margin-bottom:12px;">
+          📦 Come Integrare
+        </div>
+        <ol style="color:var(--text-secondary);font-size:0.9rem;line-height:2;padding-left:20px;">
+          <li>Includi il file <code style="color:var(--brand-primary-light);font-family:var(--font-mono);">design-system.html</code> nel tuo progetto.</li>
+          <li>Copia le variabili CSS <code style="color:var(--brand-primary-light);">:root { ... }</code> nel tuo foglio di stile principale.</li>
+          <li>Usa le classi <code style="color:var(--brand-primary-light);">.btn</code>, <code style="color:var(--brand-primary-light);">.badge</code>, <code style="color:var(--brand-primary-light);">.alert</code> per componenti pronti all'uso.</li>
+          <li>Per nuovi componenti, segui le convenzioni di naming e spaziatura definite qui.</li>
+          <li>Mantieni la coerenza visiva usando sempre le variabili CSS invece di valori hard-coded.</li>
+        </ol>
+      </div>
+
+    </section>
+
+    <!-- ============================================================
+         FOOTER
+         ============================================================ -->
+    <hr class="ds-divider" style="margin-top:48px;">
+    <div style="text-align:center;padding:24px 0;color:var(--text-muted);font-size:0.85rem;">
+      <p>MyZubster Design System v1.0 &middot; 🎨 [BOUNTY] #885</p>
+      <p style="margin-top:4px;">Sviluppato per MyZubster Ecosystem &middot; 250 MYZ</p>
+    </div>
+
+  </div>
+
+</body>
+</html>
