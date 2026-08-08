@@ -1,0 +1,136 @@
+/* ============================================================
+   MyZubsterGateway — Design Tokens
+   Core design variables for consistent visual language.
+   ============================================================ */
+
+:root {
+  /* ── Primary Palette ── */
+  --color-primary-50:  #f0f5ff;
+  --color-primary-100: #dbe4ff;
+  --color-primary-200: #bac8ff;
+  --color-primary-300: #91a7ff;
+  --color-primary-400: #748ffc;
+  --color-primary-500: #5c7cfa;
+  --color-primary-600: #4c6ef5;
+  --color-primary-700: #4263eb;
+  --color-primary-800: #3b5bdb;
+  --color-primary-900: #364fc7;
+
+  /* ── Accent (MYZ Gold) ── */
+  --color-accent-50:  #fff9db;
+  --color-accent-100: #fff3bf;
+  --color-accent-200: #ffec99;
+  --color-accent-300: #ffe066;
+  --color-accent-400: #ffd43b;
+  --color-accent-500: #fcc419;
+  --color-accent-600: #fab005;
+  --color-accent-700: #f59f00;
+  --color-accent-800: #f08c00;
+  --color-accent-900: #e67700;
+
+  /* ── Neutrals ── */
+  --color-gray-50:  #f8f9fa;
+  --color-gray-100: #f1f3f5;
+  --color-gray-200: #e9ecef;
+  --color-gray-300: #dee2e6;
+  --color-gray-400: #ced4da;
+  --color-gray-500: #adb5bd;
+  --color-gray-600: #868e96;
+  --color-gray-700: #495057;
+  --color-gray-800: #343a40;
+  --color-gray-900: #212529;
+
+  /* ── Semantic Colors ── */
+  --color-success: #2b8a3e;
+  --color-success-bg: #d3f9d8;
+  --color-warning: #e67700;
+  --color-warning-bg: #fff3bf;
+  --color-error: #c92a2a;
+  --color-error-bg: #ffe3e3;
+  --color-info: #1864ab;
+  --color-info-bg: #d0ebff;
+
+  /* ── Typography ── */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+
+  --font-size-xs:   0.75rem;   /* 12px */
+  --font-size-sm:   0.875rem;  /* 14px */
+  --font-size-base: 1rem;      /* 16px */
+  --font-size-lg:   1.125rem;  /* 18px */
+  --font-size-xl:   1.25rem;   /* 20px */
+  --font-size-2xl:  1.5rem;    /* 24px */
+  --font-size-3xl:  1.875rem;  /* 30px */
+  --font-size-4xl:  2.25rem;   /* 36px */
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* ── Spacing Scale (4px base) ── */
+  --space-1:  0.25rem;  /*  4px */
+  --space-2:  0.5rem;   /*  8px */
+  --space-3:  0.75rem;  /* 12px */
+  --space-4:  1rem;     /* 16px */
+  --space-5:  1.25rem;  /* 20px */
+  --space-6:  1.5rem;   /* 24px */
+  --space-8:  2rem;     /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+
+  /* ── Border Radius ── */
+  --radius-sm:   0.25rem;  /* 4px */
+  --radius-md:   0.5rem;   /* 8px */
+  --radius-lg:   0.75rem;  /* 12px */
+  --radius-xl:   1rem;     /* 16px */
+  --radius-full: 9999px;
+
+  /* ── Shadows ── */
+  --shadow-xs:   0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md:   0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+  --shadow-lg:   0 10px 15px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
+  --shadow-xl:   0 20px 25px rgba(0,0,0,0.1), 0 10px 10px rgba(0,0,0,0.04);
+
+  /* ── Transitions ── */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 350ms ease;
+
+  /* ── Z-Index Scale ── */
+  --z-dropdown: 100;
+  --z-sticky:   200;
+  --z-overlay:  300;
+  --z-modal:    400;
+  --z-toast:    500;
+}
+
+/* ── Dark Mode Overrides ── */
+[data-theme="dark"] {
+  --color-primary-50:  #1c2333;
+  --color-primary-600: #748ffc;
+  --color-primary-700: #91a7ff;
+  --color-accent-500:  #ffd43b;
+  --color-accent-600:  #ffe066;
+
+  --color-gray-50:  #212529;
+  --color-gray-100: #343a40;
+  --color-gray-200: #495057;
+  --color-gray-300: #868e96;
+  --color-gray-700: #dee2e6;
+  --color-gray-800: #e9ecef;
+  --color-gray-900: #f8f9fa;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+  --color-success-bg: #1e3a1e;
+  --color-warning-bg: #3a2e1e;
+  --color-error-bg: #3a1e1e;
+  --color-info-bg: #1e2e3a;
+}
