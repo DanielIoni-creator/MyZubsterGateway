@@ -115,6 +115,10 @@ app.get('/benzina-notifiche', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/dist/benzina-notifiche.html'));
 });
 
+app.get('/benzina-promozioni', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/dist/benzina-promozioni.html'));
+});
+
 // Static frontend
 const frontendPath = path.join(__dirname, 'frontend/dist');
 app.use(express.static(frontendPath));
