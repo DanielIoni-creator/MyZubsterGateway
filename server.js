@@ -37,14 +37,17 @@ app.get('/health', (req, res) => {
 const tokenBalanceRoutes = require("./routes/tokenBalanceRoutes");
 app.use("/api/tokens", tokenBalanceRoutes);
 
+// Notification Routes (BOUNTY #2)
+const notificationRoutes = require("./routes/notificationRoutes");
+app.use("/api/notifications", notificationRoutes);
+
+// Message Routes (BOUNTY #3)
+const messageRoutes = require("./routes/messageRoutes");
+app.use("/api/messages", messageRoutes);
+
 // ============ START SERVER ============
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
 });
-
-// Notification Routes
-const notificationRoutes = require("./routes/notificationRoutes");
-app.use("/api/notifications", notificationRoutes);
-
