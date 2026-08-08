@@ -93,7 +93,11 @@ try {
 // Logo routes
 try {
   const logoRoutes = require('./routes/robotLogo');
+
+const cryptoRoutes = require('./routes/crypto');
   app.use('/api/robot/logo', logoRoutes);
+
+app.use('/api/crypto', cryptoRoutes);
   console.log('✅ Caricamento routes logo...');
 } catch (err) {
   console.error('❌ Errore caricamento logo:', err.message);
