@@ -35,6 +35,7 @@ app.use(express.json());
 app.use(limiter);
 
 // Import routes
+const cittaSuMarteRoutes = require('./routes/cittaSuMarte');
 const serreMarteRoutes = require('./routes/serreMarte');
 const trasportoMarteRoutes = require('./routes/trasportoMarte');
 const fabbricaMarteRoutes = require('./routes/fabbricaMarte');
@@ -90,6 +91,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes API
+app.use('/api/citta-su-marte', cittaSuMarteRoutes);
 app.use('/api/serre-marte', serreMarteRoutes);
 app.use('/api/trasporto-marte', trasportoMarteRoutes);
 app.use('/api/fabbrica-marte', fabbricaMarteRoutes);
