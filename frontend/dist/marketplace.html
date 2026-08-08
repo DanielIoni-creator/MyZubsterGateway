@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🤖 Robot Marketplace - MyZubster</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --accent: #8b5cf6;
+      --accent-strong: #7c3aed;
+      --accent-soft: #1e1b4b;
+      --bg: #0f141a;
+      --surface: #1a222c;
+      --surface-2: #232d3a;
+      --text: #e6edf5;
+      --text-soft: #9aa7b8;
+      --border: #2c3947;
+      --radius: 14px;
+      --shadow: 0 2px 12px rgba(0,0,0,0.35);
+      --success: #2ecc71;
+      --danger: #e74c3c;
+      --warn: #f39c12;
+      --info: #3498db;
+    }
+    [data-theme="light"] {
+      --accent: #7c3aed;
+      --accent-strong: #6d28d9;
+      --accent-soft: #ede9fe;
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --surface-2: #eef1f6;
+      --text: #1f2733;
+      --text-soft: #5b6675;
+      --border: #e3e8ef;
+      --shadow: 0 2px 10px rgba(0,0,0,0.06);
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      transition: background 0.3s, color 0.3s;
+    }
+    .dashboard { max-width: 1300px; margin: 0 auto; padding: 20px; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .topbar h1 { margin: 0; font-size: 1.6rem; display: flex; align-items: center; gap: 10px; }
+    .topbar h1 span { color: var(--text-soft); font-weight: 400; }
+    .top-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .theme-toggle {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .theme-toggle:hover { background: var(--accent-soft); }
+
+    .nav-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 24px;
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 4px;
+      border: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .nav-tab {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-soft);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .nav-tab:hover { color: var(--text); background: var(--surface-2); }
+    .nav-tab.active { background: var(--accent); color: #fff; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+    .kpi-card h3 { margin: 0 0 4px; font-size: 0.8rem; text-transform: uppercase; color: var(--text-soft); letter-spacing: 0.5px; }
+    .kpi-card .value { font-size: 1.8rem; font-weight: 700; margin: 0; }
+    .kpi-card .sub { font-size: 0.8rem; color: var(--text-soft); margin-top: 4px; }
+
+    .search-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .search-bar input, .search-bar select {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+    .search-bar input { flex: 1; min-width: 200px; }
+    .search-bar select { min-width: 140px; }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .robot-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s, border-color 0.2s;
+      cursor: pointer;
+    }
+    .robot-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .robot-card .avatar { font-size: 2.5rem; margin-bottom: 8px; }
+    .robot-card h3 { margin: 0 0 4px; font-size: 1.1rem; }
+    .robot-card .meta { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.8rem; color: var(--text-soft); margin-bottom: 10px; }
+    .robot-card .meta span { display: flex; align-items: center; gap: 4px; }
+    .robot-card .desc { font-size: 0.9rem; color: var(--text-soft); line-height: 1.5; margin-bottom: 12px; }
+    .robot-card .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .robot-card .tag {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+    .robot-card .price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .robot-card .price { font-size: 1.2rem; font-weight: 700; color: var(--accent); }
+    .robot-card .price small { font-weight: 400; font-size: 0.8rem; color: var(--text-soft); }
+    .robot-card .stars { color: var(--warn); }
+    .btn {
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-strong); }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover { background: #27ae60; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { background: #c0392b; }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover { background: var(--surface-2); }
+    .btn-sm { padding: 5px 12px; font-size: 0.78rem; }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border-radius: var(--radius);
+      max-width: 650px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 28px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      border: 1px solid var(--border);
+    }
+    .modal h2 { margin: 0 0 16px; }
+    .modal-close {
+      float: right;
+      background: none;
+      border: none;
+      color: var(--text-soft);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal .field { margin-bottom: 14px; }
+    .modal .field label { display: block; font-size: 0.85rem; color: var(--text-soft); margin-bottom: 4px; }
+    .modal .field input, .modal .field select, .modal .field textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+    .modal .field textarea { min-height: 80px; resize: vertical; }
+    .modal .btn-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+    .review-item {
+      padding: 14px;
+      background: var(--bg);
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+    .review-item .review-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .review-item .reviewer { font-weight: 600; }
+    .review-item .review-date { font-size: 0.8rem; color: var(--text-soft); }
+    .review-item .review-text { font-size: 0.9rem; color: var(--text-soft); }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .stat-card h3 { margin: 0 0 12px; font-size: 0.95rem; }
+    .stat-card canvas { max-height: 220px; }
+
+    .table-wrap {
+      overflow-x: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    th { color: var(--text-soft); font-weight: 600; background: var(--surface-2); }
+    .status-badge {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .status-available { background: #0d3320; color: var(--success); }
+    .status-busy { background: #33200d; color: var(--warn); }
+    .status-offline { background: #33100d; color: var(--danger); }
+    .status-maintenance { background: #0d1b33; color: var(--info); }
+
+    .pagination {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .pagination button {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .pagination button:hover { background: var(--surface-2); }
+    .pagination button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-soft);
+    }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+    .empty-state h3 { margin: 0 0 8px; color: var(--text); }
+
+    @media (max-width: 768px) {
+      .dashboard { padding: 12px; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .topbar h1 { font-size: 1.3rem; }
+      .nav-tab { padding: 8px 14px; font-size: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="dashboard" id="app">
+  <div class="topbar">
+    <h1>🤖 Robot Marketplace <span>BOT-10</span></h1>
+    <div class="top-actions">
+      <button class="theme-toggle" onclick="toggleTheme()">🌓 Tema</button>
+    </div>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-tab="marketplace" onclick="switchTab('marketplace')">🏪 Marketplace</button>
+    <button class="nav-tab" data-tab="bookings" onclick="switchTab('bookings')">📋 Mie Prenotazioni</button>
+    <button class="nav-tab" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Dashboard Gestori</button>
+  </div>
+
+  <!-- Tab 1: Marketplace -->
+  <div class="tab-content active" id="tab-marketplace">
+    <div class="kpi-grid">
+      <div class="kpi-card"><h3>Robot Disponibili</h3><div class="value" id="kpi-available">0</div><div class="sub">pronti all'uso</div></div>
+      <div class="kpi-card"><h3>Prezzo Medio</h3><div class="value" id="kpi-avg-price">0</div><div class="sub">MYZ/h</div></div>
+      <div class="kpi-card"><h3>Booking Oggi</h3><div class="value" id="kpi-today-bookings">0</div><div class="sub">prenotazioni</div></div>
+      <div class="kpi-card"><h3>MYZ in Escrow</h3><div class="value" id="kpi-escrow">0</div><div class="sub">bloccati</div></div>
+    </div>
+
+    <div class="search-bar">
+      <input type="text" id="search-query" placeholder="Cerca robot per nome, servizio..." oninput="filterRobots()">
+      <select id="filter-type" onchange="filterRobots()">
+        <option value="">Tutti i tipi</option>
+        <option value="consegna">🚚 Consegna</option>
+        <option value="pulizia">🧹 Pulizia</option>
+        <option value="riparazione">🔧 Riparazione</option>
+        <option value="assistenza">🆘 Assistenza</option>
+        <option value="trasporto">📦 Trasporto</option>
+        <option value="giardinaggio">🌿 Giardinaggio</option>
+      </select>
+      <select id="filter-sort" onchange="filterRobots()">
+        <option value="prezzo-asc">Prezzo ▲</option>
+        <option value="prezzo-desc">Prezzo ▼</option>
+        <option value="reputazione">Reputazione</option>
+        <option value="disponibilita">Disponibilità</option>
+      </select>
+      <select id="filter-currency" onchange="filterRobots()">
+        <option value="">Tutte valute</option>
+        <option value="MYZ">MYZ</option>
+        <option value="XMR">XMR</option>
+      </select>
+    </div>
+
+    <div class="grid-3" id="robot-grid"></div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+  <!-- Tab 2: Bookings -->
+  <div class="tab-content" id="tab-bookings">
+    <div class="kpi-grid">
+      <div class="kpi-card"><h3>Prenotazioni Attive</h3><div class="value" id="bk-active">0</div></div>
+      <div class="kpi-card"><h3>Completate</h3><div class="value" id="bk-completed">0</div></div>
+      <div class="kpi-card"><h3>In Escrow</h3><div class="value" id="bk-escrow">0</div></div>
+      <div class="kpi-card"><h3>Totale Speso</h3><div class="value" id="bk-total">0</div></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>Robot</th><th>Servizio</th><th>Data</th><th>Ore</th><th>Importo</th><th>Stato</th><th>Azioni</th></tr></thead>
+        <tbody id="bookings-table"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="bookings-empty" style="display:none">
+      <div class="icon">📋</div>
+      <h3>Nessuna prenotazione</h3>
+      <p>Prenota un robot dal marketplace per iniziare.</p>
+    </div>
+  </div>
+
+  <!-- Tab 3: Manager Dashboard -->
+  <div class="tab-content" id="tab-dashboard">
+    <div class="kpi-grid">
+      <div class="kpi-card"><h3>I Miei Robot</h3><div class="value" id="mg-robots">0</div></div>
+      <div class="kpi-card"><h3>Booking Attivi</h3><div class="value" id="mg-bookings">0</div></div>
+      <div class="kpi-card"><h3>Guadagno Oggi</h3><div class="value" id="mg-earnings">0</div></div>
+      <div class="kpi-card"><h3>Valutazione Media</h3><div class="value" id="mg-rating">0</div></div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><h3>📈 Guadagni (7 giorni)</h3><canvas id="earnings-chart"></canvas></div>
+      <div class="stat-card"><h3>🏆 Robot più popolari</h3><canvas id="popular-chart"></canvas></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Robot</th><th>Booking</th><th>Guadagno</th><th>Valutazione</th><th>Stato</th><th>Azioni</th></tr></thead>
+        <tbody id="manager-table"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Booking Modal -->
+<div class="modal-overlay" id="booking-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('booking-modal')">&times;</button>
+    <h2>📅 Prenota Robot</h2>
+    <div id="booking-robot-info" style="margin-bottom:16px;padding:12px;background:var(--bg);border-radius:10px;"></div>
+    <div class="field">
+      <label>Servizio richiesto</label>
+      <input type="text" id="book-service" placeholder="Descrizione del servizio" value="Lavoro generico">
+    </div>
+    <div class="field">
+      <label>Ore</label>
+      <input type="number" id="book-hours" min="1" max="24" value="2">
+    </div>
+    <div class="field">
+      <label>Data</label>
+      <input type="date" id="book-date">
+    </div>
+    <div class="field">
+      <label>Valuta</label>
+      <select id="book-currency"><option value="MYZ">MYZ</option><option value="XMR">XMR</option></select>
+    </div>
+    <div class="field">
+      <label>Note aggiuntive</label>
+      <textarea id="book-notes" placeholder="Istruzioni specifiche per il robot..."></textarea>
+    </div>
+    <div class="field" style="padding:12px;background:var(--bg);border-radius:10px;">
+      <strong>Totale stimato:</strong> <span id="book-total">0</span> <span id="book-currency-label">MYZ</span>
+      <span style="display:block;font-size:0.8rem;color:var(--text-soft);margin-top:4px;">🔒 Pagamento in escrow - rilasciato al completamento</span>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="closeModal('booking-modal')">Annulla</button>
+      <button class="btn btn-primary" onclick="confirmBooking()">✅ Conferma Prenotazione</button>
+    </div>
+  </div>
+</div>
+
+<!-- Review Modal -->
+<div class="modal-overlay" id="review-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('review-modal')">&times;</button>
+    <h2>⭐ Lascia una Recensione</h2>
+    <div id="review-robot-name" style="font-size:1.1rem;margin-bottom:12px;"></div>
+    <div class="field">
+      <label>Valutazione</label>
+      <div id="star-selector" style="font-size:1.8rem;cursor:pointer;">
+        <span data-star="1" onclick="setStar(1)">☆</span>
+        <span data-star="2" onclick="setStar(2)">☆</span>
+        <span data-star="3" onclick="setStar(3)">☆</span>
+        <span data-star="4" onclick="setStar(4)">☆</span>
+        <span data-star="5" onclick="setStar(5)">☆</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Commento</label>
+      <textarea id="review-text" placeholder="Descrivi la tua esperienza con questo robot..."></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="closeModal('review-modal')">Annulla</button>
+      <button class="btn btn-primary" onclick="submitReview()">📨 Invia Recensione</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('detail-modal')">&times;</button>
+    <div id="detail-content"></div>
+  </div>
+</div>
+
+<script>
+// ========== DEMO DATA ==========
+const ROBOTS = [
+  { id: 1, name: 'R2-Delivery', avatar: '🚚', type: 'consegna', desc: 'Robot per consegne rapide in città. GPS integrato, resistente alle intemperie.', price: 25, currency: 'MYZ', rating: 4.8, reviews: [], status: 'available', tags: ['GPS', '24/7', 'Anti-furto'] },
+  { id: 2, name: 'CleanBot Pro', avatar: '🧹', type: 'pulizia', desc: 'Pulizia profonda di uffici, magazzini e spazi commerciali. Rilevamento sporco AI.', price: 35, currency: 'MYZ', rating: 4.6, reviews: [], status: 'available', tags: ['AI', 'Silenzioso', 'Ecologico'] },
+  { id: 3, name: 'FixIt-3000', avatar: '🔧', type: 'riparazione', desc: 'Riparazioni elettriche, idrauliche e strutturali. Diagnostica automatica.', price: 50, currency: 'MYZ', rating: 4.9, reviews: [], status: 'available', tags: ['Diagnostica', 'Elettrico', 'Idraulico'] },
+  { id: 4, name: 'HelpBot XMR', avatar: '🆘', type: 'assistenza', desc: 'Assistenza clienti e supporto tecnico. Pagamento in XMR accettato.', price: 0.008, currency: 'XMR', rating: 4.5, reviews: [], status: 'busy', tags: ['XMR', '24/7', 'Multilingua'] },
+  { id: 5, name: 'CargoMule', avatar: '📦', type: 'trasporto', desc: 'Trasporto merci pesanti fino a 500kg. Tracciamento in tempo reale.', price: 40, currency: 'MYZ', rating: 4.7, reviews: [], status: 'available', tags: ['500kg', 'Tracciamento', 'Forklift'] },
+  { id: 6, name: 'GardenMate', avatar: '🌿', type: 'giardinaggio', desc: 'Manutenzione giardini: taglio erba, potatura, irrigazione automatizzata.', price: 30, currency: 'MYZ', rating: 4.4, reviews: [], status: 'available', tags: ['Taglio', 'Potatura', 'Irrigazione'] },
+  { id: 7, name: 'SwiftDeliver', avatar: '🚚', type: 'consegna', desc: 'Consegne express in 30 min. Pagamento MYZ o XMR. Rimborso garantito.', price: 0.015, currency: 'XMR', rating: 4.3, reviews: [], status: 'available', tags: ['Express', 'Rimborso', 'Fragili'] },
+  { id: 8, name: 'DeepClean X', avatar: '🧹', type: 'pulizia', desc: 'Sanificazione professionale con UV e ozono. Certificato HACCP.', price: 45, currency: 'MYZ', rating: 4.8, reviews: [], status: 'maintenance', tags: ['UV', 'HACCP', 'Sanificazione'] },
+  { id: 9, name: 'RepairDroid', avatar: '🔧', type: 'riparazione', desc: 'Riparazione dispositivi elettronici e meccanici. Ricambi originali.', price: 55, currency: 'MYZ', rating: 4.2, reviews: [], status: 'available', tags: ['Elettronica', 'Meccanica', 'Garanzia'] },
+  { id: 10, name: 'AssistBot Plus', avatar: '🆘', type: 'assistenza', desc: 'Assistenza domiciliare per anziani e persone con disabilità. Pagamento MYZ.', price: 20, currency: 'MYZ', rating: 4.9, reviews: [], status: 'available', tags: ['Domiciliare', 'Anziani', 'Emergenza'] },
+  { id: 11, name: 'HaulMaster', avatar: '📦', type: 'trasporto', desc: 'Trasporto materiali edili e industriali. Pianificazione percorsi AI.', price: 60, currency: 'MYZ', rating: 4.1, reviews: [], status: 'offline', tags: ['Edilizia', 'AI', 'Pesante'] },
+  { id: 12, name: 'VerdureBot', avatar: '🌿', type: 'giardinaggio', desc: 'Piantumazione e manutenzione aree verdi. Sensori umidità suolo.', price: 28, currency: 'MYZ', rating: 4.6, reviews: [], status: 'available', tags: ['Piantumazione', 'Sensori', 'Eco'] },
+];
+
+const BOOKINGS = [
+  { id: 'BK-001', robotId: 1, service: 'Consegna documenti', date: '2026-08-09', hours: 2, amount: 50, currency: 'MYZ', status: 'confermato' },
+  { id: 'BK-002', robotId: 3, service: 'Riparazione condizionatore', date: '2026-08-10', hours: 4, amount: 200, currency: 'MYZ', status: 'escrow' },
+  { id: 'BK-003', robotId: 5, service: 'Trasporto mobili', date: '2026-08-08', hours: 3, amount: 120, currency: 'MYZ', status: 'completato' },
+  { id: 'BK-004', robotId: 4, service: 'Supporto tecnico remoto', date: '2026-08-11', hours: 1, amount: 0.008, currency: 'XMR', status: 'confermato' },
+  { id: 'BK-005', robotId: 6, service: 'Taglio erba giardino', date: '2026-08-07', hours: 3, amount: 90, currency: 'MYZ', status: 'completato' },
+  { id: 'BK-006', robotId: 2, service: 'Pulizia ufficio', date: '2026-08-12', hours: 5, amount: 175, currency: 'MYZ', status: 'escrow' },
+  { id: 'BK-007', robotId: 10, service: 'Assistenza nonna', date: '2026-08-08', hours: 6, amount: 120, currency: 'MYZ', status: 'completato' },
+];
+
+const MANAGER_ROBOTS = [
+  { id: 1, name: 'R2-Delivery', avatar: '🚚', bookings: 12, earnings: 300, rating: 4.8, status: 'available' },
+  { id: 2, name: 'CleanBot Pro', avatar: '🧹', bookings: 8, earnings: 280, rating: 4.6, status: 'available' },
+  { id: 8, name: 'DeepClean X', avatar: '🧹', bookings: 5, earnings: 225, rating: 4.8, status: 'maintenance' },
+];
+
+const EARNINGS_HISTORY = [180, 210, 195, 240, 220, 260, 280];
+
+// ========== STATE ==========
+let currentPage = 1;
+const PER_PAGE = 6;
+let selectedStar = 0;
+let reviewRobotId = null;
+let bookingRobotId = null;
+let currentFiltered = [...ROBOTS];
+
+// ========== SEED REVIEWS ==========
+function seedReviews() {
+  const sampleReviews = [
+    { robotId: 1, user: '@alice', stars: 5, text: 'Consegna rapida e precisa! Robot molto affidabile.', date: '2026-08-05' },
+    { robotId: 1, user: '@bob', stars: 4, text: 'Ottimo servizio, un po\' rumoroso ma efficace.', date: '2026-08-03' },
+    { robotId: 3, user: '@carlo', stars: 5, text: 'Ha riparato il condizionatore in 20 minuti. Incredibile!', date: '2026-08-04' },
+    { robotId: 5, user: '@diana', stars: 4, text: 'Trasporto pesante gestito perfettamente.', date: '2026-08-02' },
+    { robotId: 10, user: '@elena', stars: 5, text: 'Mia madre è molto contenta dell\'assistenza. Professionale e gentile.', date: '2026-08-01' },
+    { robotId: 2, user: '@frank', stars: 5, text: 'Pulizia impeccabile. Lo consiglio per uffici.', date: '2026-07-30' },
+    { robotId: 6, user: '@gina', stars: 4, text: 'Giardino perfetto. Prezzo onesto.', date: '2026-07-28' },
+    { robotId: 4, user: '@hugo', stars: 3, text: 'Supporto ok, ma tempi di risposta migliorabili.', date: '2026-07-25' },
+  ];
+  for (const r of sampleReviews) {
+    const robot = ROBOTS.find(ro => ro.id === r.robotId);
+    if (robot) robot.reviews.push(r);
+  }
+}
+seedReviews();
+
+// ========== THEME ==========
+function toggleTheme() {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+}
+
+// ========== TABS ==========
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelector(`[data-tab="${name}"]`).classList.add('active');
+  if (name === 'marketplace') { renderMarketplace(); renderKPIs(); }
+  if (name === 'bookings') renderBookings();
+  if (name === 'dashboard') { renderManagerDashboard(); initCharts(); }
+}
+
+// ========== MARKETPLACE ==========
+function filterRobots() {
+  const q = document.getElementById('search-query').value.toLowerCase();
+  const type = document.getElementById('filter-type').value;
+  const sort = document.getElementById('filter-sort').value;
+  const currency = document.getElementById('filter-currency').value;
+
+  let filtered = ROBOTS.filter(r => {
+    if (q && !r.name.toLowerCase().includes(q) && !r.desc.toLowerCase().includes(q) && !r.tags.some(t => t.toLowerCase().includes(q))) return false;
+    if (type && r.type !== type) return false;
+    if (currency && r.currency !== currency) return false;
+    return true;
+  });
+
+  switch (sort) {
+    case 'prezzo-asc': filtered.sort((a, b) => a.price - b.price); break;
+    case 'prezzo-desc': filtered.sort((a, b) => b.price - a.price); break;
+    case 'reputazione': filtered.sort((a, b) => b.rating - a.rating); break;
+    case 'disponibilita': filtered.sort((a, b) => (a.status === 'available' ? -1 : 1)); break;
+  }
+
+  currentFiltered = filtered;
+  currentPage = 1;
+  renderMarketplace();
+  renderKPIs();
+}
+
+function renderMarketplace() {
+  const grid = document.getElementById('robot-grid');
+  const start = (currentPage - 1) * PER_PAGE;
+  const page = currentFiltered.slice(start, start + PER_PAGE);
+  const totalPages = Math.ceil(currentFiltered.length / PER_PAGE);
+
+  if (page.length === 0) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">🔍</div><h3>Nessun robot trovato</h3><p>Prova a modificare i filtri di ricerca.</p></div>';
+  } else {
+    grid.innerHTML = page.map(r => `
+      <div class="robot-card" onclick="showDetail(${r.id})">
+        <div class="avatar">${r.avatar}</div>
+        <h3>${esc(r.name)}</h3>
+        <div class="meta">
+          <span>${typeIcon(r.type)} ${esc(r.type)}</span>
+          <span class="stars">${'★'.repeat(Math.floor(r.rating))}${r.rating % 1 >= 0.5 ? '½' : ''} (${r.rating})</span>
+          <span class="status-badge status-${r.status}">${r.status}</span>
+        </div>
+        <div class="desc">${esc(r.desc)}</div>
+        <div class="tags">${r.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>
+        <div class="price-row">
+          <div class="price">${r.price} <small>${r.currency}/h</small></div>
+          <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openBooking(${r.id})">Prenota</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Pagination
+  const pag = document.getElementById('pagination');
+  if (totalPages <= 1) { pag.innerHTML = ''; return; }
+  let html = `<button onclick="goPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>◀</button>`;
+  for (let i = 1; i <= totalPages; i++) {
+    html += `<button class="${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  html += `<button onclick="goPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>▶</button>`;
+  pag.innerHTML = html;
+}
+
+function goPage(p) { currentPage = p; renderMarketplace(); }
+
+function renderKPIs() {
+  const available = ROBOTS.filter(r => r.status === 'available').length;
+  const avgPrice = ROBOTS.filter(r => r.currency === 'MYZ').reduce((s, r) => s + r.price, 0) / ROBOTS.filter(r => r.currency === 'MYZ').length || 0;
+  const todayBookings = BOOKINGS.filter(b => b.date === today()).length;
+  const escrow = BOOKINGS.filter(b => b.status === 'escrow').reduce((s, b) => s + (b.currency === 'MYZ' ? b.amount : 0), 0);
+  document.getElementById('kpi-available').textContent = available;
+  document.getElementById('kpi-avg-price').textContent = avgPrice.toFixed(1);
+  document.getElementById('kpi-today-bookings').textContent = todayBookings;
+  document.getElementById('kpi-escrow').textContent = escrow;
+}
+
+// ========== BOOKING ==========
+function openBooking(robotId) {
+  const robot = ROBOTS.find(r => r.id === robotId);
+  if (!robot) return;
+  bookingRobotId = robotId;
+  document.getElementById('booking-robot-info').innerHTML = `
+    <strong>${robot.avatar} ${esc(robot.name)}</strong> — ${robot.price} ${robot.currency}/h
+  `;
+  document.getElementById('book-date').value = today();
+  document.getElementById('book-currency').value = robot.currency;
+  updateBookingTotal();
+  document.getElementById('booking-modal').classList.add('open');
+}
+
+function updateBookingTotal() {
+  const hours = parseInt(document.getElementById('book-hours').value) || 1;
+  const robot = ROBOTS.find(r => r.id === bookingRobotId);
+  if (!robot) return;
+  const total = robot.price * hours;
+  document.getElementById('book-total').textContent = total;
+  document.getElementById('book-currency-label').textContent = robot.currency;
+}
+
+document.getElementById('book-hours').addEventListener('input', updateBookingTotal);
+document.getElementById('book-currency').addEventListener('change', () => {
+  const robot = ROBOTS.find(r => r.id === bookingRobotId);
+  if (!robot) return;
+  const cur = document.getElementById('book-currency').value;
+  if (cur === 'XMR' && robot.currency === 'MYZ') {
+    document.getElementById('book-total').textContent = (robot.price * 0.0003 * (parseInt(document.getElementById('book-hours').value) || 1)).toFixed(4);
+  } else if (cur === 'MYZ' && robot.currency === 'XMR') {
+    document.getElementById('book-total').textContent = (robot.price * 3000 * (parseInt(document.getElementById('book-hours').value) || 1)).toFixed(0);
+  } else {
+    updateBookingTotal();
+  }
+});
+
+function confirmBooking() {
+  const robot = ROBOTS.find(r => r.id === bookingRobotId);
+  if (!robot) return;
+  const hours = parseInt(document.getElementById('book-hours').value) || 1;
+  const date = document.getElementById('book-date').value;
+  const currency = document.getElementById('book-currency').value;
+  const service = document.getElementById('book-service').value;
+  const notes = document.getElementById('book-notes').value;
+  const rate = currency === 'XMR' && robot.currency === 'MYZ' ? robot.price * 0.0003 : (currency === 'MYZ' && robot.currency === 'XMR' ? robot.price * 3000 : robot.price);
+  const total = rate * hours;
+
+  BOOKINGS.push({
+    id: 'BK-' + String(BOOKINGS.length + 1).padStart(3, '0'),
+    robotId: robot.id,
+    service: service,
+    date: date,
+    hours: hours,
+    amount: total,
+    currency: currency,
+    status: 'escrow',
+    notes: notes
+  });
+
+  // Show toast
+  showToast('✅ Prenotazione confermata! ' + total + ' ' + currency + ' in escrow.');
+  closeModal('booking-modal');
+  renderKPIs();
+  renderBookings();
+}
+
+function renderBookings() {
+  const tbody = document.getElementById('bookings-table');
+  const empty = document.getElementById('bookings-empty');
+  if (BOOKINGS.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    document.getElementById('bk-active').textContent = '0';
+    document.getElementById('bk-completed').textContent = '0';
+    document.getElementById('bk-escrow').textContent = '0';
+    document.getElementById('bk-total').textContent = '0';
+    return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = BOOKINGS.map(b => {
+    const robot = ROBOTS.find(r => r.id === b.robotId);
+    const statusClass = b.status === 'completato' ? 'status-available' : b.status === 'escrow' ? 'status-busy' : 'status-available';
+    return `<tr>
+      <td>${esc(b.id)}</td>
+      <td>${robot ? robot.avatar + ' ' + esc(robot.name) : '?'}</td>
+      <td>${esc(b.service)}</td>
+      <td>${b.date}</td>
+      <td>${b.hours}h</td>
+      <td>${b.amount} ${b.currency}</td>
+      <td><span class="status-badge ${statusClass}">${esc(b.status)}</span></td>
+      <td>${b.status === 'completato' ? `<button class="btn btn-sm btn-outline" onclick="openReview(${b.robotId})">⭐ Recensisci</button>` : b.status === 'escrow' ? `<button class="btn btn-sm btn-success" onclick="releaseEscrow('${b.id}')">✅ Rilascia</button>` : '—'}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('bk-active').textContent = BOOKINGS.filter(b => b.status === 'confermato' || b.status === 'escrow').length;
+  document.getElementById('bk-completed').textContent = BOOKINGS.filter(b => b.status === 'completato').length;
+  document.getElementById('bk-escrow').textContent = BOOKINGS.filter(b => b.status === 'escrow').length;
+  document.getElementById('bk-total').textContent = BOOKINGS.filter(b => b.currency === 'MYZ').reduce((s, b) => s + b.amount, 0) + ' MYZ';
+}
+
+function releaseEscrow(bookingId) {
+  const b = BOOKINGS.find(x => x.id === bookingId);
+  if (!b) return;
+  b.status = 'completato';
+  showToast('✅ Pagamento rilasciato! ' + b.amount + ' ' + b.currency + ' sbloccato.');
+  renderBookings();
+}
+
+// ========== REVIEWS ==========
+function openReview(robotId) {
+  reviewRobotId = robotId;
+  selectedStar = 0;
+  const robot = ROBOTS.find(r => r.id === robotId);
+  document.getElementById('review-robot-name').textContent = (robot ? robot.avatar + ' ' : '') + esc(robot ? robot.name : 'Robot');
+  document.getElementById('review-text').value = '';
+  document.querySelectorAll('#star-selector span').forEach(el => el.textContent = '☆');
+  document.getElementById('review-modal').classList.add('open');
+}
+
+function setStar(n) {
+  selectedStar = n;
+  document.querySelectorAll('#star-selector span').forEach((el, i) => {
+    el.textContent = i < n ? '★' : '☆';
+  });
+}
+
+function submitReview() {
+  if (selectedStar === 0) { showToast('⚠️ Seleziona una valutazione.'); return; }
+  const text = document.getElementById('review-text').value.trim();
+  if (!text) { showToast('⚠️ Scrivi un commento.'); return; }
+  const robot = ROBOTS.find(r => r.id === reviewRobotId);
+  if (!robot) return;
+  robot.reviews.push({ user: '@waterWang', stars: selectedStar, text: text, date: today() });
+  // Recalculate rating
+  const totalStars = robot.reviews.reduce((s, r) => s + r.stars, 0);
+  robot.rating = Math.round((totalStars / robot.reviews.length) * 10) / 10;
+  showToast('⭐ Recensione inviata! Grazie.');
+  closeModal('review-modal');
+  renderMarketplace();
+}
+
+// ========== DETAIL ==========
+function showDetail(robotId) {
+  const robot = ROBOTS.find(r => r.id === robotId);
+  if (!robot) return;
+  const modal = document.getElementById('detail-content');
+  modal.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+      <span style="font-size:3rem;">${robot.avatar}</span>
+      <div>
+        <h2 style="margin:0;">${esc(robot.name)}</h2>
+        <div class="meta">
+          <span class="stars">${'★'.repeat(Math.floor(robot.rating))}${robot.rating % 1 >= 0.5 ? '½' : ''} (${robot.rating})</span>
+          <span class="status-badge status-${robot.status}">${robot.status}</span>
+        </div>
+      </div>
+    </div>
+    <div class="field"><label>Descrizione</label><p>${esc(robot.desc)}</p></div>
+    <div class="field"><label>Prezzo</label><p><strong>${robot.price} ${robot.currency}/h</strong></p></div>
+    <div class="field"><label>Tag</label><div class="tags">${robot.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div></div>
+    <div class="field"><label>Recensioni (${robot.reviews.length})</label>
+      ${robot.reviews.length === 0 ? '<p style="color:var(--text-soft)">Nessuna recensione ancora.</p>' :
+        robot.reviews.map(r => `
+          <div class="review-item">
+            <div class="review-header"><span class="reviewer">${esc(r.user)}</span><span class="review-date">${r.date}</span></div>
+            <div class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5 - r.stars)}</div>
+            <div class="review-text">${esc(r.text)}</div>
+          </div>
+        `).join('')}
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="closeModal('detail-modal')">Chiudi</button>
+      <button class="btn btn-primary" onclick="closeModal('detail-modal');openBooking(${robot.id})">Prenota</button>
+    </div>
+  `;
+  document.getElementById('detail-modal').classList.add('open');
+}
+
+// ========== DASHBOARD ==========
+function renderManagerDashboard() {
+  document.getElementById('mg-robots').textContent = MANAGER_ROBOTS.length;
+  document.getElementById('mg-bookings').textContent = MANAGER_ROBOTS.reduce((s, r) => s + r.bookings, 0);
+  document.getElementById('mg-earnings').textContent = MANAGER_ROBOTS.reduce((s, r) => s + r.earnings, 0) + ' MYZ';
+  document.getElementById('mg-rating').textContent = (MANAGER_ROBOTS.reduce((s, r) => s + r.rating, 0) / MANAGER_ROBOTS.length).toFixed(1);
+
+  const tbody = document.getElementById('manager-table');
+  tbody.innerHTML = MANAGER_ROBOTS.map(r => `
+    <tr>
+      <td>${r.avatar} ${esc(r.name)}</td>
+      <td>${r.bookings}</td>
+      <td>${r.earnings} MYZ</td>
+      <td class="stars">${'★'.repeat(Math.floor(r.rating))}</td>
+      <td><span class="status-badge status-${r.status}">${r.status}</span></td>
+      <td><button class="btn btn-sm btn-outline" onclick="showToast('📊 Dettaglio robot in arrivo...')">Dettaglio</button></td>
+    </tr>
+  `).join('');
+}
+
+function initCharts() {
+  // Earnings chart
+  const ctx1 = document.getElementById('earnings-chart');
+  if (ctx1._chart) ctx1._chart.destroy();
+  ctx1._chart = new Chart(ctx1, {
+    type: 'line',
+    data: {
+      labels: ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'],
+      datasets: [{
+        label: 'MYZ',
+        data: EARNINGS_HISTORY,
+        borderColor: '#8b5cf6',
+        backgroundColor: 'rgba(139,92,246,0.1)',
+        fill: true,
+        tension: 0.3,
+        pointBackgroundColor: '#8b5cf6',
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9aa7b8' } },
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9aa7b8' } }
+      }
+    }
+  });
+
+  // Popular chart
+  const ctx2 = document.getElementById('popular-chart');
+  if (ctx2._chart) ctx2._chart.destroy();
+  ctx2._chart = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: MANAGER_ROBOTS.map(r => r.name),
+      datasets: [{
+        label: 'Booking',
+        data: MANAGER_ROBOTS.map(r => r.bookings),
+        backgroundColor: ['#8b5cf6', '#2ecc71', '#3498db'],
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9aa7b8' } },
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9aa7b8' } }
+      }
+    }
+  });
+}
+
+// ========== UTILITY ==========
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function today() { return new Date().toISOString().split('T')[0]; }
+function typeIcon(t) { return { consegna: '🚚', pulizia: '🧹', riparazione: '🔧', assistenza: '🆘', trasporto: '📦', giardinaggio: '🌿' }[t] || '🤖'; }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div'); t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--surface);color:var(--text);padding:14px 24px;border-radius:12px;border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,0.4);z-index:2000;font-size:0.95rem;transition:opacity 0.3s;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  setTimeout(() => { t.style.opacity = '0'; }, 3000);
+}
+
+// ========== INIT ==========
+renderMarketplace();
+renderKPIs();
+renderBookings();
+</script>
+</body>
+</html>
