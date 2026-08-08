@@ -1,134 +1,149 @@
 <!DOCTYPE html>
-<html lang="it">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyZubster Admin Dashboard</title>
+    <title>MyZubster - System Status</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f6fa; padding: 20px; }
-        .container { max-width: 1400px; margin: 0 auto; }
-        .header { background: #2c3e50; color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-        .header h1 { font-size: 24px; }
-        .header .subtitle { opacity: 0.8; font-size: 14px; margin-top: 5px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px; }
-        .stat-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .stat-card h3 { color: #7f8c8d; font-size: 14px; text-transform: uppercase; margin-bottom: 10px; }
-        .stat-card .number { font-size: 32px; font-weight: bold; color: #2c3e50; }
-        .stat-card .label { color: #95a5a6; font-size: 12px; margin-top: 5px; }
-        .section { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .section h2 { color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; }
-        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
-        .status-ok { background: #d4edda; color: #155724; }
-        .status-error { background: #f8d7da; color: #721c24; }
-        .status-warning { background: #fff3cd; color: #856404; }
-        .refresh-btn { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px; }
-        .refresh-btn:hover { background: #2980b9; }
-        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; font-size: 12px; }
-        .loading { text-align: center; padding: 40px; color: #7f8c8d; }
-        .monero-status { margin-top: 10px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: #1a237e; margin-bottom: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .card h3 { color: #333; margin-bottom: 10px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        .card .value { font-size: 28px; font-weight: bold; color: #1a237e; }
+        .card .sub { color: #666; font-size: 14px; margin-top: 5px; }
+        .status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .online { background: #e8f5e9; color: #2e7d32; }
+        .offline { background: #ffebee; color: #c62828; }
+        .degraded { background: #fff3e0; color: #e65100; }
+        .logs { background: #1a1a2e; color: #e0e0e0; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 12px; overflow: auto; max-height: 300px; }
+        .log-entry { padding: 4px 0; border-bottom: 1px solid #333; }
+        .log-info { color: #4fc3f7; }
+        .log-warn { color: #ffb74d; }
+        .log-error { color: #ef5350; }
+        .refresh { background: #1a237e; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        .refresh:hover { background: #283593; }
+        .timestamp { color: #666; font-size: 14px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 MyZubster Admin Dashboard</h1>
-            <div class="subtitle">Gateway v1.0.0 - Sistema di pagamenti Monero</div>
+            <h1>🏠 MyZubster System Status</h1>
+            <div>
+                <span class="timestamp" id="timestamp"></span>
+                <button class="refresh" onclick="loadStatus()">🔄 Refresh</button>
+            </div>
         </div>
-
-        <button class="refresh-btn" onclick="loadStats()">🔄 Aggiorna Dati</button>
-        <br><br>
-
-        <div id="stats-container">
-            <div class="loading">⏳ Caricamento statistiche...</div>
-        </div>
-
-        <div class="section">
-            <h2>📊 Dati Raw (JSON)</h2>
-            <pre id="raw-data">Nessun dato caricato</pre>
+        <div id="status">
+            <div style="text-align:center;padding:40px;color:#666;">
+                <div style="font-size:24px;margin-bottom:10px;">⏳</div>
+                <div>Caricamento status in corso...</div>
+            </div>
         </div>
     </div>
 
     <script>
-        async function loadStats() {
-            const container = document.getElementById('stats-container');
-            const rawData = document.getElementById('raw-data');
-            
-            container.innerHTML = '<div class="loading">⏳ Caricamento...</div>';
-            
+        async function loadStatus() {
             try {
-                const response = await fetch('/api/admin/stats');
+                const response = await fetch('/api/status');
                 const data = await response.json();
                 
                 if (!data.success) {
-                    throw new Error(data.error || 'Errore sconosciuto');
+                    document.getElementById('status').innerHTML = '<p style="color:red;">❌ Error loading status</p>';
+                    return;
                 }
 
-                renderStats(data.data);
-                rawData.textContent = JSON.stringify(data, null, 2);
+                const s = data.data;
+                document.getElementById('timestamp').textContent = '🕐 ' + new Date().toLocaleTimeString();
+                
+                let html = '<div class="status-grid">';
+                
+                // Gateway
+                const uptimeHours = (s.gateway.uptime / 3600).toFixed(1);
+                html += `
+                    <div class="card">
+                        <h3>🚀 Gateway</h3>
+                        <div class="value">${uptimeHours}h</div>
+                        <div class="sub">Uptime: ${s.gateway.uptime.toFixed(0)}s</div>
+                        <div class="status online">● Online</div>
+                    </div>
+                `;
+
+                // MongoDB
+                const mongoStatus = s.mongodb.status === 'connected' ? 'online' : 'offline';
+                const mongoLabel = s.mongodb.status === 'connected' ? '✅ Connesso' : '❌ Disconnesso';
+                html += `
+                    <div class="card">
+                        <h3>🗄️ MongoDB</h3>
+                        <div class="value">${mongoLabel}</div>
+                        <div class="sub">ReadyState: ${s.mongodb.readyState}</div>
+                        <div class="status ${mongoStatus}">${s.mongodb.status}</div>
+                    </div>
+                `;
+
+                // Robots
+                html += `
+                    <div class="card">
+                        <h3>🤖 Robot</h3>
+                        <div class="value">${s.robots.active}/${s.robots.total}</div>
+                        <div class="sub">🟢 ${s.robots.online} online | 🔴 ${s.robots.offline} offline</div>
+                        <div class="status online">${s.robots.active} attivi</div>
+                    </div>
+                `;
+
+                // Memory
+                const memUsed = (s.gateway.memory.used / 1024 / 1024 / 1024).toFixed(2);
+                const memTotal = (s.gateway.memory.total / 1024 / 1024 / 1024).toFixed(2);
+                const memPercent = ((s.gateway.memory.used / s.gateway.memory.total) * 100).toFixed(1);
+                html += `
+                    <div class="card">
+                        <h3>💾 Memoria</h3>
+                        <div class="value">${memUsed}GB</div>
+                        <div class="sub">di ${memTotal}GB (${memPercent}%)</div>
+                        <div class="status ${memPercent > 80 ? 'degraded' : 'online'}">${memPercent}% usata</div>
+                    </div>
+                `;
+
+                html += '</div>';
+
+                // Services
+                html += `<div class="card"><h3>🔧 Servizi</h3><div class="status-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">`;
+                for (const [name, service] of Object.entries(s.services)) {
+                    const statusClass = service.status === 'online' ? 'online' : 'offline';
+                    html += `
+                        <div>
+                            <strong>${name}</strong><br>
+                            <span class="status ${statusClass}">${service.status}</span>
+                        </div>
+                    `;
+                }
+                html += '</div></div>';
+
+                // Logs
+                html += `<div class="card"><h3>📋 Log Recenti</h3><div class="logs">`;
+                if (s.logs.length === 0) {
+                    html += '<div style="color:#666;padding:10px;">Nessun log disponibile</div>';
+                } else {
+                    s.logs.forEach(log => {
+                        const levelClass = `log-${log.level}`;
+                        html += `<div class="log-entry ${levelClass}">[${new Date(log.timestamp).toLocaleTimeString()}] ${log.message}</div>`;
+                    });
+                }
+                html += '</div></div>';
+
+                document.getElementById('status').innerHTML = html;
             } catch (error) {
-                container.innerHTML = `<div class="loading" style="color:red;">❌ Errore: ${error.message}</div>`;
-                rawData.textContent = 'Errore: ' + error.message;
+                document.getElementById('status').innerHTML = '<p style="color:red;">❌ Error loading status: ' + error.message + '</p>';
             }
         }
 
-        function renderStats(stats) {
-            const container = document.getElementById('stats-container');
-            
-            const cards = [
-                { label: '👥 Utenti', value: stats.users?.total || 0 },
-                { label: '📦 Ordini Totali', value: stats.orders?.total || 0 },
-                { label: '📦 Ordini Aperti', value: stats.orders?.open || 0 },
-                { label: '💳 Pagamenti Totali', value: stats.payments?.total || 0 },
-                { label: '⏳ Pagamenti Pendenti', value: stats.payments?.pending || 0 },
-                { label: '✅ Pagamenti Completati', value: stats.payments?.completed || 0 },
-                { label: '🗄️ Collezioni DB', value: stats.database?.collections || 0 },
-                { label: '⏱️ Uptime', value: formatUptime(stats.uptime) },
-            ];
-
-            let html = '<div class="stats-grid">';
-            cards.forEach(card => {
-                html += `
-                    <div class="stat-card">
-                        <h3>${card.label}</h3>
-                        <div class="number">${card.value}</div>
-                    </div>
-                `;
-            });
-            html += '</div>';
-
-            // Status servizi
-            html += `<div class="section" style="margin-top:20px;">
-                <h2>🔧 Stato Servizi</h2>
-                <div>
-                    <p><strong>MongoDB:</strong> <span class="status-badge ${stats.database ? 'status-ok' : 'status-error'}">${stats.database ? '✅ Connesso' : '❌ Disconnesso'}</span></p>
-                    <p><strong>Monero:</strong> <span class="status-badge status-warning">⏳ In attesa...</span></p>
-                    <p><strong>Node.js:</strong> ${stats.nodeVersion || 'N/A'}</p>
-                    <p><strong>Piattaforma:</strong> ${stats.platform || 'N/A'}</p>
-                    <p><strong>Ultimo aggiornamento:</strong> ${new Date(stats.timestamp).toLocaleString()}</p>
-                </div>
-            </div>`;
-
-            container.innerHTML = html;
-        }
-
-        function formatUptime(seconds) {
-            if (!seconds) return '0s';
-            const days = Math.floor(seconds / 86400);
-            const hours = Math.floor((seconds % 86400) / 3600);
-            const mins = Math.floor((seconds % 3600) / 60);
-            const secs = Math.floor(seconds % 60);
-            if (days > 0) return `${days}d ${hours}h ${mins}m`;
-            if (hours > 0) return `${hours}h ${mins}m ${secs}s`;
-            if (mins > 0) return `${mins}m ${secs}s`;
-            return `${secs}s`;
-        }
-
-        // Carica i dati all'avvio
-        loadStats();
-
-        // Aggiornamento automatico ogni 60 secondi
-        setInterval(loadStats, 60000);
+        // Load status on page load
+        loadStatus();
+        
+        // Auto-refresh every 30 seconds
+        setInterval(loadStatus, 30000);
     </script>
 </body>
 </html>

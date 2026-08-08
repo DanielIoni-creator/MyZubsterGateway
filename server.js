@@ -145,3 +145,10 @@ app.listen(PORT, () => {
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🔒 Security: Rate Limiting, Helmet, CORS, Sanitization, XSS, HPP`);
 });
+
+// Status Routes
+const statusRoutes = require("./routes/statusRoutes");
+app.use("/api/status", statusRoutes);
+
+// Serve static files (HTML, CSS, JS)
+app.use(express.static('public'));
