@@ -35,6 +35,7 @@ app.use(express.json());
 app.use(limiter);
 
 // Import routes
+const comunicazioneMarteTerraRoutes = require('./routes/comunicazioneMarteTerra');
 const stampa3DMarteRoutes = require('./routes/stampa3DMarte');
 const energiaMarteRoutes = require('./routes/energiaMarte');
 const baseMarteRoutes = require('./routes/baseMarte');
@@ -85,6 +86,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes API
+app.use('/api/comunicazione-marte-terra', comunicazioneMarteTerraRoutes);
 app.use('/api/stampa-3d-marte', stampa3DMarteRoutes);
 app.use('/api/energia-marte', energiaMarteRoutes);
 app.use('/api/base-marte', baseMarteRoutes);
