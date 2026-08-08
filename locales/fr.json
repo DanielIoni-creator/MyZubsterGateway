@@ -1,0 +1,35 @@
+{
+  "health": {
+    "message": "{{service}} Gateway est opérationnel !"
+  },
+  "auth": {
+    "loginEndpoint": "Point de connexion",
+    "registerEndpoint": "Point d'inscription",
+    "required": "Authentification requise"
+  },
+  "admin": {
+    "required": "Privilèges administrateur requis"
+  },
+  "validation": {
+    "targetUrlRequired": "targetUrl est obligatoire"
+  },
+  "webhooks": {
+    "sentWithRetry": "Webhook envoyé avec nouvelle tentative automatique"
+  },
+  "errors": {
+    "internal": "Erreur interne du serveur"
+  },
+  "marketplace": {
+    "title": "Marketplace",
+    "noItems": "Aucun article disponible",
+    "search": "Rechercher...",
+    "buy": "Acheter",
+    "sell": "Vendre"
+  },
+  "navigation": {
+    "home": "Accueil",
+    "dashboard": "Tableau de bord",
+    "settings": "Paramètres",
+    "logout": "Déconnexion"
+  }
+}
